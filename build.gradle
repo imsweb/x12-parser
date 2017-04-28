@@ -6,7 +6,7 @@ plugins {
 }
 
 group = 'com.imsweb'
-version = '1.0-SNAPSHOT'
+version = '1.0'
 description = 'Java client library for parsing x12 files'
 
 // UTF-8 for all compilation tasks
