@@ -1,0 +1,84 @@
+plugins {
+    id 'java'
+    id 'checkstyle'
+    id 'findbugs'
+    id 'com.bmuschko.nexus' version '2.3.1'
+}
+
+group = 'com.imsweb'
+version = '1.0-SNAPSHOT'
+description = 'Java client library for parsing x12 files'
+
+// UTF-8 for all compilation tasks
+[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'com.thoughtworks.xstream:xstream:1.4.9'
+
+    testCompile 'junit:junit:4.12'
+}
+
+jar {
+    manifest {
+        attributes('Implementation-Title': project.name,
+                'Implementation-Version': version,
+                'Implementation-Vendor': group,
+                'Created-By': System.properties['java.vm.version'] + ' (' + System.properties['java.vm.vendor'] + ')',
+                'Built-By': System.getProperty('user.name'),
+                'Built-Date': new Date(),
+                'Built-JDK': System.getProperty('java.version'),
+        )
+    }
+}
+
+checkstyle {
+    configFile = file('config/checkstyle/checkstyle.xml')
+}
+
+findbugs {
+    excludeFilter = file('config/findbugs/findbugs-exclude.xml')
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '3.5'
+}
+
+modifyPom {
+    project {
+        name 'X12 Parser'
+        description 'A Java library for parsing X12 files, including ANSI 837'
+        url 'https://github.com/imsweb/x12-parser'
+        inceptionYear '2015'
+
+        scm {
+            url 'https://github.com/imsweb/x12-parser'
+            connection 'scm:https://github.com/imsweb/x12-parser.git'
+            developerConnection 'scm:git@github.com:imsweb/x12-parser.git'
+        }
+
+        licenses {
+            license {
+                name 'A modified BSD License (BSD)'
+                url 'https://github.com/imsweb/x12-parser/blob/master/LICENSE'
+                distribution 'repo'
+            }
+        }
+
+        developers {
+            developer {
+                id 'AngelaszekD'
+                name 'David Angelaszek'
+                email 'AngelaszekD@imsweb.com'
+            }
+            developer {
+                id 'ctmay4'
+                name 'Chuck May'
+                email 'mayc@imsweb.com'
+            }
+        }
+    }
+}

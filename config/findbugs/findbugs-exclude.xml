@@ -1,0 +1,17 @@
+<FindBugsFilter>
+    <Match>
+        <Bug category="MALICIOUS_CODE" />
+    </Match>
+    <Match>
+        <Bug pattern="OBL_UNSATISFIED_OBLIGATION_EXCEPTION_EDGE"/>
+    </Match>
+    <Match>
+        <!-- Ignore lab classes -->
+        <Package name="~com\.imsweb\.x12\.lab.*"/>
+    </Match>
+    <Match>
+        <!-- This bug doesn't need to be reported in LoopTest -->
+        <Class name="com.imsweb.x12.LoopTest"/>
+        <Bug pattern="RV_RETURN_VALUE_IGNORED_INFERRED"/>
+    </Match>
+</FindBugsFilter>
