@@ -54,6 +54,7 @@ public class X12Reader {
         ANSI837_4010_X097("mapping/837.4010.X097.A1.xml"),
         ANSI837_4010_X098("mapping/837.4010.X098.A1.xml"),
         ANSI837_5010_X222("mapping/837.5010.X222.A1.xml");
+        ANSI837_5010_X223("mapping/837Q3.I.5010.X223.A1.xml";)
 
         private String _mapping;
 
