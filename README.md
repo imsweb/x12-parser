@@ -13,6 +13,7 @@ The library supports the following file types:
 - ANSI 837 4010 X097
 - ANSI 837 4010 X098
 - ANSI 837 5010 X222
+- ANSI 837 5010 X223
 
 ## Download
 
