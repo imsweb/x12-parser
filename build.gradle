@@ -2,7 +2,8 @@ plugins {
     id 'java'
     id 'checkstyle'
     id 'findbugs'
-    id 'com.bmuschko.nexus' version '2.3.1'
+    id 'com.bmuschko.nexus' version '2.3.1'         // prepares and copies artifacts to Sonotype OSS
+    id "io.codearte.nexus-staging" version "0.8.0"  // logs into Sonotype OSS and does a "Close" and "Release"
 }
 
 group = 'com.imsweb'
@@ -43,6 +44,10 @@ findbugs {
     excludeFilter = file('config/findbugs/findbugs-exclude.xml')
 }
 
+// don't try to release a snapshot to a non-snapshot repository, that won't work anyway
+if (version.endsWith('-SNAPSHOT'))
+    gradle.startParameter.excludedTaskNames += 'closeAndReleaseRepository'
+    
 task wrapper(type: Wrapper) {
     gradleVersion = '3.5'
 }
