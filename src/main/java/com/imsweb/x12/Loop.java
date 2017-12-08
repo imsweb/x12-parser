@@ -16,6 +16,8 @@ import com.thoughtworks.xstream.io.json.JsonHierarchicalStreamDriver;
 import com.thoughtworks.xstream.io.json.JsonWriter;
 import com.thoughtworks.xstream.io.xml.PrettyPrintWriter;
 import com.thoughtworks.xstream.io.xml.StaxDriver;
+import com.thoughtworks.xstream.security.NoTypePermission;
+import com.thoughtworks.xstream.security.WildcardTypePermission;
 
 import com.imsweb.x12.converters.ElementConverter;
 
@@ -564,6 +566,10 @@ public class Loop implements Iterable<Segment> {
         xstream.useAttributeFor(Segment.class, "_id");
         xstream.registerConverter(new ElementConverter());
 
+        // setup proper security by limiting what classes can be loaded by XStream
+        xstream.addPermission(NoTypePermission.NONE);
+        xstream.addPermission(new WildcardTypePermission(new String[] {"com.imsweb.x12.**"}));
+
         StringWriter writer = new StringWriter();
         xstream.marshal(this, new PrettyPrintWriter(writer));
 
@@ -582,6 +588,10 @@ public class Loop implements Iterable<Segment> {
         });
 
         xstream.autodetectAnnotations(true);
+
+        // setup proper security by limiting what classes can be loaded by XStream
+        xstream.addPermission(NoTypePermission.NONE);
+        xstream.addPermission(new WildcardTypePermission(new String[] {"com.imsweb.x12.**"}));
 
         return xstream.toXML(this);
     }

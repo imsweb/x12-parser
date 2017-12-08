@@ -21,6 +21,8 @@ import java.util.stream.Collectors;
 
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.StaxDriver;
+import com.thoughtworks.xstream.security.NoTypePermission;
+import com.thoughtworks.xstream.security.WildcardTypePermission;
 
 import com.imsweb.x12.Loop;
 import com.imsweb.x12.Segment;
@@ -73,6 +75,10 @@ public class X12Reader {
                 XStream xstream = new XStream(new StaxDriver());
                 xstream.autodetectAnnotations(true);
                 xstream.alias("transaction", TransactionDefinition.class);
+
+                // setup proper security by limiting what classes can be loaded by XStream
+                xstream.addPermission(NoTypePermission.NONE);
+                xstream.addPermission(new WildcardTypePermission(new String[] {"com.imsweb.x12.**"}));
 
                 TransactionDefinition def = (TransactionDefinition)xstream.fromXML(Thread.currentThread().getContextClassLoader().getResourceAsStream(_mapping));
                 _DEFINITIONS.put(_mapping, def);

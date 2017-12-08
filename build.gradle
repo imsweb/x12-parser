@@ -18,7 +18,7 @@ repositories {
 }
 
 dependencies {
-    compile 'com.thoughtworks.xstream:xstream:1.4.9'
+    compile 'com.thoughtworks.xstream:xstream:1.4.10'
 
     testCompile 'junit:junit:4.12'
 }
@@ -47,10 +47,6 @@ findbugs {
 // don't try to release a snapshot to a non-snapshot repository, that won't work anyway
 if (version.endsWith('-SNAPSHOT'))
     gradle.startParameter.excludedTaskNames += 'closeAndReleaseRepository'
-    
-task wrapper(type: Wrapper) {
-    gradleVersion = '3.5'
-}
 
 modifyPom {
     project {
@@ -86,4 +82,8 @@ modifyPom {
             }
         }
     }
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '4.2'
 }

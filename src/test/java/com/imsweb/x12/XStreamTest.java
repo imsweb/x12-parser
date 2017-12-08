@@ -10,6 +10,8 @@ import org.junit.Test;
 
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.StaxDriver;
+import com.thoughtworks.xstream.security.NoTypePermission;
+import com.thoughtworks.xstream.security.WildcardTypePermission;
 
 import com.imsweb.x12.mapping.TransactionDefinition;
 import com.imsweb.x12.mapping.TransactionDefinition.Usage;
@@ -21,6 +23,10 @@ public class XStreamTest {
         XStream xstream = new XStream(new StaxDriver());
         xstream.autodetectAnnotations(true);
         xstream.alias("transaction", TransactionDefinition.class);
+
+        // setup proper security by limiting what classes can be loaded by XStream
+        xstream.addPermission(NoTypePermission.NONE);
+        xstream.addPermission(new WildcardTypePermission(new String[] {"com.imsweb.x12.**"}));
 
         ClassLoader classloader = Thread.currentThread().getContextClassLoader();
         InputStream is = classloader.getResourceAsStream("mapping/837.5010.X222.A1.xml");
