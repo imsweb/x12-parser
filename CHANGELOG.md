@@ -1,5 +1,9 @@
 ## X12 parser Version History
 
+**Changes in version 1.3**
+
+ - Fix a bug in the handling of separators.
+
 **Changes in version 1.2**
 
  - Added a proper security environment to XStream by limiting the classes that it can create when loading XML files.
