@@ -187,6 +187,7 @@ public class X12Reader {
             getLoopConfiguration(_definition.getLoop(), null);
 
             _dataLoop = new Loop(null);
+            _dataLoop.setSeparators(separators);
             _errors = new ArrayList<>();
 
             String line = scanner.next().trim();
@@ -202,7 +203,7 @@ public class X12Reader {
                     if (_dataLoop.getId() == null && loopLines.size() > 0) {
                         _dataLoop.setId(previousLoopId);
                         for (String s : loopLines) {
-                            Segment seg = new Segment();
+                            Segment seg = new Segment(_dataLoop.getSeparators());
                             seg.addElements(s);
                             _dataLoop.addSegment(seg);
                         }
@@ -210,7 +211,7 @@ public class X12Reader {
                     else if (_dataLoop.getId() != null) {
                         if (currentLoopId == null)
                             currentLoopId = previousLoopId;
-                        currentLoopId = storeData(previousLoopId, loopLines, currentLoopId);
+                        currentLoopId = storeData(previousLoopId, loopLines, currentLoopId, _dataLoop.getSeparators());
                     }
 
                     loopLines = new ArrayList<>();
@@ -228,7 +229,7 @@ public class X12Reader {
                 }
             }
 
-            storeData(previousLoopId, loopLines, currentLoopId);
+            storeData(previousLoopId, loopLines, currentLoopId, separators);
 
             //checking the loop data to see if there any requirements violations
             for (LoopConfig lc : _config) {
@@ -309,10 +310,10 @@ public class X12Reader {
      * @return loopID----the id of the loop that was just stored
      */
 
-    private String storeData(String currentLoopId, List<String> loopLines, String prevousLoopId) {
-        Loop newLoop = new Loop(currentLoopId);
+    private String storeData(String currentLoopId, List<String> loopLines, String prevousLoopId, Separators separators) {
+        Loop newLoop = new Loop(separators, currentLoopId);
         for (String s : loopLines) {
-            Segment seg = new Segment();
+            Segment seg = new Segment(separators);
             seg.addElements(s);
             newLoop.addSegment(seg);
         }
@@ -339,12 +340,12 @@ public class X12Reader {
 
             if (!_dataLoop.getLoop(primaryIndex).getLoop(secondaryIndex).getId().equals(parentName)) { //if the parent loop of the loop we want to create is NOT the second loop in the path
                 int index = _dataLoop.getLoop(primaryIndex).getLoop(secondaryIndex).getLoop(parentName).getLoops().size();
-                _dataLoop.getLoop(primaryIndex).getLoop(secondaryIndex).getLoop(parentName).addLoop(index, new Loop(oldParentName));
+                _dataLoop.getLoop(primaryIndex).getLoop(secondaryIndex).getLoop(parentName).addLoop(index, new Loop(separators, oldParentName));
 
             }
             else { //parent loop of the loop we want to create is the second loop in the path
                 int index = _dataLoop.getLoop(primaryIndex).getLoop(parentName, secondaryIndex).getLoops().size();
-                _dataLoop.getLoop(primaryIndex).getLoop(parentName, secondaryIndex).addLoop(index, new Loop(oldParentName));
+                _dataLoop.getLoop(primaryIndex).getLoop(parentName, secondaryIndex).addLoop(index, new Loop(separators, oldParentName));
 
             }
             _dataLoop.getLoop(primaryIndex).getLoop(secondaryIndex).getLoop(oldParentName).addLoop(0, newLoop);
