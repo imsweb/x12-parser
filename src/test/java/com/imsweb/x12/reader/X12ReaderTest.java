@@ -19,6 +19,13 @@ import com.imsweb.x12.reader.X12Reader.FileType;
 public class X12ReaderTest {
 
     @Test
+    public void testDifferentSeparators() throws IOException {
+        URL url = this.getClass().getResource("/837_5010/x12_valid_different_separators.txt");
+        X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
+        validate837Valid(reader.getLoop());
+    }
+
+    @Test
     public void testConstructors() throws IOException {
         URL url = this.getClass().getResource("/837_5010/x12_valid.txt");
 
@@ -377,7 +384,8 @@ public class X12ReaderTest {
         Assert.assertEquals("A37YH556", loop.getLoop("2300").getSegment("CLM").getElementValue("CLM01"));
         Assert.assertEquals("BK", loop.getLoop("2300").getSegment("HI").getElementValue("HI01"));
         Assert.assertEquals("1", loop.getLoop("2400").getSegment("LX").getElementValue("LX01"));
-        Assert.assertEquals("HC:99211:25", loop.getLoop("2400").getSegment("SV1").getElementValue("SV101"));
+        Character compositeSeparator = loop.getLoop("2400").getSegment("SV1").getSeparators().getCompositeElement();
+        Assert.assertEquals("HC" + compositeSeparator + "99211" + compositeSeparator + "25", loop.getLoop("2400").getSegment("SV1").getElementValue("SV101"));
         Assert.assertEquals("RD8", loop.getLoop("2400").getSegment("DTP").getElementValue("DTP02"));
 
         // Tests of differences between repeating loops
@@ -404,8 +412,9 @@ public class X12ReaderTest {
         Assert.assertEquals("1", loop.getLoop("2400", 0).getSegment("LX").getElementValue("LX01"));
         Assert.assertEquals("2", loop.getLoop("2400", 1).getSegment("LX").getElementValue("LX01"));
 
-        Assert.assertEquals("HC:99211:25", loop.getLoop("2400", 0).getSegment("SV1").getElementValue("SV101"));
-        Assert.assertEquals("HC:478331:25", loop.getLoop("2400", 1).getSegment("SV1").getElementValue("SV101"));
+        compositeSeparator = loop.getLoop("2400", 1).getSegment("SV1").getSeparators().getCompositeElement();
+        Assert.assertEquals("HC" + compositeSeparator + "99211" + compositeSeparator + "25", loop.getLoop("2400", 0).getSegment("SV1").getElementValue("SV101"));
+        Assert.assertEquals("HC" + compositeSeparator + "478331" + compositeSeparator + "25", loop.getLoop("2400", 1).getSegment("SV1").getElementValue("SV101"));
         Assert.assertEquals(3, loop.getLoop("2400", 1).getSegment("SV1").getElement("SV101").getNumOfSubElements());
         Assert.assertEquals("478331", loop.getLoop("2400", 1).getSegment("SV1").getElement("SV101", 1));
         Assert.assertNull(loop.getLoop("2400", 1).getSegment("SV1").getElement("SV101", 3));
