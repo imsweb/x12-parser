@@ -569,7 +569,7 @@ public class X12Reader {
                 String[] tokens = segment.split(Pattern.quote(separators.getElement().toString()));
                 if (tokens[0].equals(segmentConf.getXid()) && codesValidated(tokens, segmentConf)) {
                     String currentPos = segmentConf.getPos();
-                    if(previousPos != null && Integer.parseInt(previousPos) > Integer.parseInt(currentPos))
+                    if (previousPos != null && Integer.parseInt(previousPos) > Integer.parseInt(currentPos))
                         _errors.add("Segment " + segmentConf.getXid() + " in loop " + loopId + " is not in the correct position.");
 
                     segmentCounter[i]++;
