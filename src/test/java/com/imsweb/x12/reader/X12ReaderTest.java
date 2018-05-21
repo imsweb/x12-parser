@@ -531,4 +531,17 @@ public class X12ReaderTest {
         Assert.assertEquals("AN INSURANCE COMPANY", loop.getLoop("ST_LOOP", 1).getLoop("2010BB", 1).getSegment("NM1").getElementValue("NM103"));
     }
 
+    @Test
+    public void testSegmentsNotInOrder() throws Exception {
+        URL url = this.getClass().getResource("/837_5010/x12_segments_out_of_order.txt");
+        X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
+
+        List<String> errors = reader.getErrors();
+
+        System.out.println(errors);
+        Assert.assertEquals(2, errors.size());
+
+        Assert.assertTrue(errors.contains("Segment N4 in loop 2010AA is not in the correct position."));
+        Assert.assertTrue(errors.contains("Segment N3 in loop 2010AB is not in the correct position."));
+    }
 }
