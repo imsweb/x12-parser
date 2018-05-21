@@ -7,7 +7,7 @@ plugins {
 }
 
 group = 'com.imsweb'
-version = '1.4-SNAPSHOT'
+version = '1.4'
 description = 'Java client library for parsing x12 files'
 
 // UTF-8 for all compilation tasks
@@ -85,5 +85,5 @@ modifyPom {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '4.2'
+    gradleVersion = '4.7'
 }
