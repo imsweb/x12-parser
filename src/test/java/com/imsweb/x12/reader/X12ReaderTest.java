@@ -544,4 +544,12 @@ public class X12ReaderTest {
         Assert.assertTrue(errors.contains("Segment N4 in loop 2010AA is not in the correct position."));
         Assert.assertTrue(errors.contains("Segment N3 in loop 2010AB is not in the correct position."));
     }
+
+    @Test
+    public void testBadFirstLine() throws Exception {
+        URL url = this.getClass().getResource("/837_5010/x12_bad_first_line.txt");
+        X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
+        Assert.assertEquals(1, reader.getErrors().size());
+        Assert.assertTrue(reader.getErrors().contains("Error getting separators"));
+    }
 }

@@ -291,7 +291,7 @@ public class X12Reader {
                 ||
                 Character.isLetter(firstLine[_SEGMENT_SEPARATOR_POS]) || Character.isLetter(firstLine[_ELEMENT_SEPARATOR_POS]) || Character.isLetter(firstLine[_COMPOSITE_SEPARATOR_POS]);
 
-        boolean isWhiteSpace = Character.isSpaceChar(firstLine[_SEGMENT_SEPARATOR_POS]) || Character.isSpaceChar(firstLine[_ELEMENT_SEPARATOR_POS]) || Character.isSpaceChar(
+        boolean isWhiteSpace = Character.isWhitespace(firstLine[_SEGMENT_SEPARATOR_POS]) || Character.isWhitespace(firstLine[_ELEMENT_SEPARATOR_POS]) || Character.isWhitespace(
                 firstLine[_COMPOSITE_SEPARATOR_POS]);
         if (ret != _ISA_LENGTH || (isAlphaNumeric || isWhiteSpace)) {
             _errors.add("Error getting separators");
@@ -828,5 +828,4 @@ public class X12Reader {
 
         return requiredPositions;
     }
-
 }
