@@ -552,4 +552,15 @@ public class X12ReaderTest {
         Assert.assertEquals(1, reader.getErrors().size());
         Assert.assertTrue(reader.getErrors().contains("Error getting separators"));
     }
+
+    @Test
+    public void testConsistentVersions() throws Exception {
+        URL url = this.getClass().getResource("/837_5010/x12_valid.txt");
+        X12Reader reader = new X12Reader(FileType.ANSI837_5010_X223, new File(url.getFile()));
+        Assert.assertEquals(1, reader.getErrors().size());
+        Assert.assertTrue(reader.getErrors().get(0).contains("not consistent with version specified"));
+
+        reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
+        Assert.assertTrue(reader.getErrors().isEmpty());
+    }
 }

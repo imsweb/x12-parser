@@ -41,6 +41,14 @@ public class X12Reader {
     private static int _COMPOSITE_SEPARATOR_POS = 104; // array position
     private static int _SEGMENT_SEPARATOR_POS = 105; // array position
 
+    private static final String X091_ANSI_VERSION = "004010X091A1";
+    private static final String X221_ANSI_VERSION = "005010X221A1";
+    private static final String X096_ANSI_VERSION = "004010X096A1";
+    private static final String X097_ANSI_VERSION = "004010X097A1";
+    private static final String X098_ANSI_VERSION = "004010X098A1";
+    private static final String X222_ANSI_VERSION = "005010X222A1";
+    private static final String X223_ANSI_VERSION = "005010X223A2";
+
     private Loop _dataLoop;
     private List<String> _errors = new ArrayList<>();
     private List<LoopConfig> _config = new ArrayList<>();
@@ -170,7 +178,9 @@ public class X12Reader {
 
         // set up delimiters
         Separators separators = getSeparators(reader);
-        if (separators != null) {
+        boolean consistentVersions = checkVersionsAreConsistent(type, separators, reader);
+        System.out.println(consistentVersions);
+        if (separators != null && consistentVersions) {
             Character segmentSeparator = separators.getSegment();
             String quotedSegmentSeparator = Pattern.quote(segmentSeparator.toString());
             scanner.useDelimiter(quotedSegmentSeparator + "\r\n|" + quotedSegmentSeparator + "\n|" + quotedSegmentSeparator);
@@ -277,6 +287,43 @@ public class X12Reader {
         return requiredChildList;
     }
 
+    private boolean checkVersionsAreConsistent(FileType type, Separators separators, Reader reader) throws IOException {
+        if (reader == null || separators == null || type == null)
+            return false;
+
+        char segmentSeparator = separators.getSegment();
+        char elementSeparator = separators.getElement();
+        int c;
+        StringBuilder line = new StringBuilder();
+
+        while ((c = reader.read()) != -1 && c != segmentSeparator)
+            line.append((char)c);
+
+        // The version is the last element
+        // If we got to the end of the file before the end of the line, don't get the version
+        String version = null;
+        if (c == segmentSeparator) {
+            String lineString = line.toString();
+            int versionStartPos = lineString.lastIndexOf(elementSeparator);
+            if (versionStartPos != -1)
+                version = lineString.substring(versionStartPos + 1, lineString.length());
+        }
+        reader.reset();
+
+        boolean result = (X091_ANSI_VERSION.equals(version) && FileType.ANSI835_4010_X091.equals(type)) ||
+                (X221_ANSI_VERSION.equals(version) && FileType.ANSI835_5010_X221.equals(type)) ||
+                (X096_ANSI_VERSION.equals(version) && FileType.ANSI837_4010_X096.equals(type)) ||
+                (X097_ANSI_VERSION.equals(version) && FileType.ANSI837_4010_X097.equals(type)) ||
+                (X098_ANSI_VERSION.equals(version) && FileType.ANSI837_4010_X098.equals(type)) ||
+                (X222_ANSI_VERSION.equals(version) && FileType.ANSI837_5010_X222.equals(type)) ||
+                (X223_ANSI_VERSION.equals(version) && FileType.ANSI837_5010_X223.equals(type));
+
+        if (!result)
+            _errors.add("ANSI version " + version + " not consistent with version specified " + type);
+
+        return result;
+    }
+
     /**
      * Determines the characters for each separator used in an x12 file
      * @param reader that is used to read the x12 file
@@ -297,8 +344,7 @@ public class X12Reader {
             _errors.add("Error getting separators");
             return null;
         }
-        reader.reset();
-
+        // don't need to reset the reader---we need to check the version on the next line
         return new Separators(firstLine[_SEGMENT_SEPARATOR_POS], firstLine[_ELEMENT_SEPARATOR_POS], firstLine[_COMPOSITE_SEPARATOR_POS]);
     }
 
