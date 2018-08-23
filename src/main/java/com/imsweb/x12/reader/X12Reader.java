@@ -49,7 +49,7 @@ public class X12Reader {
     private static final String X222_ANSI_VERSION = "005010X222A1";
     private static final String X223_ANSI_VERSION = "005010X223A2";
 
-    private static Map<FileType, String> _types = new HashMap<>();
+    private static final Map<FileType, String> _types = new HashMap<>();
 
 
     private Loop _dataLoop;
