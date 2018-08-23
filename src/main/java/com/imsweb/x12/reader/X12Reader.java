@@ -49,7 +49,7 @@ public class X12Reader {
     private static final String X222_ANSI_VERSION = "005010X222A1";
     private static final String X223_ANSI_VERSION = "005010X223A2";
 
-    private static final Map<FileType, String> _types = new HashMap<>();
+    private static final Map<FileType, String> _TYPES = new HashMap<>();
 
 
     private Loop _dataLoop;
@@ -100,13 +100,13 @@ public class X12Reader {
     }
 
     static {
-        _types.put(FileType.ANSI835_4010_X091, X091_ANSI_VERSION);
-        _types.put(FileType.ANSI837_4010_X096, X096_ANSI_VERSION);
-        _types.put(FileType.ANSI837_4010_X097, X097_ANSI_VERSION);
-        _types.put(FileType.ANSI837_4010_X098, X098_ANSI_VERSION);
-        _types.put(FileType.ANSI835_5010_X221, X221_ANSI_VERSION);
-        _types.put(FileType.ANSI837_5010_X222, X222_ANSI_VERSION);
-        _types.put(FileType.ANSI837_5010_X223, X223_ANSI_VERSION);
+        _TYPES.put(FileType.ANSI835_4010_X091, X091_ANSI_VERSION);
+        _TYPES.put(FileType.ANSI837_4010_X096, X096_ANSI_VERSION);
+        _TYPES.put(FileType.ANSI837_4010_X097, X097_ANSI_VERSION);
+        _TYPES.put(FileType.ANSI837_4010_X098, X098_ANSI_VERSION);
+        _TYPES.put(FileType.ANSI835_5010_X221, X221_ANSI_VERSION);
+        _TYPES.put(FileType.ANSI837_5010_X222, X222_ANSI_VERSION);
+        _TYPES.put(FileType.ANSI837_5010_X223, X223_ANSI_VERSION);
     }
 
     /**
@@ -323,13 +323,13 @@ public class X12Reader {
         }
         reader.reset();
 
-        boolean result = (FileType.ANSI835_4010_X091.equals(type) && _types.get(FileType.ANSI835_4010_X091).equals(version)) ||
-                (FileType.ANSI835_5010_X221.equals(type) && _types.get(FileType.ANSI835_5010_X221).equals(version)) ||
-                (FileType.ANSI837_4010_X096.equals(type) && _types.get(FileType.ANSI837_4010_X096).equals(version)) ||
-                (FileType.ANSI837_4010_X097.equals(type) && _types.get(FileType.ANSI837_4010_X097).equals(version)) ||
-                (FileType.ANSI837_4010_X098.equals(type) && _types.get(FileType.ANSI837_4010_X098).equals(version)) ||
-                (FileType.ANSI837_5010_X222.equals(type) && _types.get(FileType.ANSI837_5010_X222).equals(version)) ||
-                (FileType.ANSI837_5010_X223.equals(type) && _types.get(FileType.ANSI837_5010_X223).equals(version));
+        boolean result = (FileType.ANSI835_4010_X091.equals(type) && _TYPES.get(FileType.ANSI835_4010_X091).equals(version)) ||
+                (FileType.ANSI835_5010_X221.equals(type) && _TYPES.get(FileType.ANSI835_5010_X221).equals(version)) ||
+                (FileType.ANSI837_4010_X096.equals(type) && _TYPES.get(FileType.ANSI837_4010_X096).equals(version)) ||
+                (FileType.ANSI837_4010_X097.equals(type) && _TYPES.get(FileType.ANSI837_4010_X097).equals(version)) ||
+                (FileType.ANSI837_4010_X098.equals(type) && _TYPES.get(FileType.ANSI837_4010_X098).equals(version)) ||
+                (FileType.ANSI837_5010_X222.equals(type) && _TYPES.get(FileType.ANSI837_5010_X222).equals(version)) ||
+                (FileType.ANSI837_5010_X223.equals(type) && _TYPES.get(FileType.ANSI837_5010_X223).equals(version));
 
         if (!result)
             _errors.add("ANSI version " + version + " not consistent with version specified " + type);
