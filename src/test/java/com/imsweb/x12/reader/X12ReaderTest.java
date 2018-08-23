@@ -562,5 +562,6 @@ public class X12ReaderTest {
 
         reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
         Assert.assertTrue(reader.getErrors().isEmpty());
+
     }
 }
