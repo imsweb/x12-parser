@@ -41,15 +41,15 @@ public class X12Reader {
     private static int _COMPOSITE_SEPARATOR_POS = 104; // array position
     private static int _SEGMENT_SEPARATOR_POS = 105; // array position
 
-    private static final String X091_ANSI_VERSION = "004010X091A1";
-    private static final String X221_ANSI_VERSION = "005010X221A1";
-    private static final String X096_ANSI_VERSION = "004010X096A1";
-    private static final String X097_ANSI_VERSION = "004010X097A1";
-    private static final String X098_ANSI_VERSION = "004010X098A1";
-    private static final String X222_ANSI_VERSION = "005010X222A1";
-    private static final String X223_ANSI_VERSION = "005010X223A2";
+    private static final String _X091_ANSI_VERSION = "004010X091A1";
+    private static final String _X221_ANSI_VERSION = "005010X221A1";
+    private static final String _X096_ANSI_VERSION = "004010X096A1";
+    private static final String _X097_ANSI_VERSION = "004010X097A1";
+    private static final String _X098_ANSI_VERSION = "004010X098A1";
+    private static final String _X222_ANSI_VERSION = "005010X222A1";
+    private static final String _X223_ANSI_VERSION = "005010X223A2";
 
-    private static final Map<FileType, String> TYPES = new HashMap<>();
+    private static final Map<FileType, String> _TYPES = new HashMap<>();
 
 
     private Loop _dataLoop;
@@ -100,13 +100,13 @@ public class X12Reader {
     }
 
     static {
-        TYPES.put(FileType.ANSI835_4010_X091, X091_ANSI_VERSION);
-        TYPES.put(FileType.ANSI837_4010_X096, X096_ANSI_VERSION);
-        TYPES.put(FileType.ANSI837_4010_X097, X097_ANSI_VERSION);
-        TYPES.put(FileType.ANSI837_4010_X098, X098_ANSI_VERSION);
-        TYPES.put(FileType.ANSI835_5010_X221, X221_ANSI_VERSION);
-        TYPES.put(FileType.ANSI837_5010_X222, X222_ANSI_VERSION);
-        TYPES.put(FileType.ANSI837_5010_X223, X223_ANSI_VERSION);
+        _TYPES.put(FileType.ANSI835_4010_X091, _X091_ANSI_VERSION);
+        _TYPES.put(FileType.ANSI837_4010_X096, _X096_ANSI_VERSION);
+        _TYPES.put(FileType.ANSI837_4010_X097, _X097_ANSI_VERSION);
+        _TYPES.put(FileType.ANSI837_4010_X098, _X098_ANSI_VERSION);
+        _TYPES.put(FileType.ANSI835_5010_X221, _X221_ANSI_VERSION);
+        _TYPES.put(FileType.ANSI837_5010_X222, _X222_ANSI_VERSION);
+        _TYPES.put(FileType.ANSI837_5010_X223, _X223_ANSI_VERSION);
     }
 
     /**
@@ -191,9 +191,8 @@ public class X12Reader {
 
         // set up delimiters
         Separators separators = getSeparators(reader);
-        boolean consistentVersions = checkVersionsAreConsistent(type, separators, reader);
 
-        if (separators != null && consistentVersions) {
+        if (separators != null && checkVersionsAreConsistent(type, separators, reader)) {
             Character segmentSeparator = separators.getSegment();
             String quotedSegmentSeparator = Pattern.quote(segmentSeparator.toString());
             scanner.useDelimiter(quotedSegmentSeparator + "\r\n|" + quotedSegmentSeparator + "\n|" + quotedSegmentSeparator);
@@ -323,13 +322,7 @@ public class X12Reader {
         }
         reader.reset();
 
-        boolean result = (FileType.ANSI835_4010_X091.equals(type) && TYPES.get(FileType.ANSI835_4010_X091).equals(version)) ||
-                (FileType.ANSI835_5010_X221.equals(type) && TYPES.get(FileType.ANSI835_5010_X221).equals(version)) ||
-                (FileType.ANSI837_4010_X096.equals(type) && TYPES.get(FileType.ANSI837_4010_X096).equals(version)) ||
-                (FileType.ANSI837_4010_X097.equals(type) && TYPES.get(FileType.ANSI837_4010_X097).equals(version)) ||
-                (FileType.ANSI837_4010_X098.equals(type) && TYPES.get(FileType.ANSI837_4010_X098).equals(version)) ||
-                (FileType.ANSI837_5010_X222.equals(type) && TYPES.get(FileType.ANSI837_5010_X222).equals(version)) ||
-                (FileType.ANSI837_5010_X223.equals(type) && TYPES.get(FileType.ANSI837_5010_X223).equals(version));
+        boolean result = _TYPES.get(type).equals(version);
 
         if (!result)
             _errors.add("ANSI version " + version + " not consistent with version specified " + type);
