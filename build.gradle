@@ -32,6 +32,7 @@ jar {
                 'Built-By': System.getProperty('user.name'),
                 'Built-Date': new Date(),
                 'Built-JDK': System.getProperty('java.version'),
+                'Automatic-Module-Name': 'com.imsweb.x12'
         )
     }
 }
@@ -85,5 +86,5 @@ modifyPom {
 }
 
 wrapper {
-    gradleVersion = '4.9'
+    gradleVersion = '4.10.2'
 }
