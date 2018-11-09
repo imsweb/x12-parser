@@ -1,7 +1,7 @@
 plugins {
     id 'java'
     id 'checkstyle'
-    id 'findbugs'
+    id "com.github.spotbugs" version "1.6.5"
     id 'com.bmuschko.nexus' version '2.3.1'         // prepares and copies artifacts to Sonotype OSS
     id "io.codearte.nexus-staging" version "0.8.0"  // logs into Sonotype OSS and does a "Close" and "Release"
 }
@@ -41,8 +41,9 @@ checkstyle {
     configFile = file('config/checkstyle/checkstyle.xml')
 }
 
-findbugs {
-    excludeFilter = file('config/findbugs/findbugs-exclude.xml')
+spotbugs {
+    toolVersion = '3.1.8'
+    excludeFilter = file('config/spotbugs/spotbugs-exclude.xml')
 }
 
 // don't try to release a snapshot to a non-snapshot repository, that won't work anyway
