@@ -1,6 +1,5 @@
 package com.imsweb.x12.reader;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import com.imsweb.x12.mapping.SegmentDefinition;
@@ -12,7 +11,7 @@ public class LoopConfig {
     private Integer _loopRepeatCount = 0;
     private String _loopRepeats;
     private Usage _loopUsage;
-    private List<String> _childList = new ArrayList<>();
+    private List<String> _childList;
     private String _parentLoop;
 
     private SegmentDefinition _firstSegmentXid;
