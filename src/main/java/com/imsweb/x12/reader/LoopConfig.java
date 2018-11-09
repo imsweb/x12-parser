@@ -33,7 +33,7 @@ public class LoopConfig {
     }
 
     public void incrementLoopRepeatCount() {
-        _loopRepeatCount++;
+        _loopRepeatCount = _loopRepeatCount + 1;
     }
 
     public List<String> getChildList() {
