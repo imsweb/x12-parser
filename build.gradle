@@ -2,8 +2,8 @@ plugins {
     id 'java'
     id 'checkstyle'
     id "com.github.spotbugs" version "1.6.5"
-    id 'com.bmuschko.nexus' version '2.3.1'         // prepares and copies artifacts to Sonotype OSS
-    id "io.codearte.nexus-staging" version "0.8.0"  // logs into Sonotype OSS and does a "Close" and "Release"
+    id 'com.bmuschko.nexus' version '2.3.1'          // prepares and copies artifacts to Sonotype OSS
+    id "io.codearte.nexus-staging" version "0.20.0"  // logs into Sonotype OSS and does a "Close" and "Release"
 }
 
 group = 'com.imsweb'
@@ -87,6 +87,6 @@ modifyPom {
 }
 
 wrapper {
-    gradleVersion = '4.10.2'
+    gradleVersion = '5.1.1'
     distributionType = Wrapper.DistributionType.ALL
 }

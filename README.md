@@ -1,6 +1,6 @@
 # X12 Parser 
 
-[![Build Status](https://travis-ci.org/imsweb/x12-parser.svg?branch=master)](https://travis-ci.org/imsweb/x12-parser)
+[![CircleCI](https://circleci.com/gh/imsweb/x12-parser.svg?style=svg)](https://circleci.com/gh/imsweb/x12-parser)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.imsweb/x12-parser/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.imsweb/x12-parser)
 
 A parser for ANSI ASC X12 documents.  This project was originally based on the Python project [pyx12](https://github.com/azoner/pyx12).
