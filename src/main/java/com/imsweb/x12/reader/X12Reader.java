@@ -786,7 +786,7 @@ public class X12Reader {
      * @param count number of loop counts
      * @param repeatCondition maximum allowed repeats
      * @param parentId id of the parent loop
-     * @return
+     * @return false if loop repeat too many times
      */
     private boolean compareRepeats(int count, String repeatCondition, String parentId) {
         //get the max usage of the parent loop

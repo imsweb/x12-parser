@@ -5,7 +5,6 @@ package com.imsweb.x12;
 
 import java.io.InputStream;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import com.thoughtworks.xstream.XStream;
@@ -15,6 +14,9 @@ import com.thoughtworks.xstream.security.WildcardTypePermission;
 
 import com.imsweb.x12.mapping.TransactionDefinition;
 import com.imsweb.x12.mapping.TransactionDefinition.Usage;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class XStreamTest {
 
@@ -33,12 +35,12 @@ public class XStreamTest {
 
         TransactionDefinition config = (TransactionDefinition)xstream.fromXML(is);
 
-        Assert.assertEquals("837", config.getXid());
-        Assert.assertNotNull(config.getLoop());
-        Assert.assertEquals("ISA_LOOP", config.getLoop().getXid());
-        Assert.assertEquals(Usage.REQUIRED, config.getLoop().getUsage());
-        Assert.assertEquals("ISA", config.getLoop().getSegment().get(0).getXid());
-        Assert.assertEquals(Usage.REQUIRED, config.getLoop().getSegment().get(0).getElements().get(0).getUsage());
+        assertEquals("837", config.getXid());
+        assertNotNull(config.getLoop());
+        assertEquals("ISA_LOOP", config.getLoop().getXid());
+        assertEquals(Usage.REQUIRED, config.getLoop().getUsage());
+        assertEquals("ISA", config.getLoop().getSegment().get(0).getXid());
+        assertEquals(Usage.REQUIRED, config.getLoop().getSegment().get(0).getElements().get(0).getUsage());
     }
 
 }

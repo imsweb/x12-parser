@@ -9,12 +9,17 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import com.imsweb.x12.Loop;
 import com.imsweb.x12.mapping.TransactionDefinition;
 import com.imsweb.x12.reader.X12Reader.FileType;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class X12ReaderTest {
 
@@ -33,9 +38,11 @@ public class X12ReaderTest {
         X12Reader fromFileUtf8 = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()), StandardCharsets.UTF_8);
         X12Reader fromInputStream = new X12Reader(FileType.ANSI837_5010_X222, new FileInputStream(url.getFile()));
         X12Reader fromInputStreamUtf8 = new X12Reader(FileType.ANSI837_5010_X222, new FileInputStream(url.getFile()), StandardCharsets.UTF_8);
+        X12Reader fromReaderUtf8 = new X12Reader(FileType.ANSI837_5010_X222, new BufferedReader(new InputStreamReader(new FileInputStream(url.getFile()), StandardCharsets.UTF_8)));
 
-        Assert.assertEquals(fromFile.getLoop().toString(), fromInputStream.getLoop().toString());
-        Assert.assertEquals(fromFileUtf8.getLoop().toString(), fromInputStreamUtf8.getLoop().toString());
+        assertEquals(fromFile.getLoop().toString(), fromInputStream.getLoop().toString());
+        assertEquals(fromFileUtf8.getLoop().toString(), fromInputStreamUtf8.getLoop().toString());
+        assertEquals(fromFileUtf8.getLoop().toString(), fromReaderUtf8.getLoop().toString());
     }
 
     @Test
@@ -64,11 +71,11 @@ public class X12ReaderTest {
             for (int i = 0; i < 10; i++)
                 line = reader.readLine();
 
-            Assert.assertEquals("N3*3901 CALVERTON BLVD~", line);
+            assertEquals("N3*3901 CALVERTON BLVD~", line);
 
             reader.reset();
             line = reader.readLine();
-            Assert.assertEquals("ISA*00*          *01*SECRET    *ZZ*SUBMITTERS.ID  *ZZ*RECEIVERS.ID   *030101*1253*U*00501*000000905*1*T*:~", line);
+            assertEquals("ISA*00*          *01*SECRET    *ZZ*SUBMITTERS.ID  *ZZ*RECEIVERS.ID   *030101*1253*U*00501*000000905*1*T*:~", line);
         }
     }
 
@@ -81,22 +88,22 @@ public class X12ReaderTest {
         Loop test = reader.getLoop().getLoop("2000B");
 
         //valid loop, no indices
-        Assert.assertEquals("123456", loop.getElement("2010BA", "NM1", "NM109"));
+        assertEquals("123456", loop.getElement("2010BA", "NM1", "NM109"));
         //valid loop, indicies
-        Assert.assertEquals("3", loop.getElement("2000B", 1, "HL", 0, "HL02"));
-        Assert.assertEquals("TE", loop.getElement("2010AA", 0, "PER", 1, "PER03"));
+        assertEquals("3", loop.getElement("2000B", 1, "HL", 0, "HL02"));
+        assertEquals("TE", loop.getElement("2010AA", 0, "PER", 1, "PER03"));
         //valid segement, indices
-        Assert.assertEquals("1", test.getElement("HL", 0, "HL02"));
+        assertEquals("1", test.getElement("HL", 0, "HL02"));
         //valid segment, no indices
-        Assert.assertEquals("1", test.getElement("HL", "HL02"));
+        assertEquals("1", test.getElement("HL", "HL02"));
         //segment does not exist
-        Assert.assertNull(test.getElement("HL", 1, "HL02"));
+        assertNull(test.getElement("HL", 1, "HL02"));
         //loop does not exist
-        Assert.assertNull(loop.getElement("2000B", 2, "HL", 0, "HL02"));
+        assertNull(loop.getElement("2000B", 2, "HL", 0, "HL02"));
         //loop exists
-        Assert.assertNull(loop.getElement("2000B", 1, "MEA", 0, "MEA02"));
+        assertNull(loop.getElement("2000B", 1, "MEA", 0, "MEA02"));
         //element does not exist
-        Assert.assertNull(loop.getElement("2000B", 1, "HL", 0, "HL17"));
+        assertNull(loop.getElement("2000B", 1, "HL", 0, "HL17"));
     }
 
     @Test
@@ -130,9 +137,9 @@ public class X12ReaderTest {
 
         List<String> errors = reader.getErrors();
 
-        Assert.assertTrue(errors.size() == 7);
-        Assert.assertTrue(errors.contains("Unable to find a matching segment format in loop 2000A"));
-        // Assert.assertTrue(errors.contains("2010AA is required but missing"));
+        assertEquals(7, errors.size());
+        assertTrue(errors.contains("Unable to find a matching segment format in loop 2000A"));
+        // assertTrue(errors.contains("2010AA is required but missing"));
     }
 
     @Test
@@ -142,10 +149,10 @@ public class X12ReaderTest {
 
         List<String> errors = reader.getErrors();
 
-        Assert.assertTrue(errors.size() == 3);
-        Assert.assertTrue(errors.contains("N3 in loop 2010AA is required but not found"));
-        Assert.assertTrue(errors.contains("HI in loop 2300 is required but not found"));
-        Assert.assertTrue(errors.contains("REF in loop 2010AA appears too many times"));
+        assertEquals(3, errors.size());
+        assertTrue(errors.contains("N3 in loop 2010AA is required but not found"));
+        assertTrue(errors.contains("HI in loop 2300 is required but not found"));
+        assertTrue(errors.contains("REF in loop 2010AA appears too many times"));
     }
 
     //tests a file that has segments with missing data that is required.
@@ -156,13 +163,13 @@ public class X12ReaderTest {
 
         List<String> errors = reader.getErrors();
 
-        Assert.assertTrue(errors.size() == 6);
-        Assert.assertTrue(errors.contains("Unable to find a matching segment format in loop 2010AA"));
-        Assert.assertTrue(errors.contains("Unable to find a matching segment format in loop 2000B"));
-        Assert.assertTrue(errors.contains("Unable to find a matching segment format in loop 1000A"));
-        Assert.assertTrue(errors.contains("N4 in loop 2010AA is required but not found"));
-        Assert.assertTrue(errors.contains("PER in loop 1000A is required but not found"));
-        Assert.assertTrue(errors.contains("2010BA is required but not found in 2000B iteration #1"));
+        assertEquals(6, errors.size());
+        assertTrue(errors.contains("Unable to find a matching segment format in loop 2010AA"));
+        assertTrue(errors.contains("Unable to find a matching segment format in loop 2000B"));
+        assertTrue(errors.contains("Unable to find a matching segment format in loop 1000A"));
+        assertTrue(errors.contains("N4 in loop 2010AA is required but not found"));
+        assertTrue(errors.contains("PER in loop 1000A is required but not found"));
+        assertTrue(errors.contains("2010BA is required but not found in 2000B iteration #1"));
     }
 
     //tests a file that has segments with missing data that is required.
@@ -172,9 +179,9 @@ public class X12ReaderTest {
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
 
         List<String> errors = reader.getErrors();
-        Assert.assertTrue(errors.size() == 2);
-        Assert.assertTrue(errors.contains("NM1 in loop 1000B is missing a required element at 2"));
-        Assert.assertTrue(errors.contains("CLM in loop 2300 is missing a required composite element at 5"));
+        assertEquals(2, errors.size());
+        assertTrue(errors.contains("NM1 in loop 1000B is missing a required element at 2"));
+        assertTrue(errors.contains("CLM in loop 2300 is missing a required composite element at 5"));
     }
 
     //tests a loop that appears too many times with the parent loop appearing once
@@ -185,8 +192,8 @@ public class X12ReaderTest {
 
         List<String> errors = reader.getErrors();
 
-        Assert.assertTrue(errors.size() == 1);
-        Assert.assertTrue(errors.contains("2010AA appears too many times"));
+        assertEquals(1, errors.size());
+        assertTrue(errors.contains("2010AA appears too many times"));
     }
 
     //tests a loop that appears too many times with a parent loop that appears more than once
@@ -197,8 +204,8 @@ public class X12ReaderTest {
 
         List<String> errors = reader.getErrors();
 
-        Assert.assertTrue(errors.size() == 1);
-        Assert.assertTrue(errors.contains("2010AA appears too many times"));
+        assertEquals(1, errors.size());
+        assertTrue(errors.contains("2010AA appears too many times"));
     }
 
     //tests a missing required loop
@@ -208,9 +215,9 @@ public class X12ReaderTest {
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
 
         List<String> errors = reader.getErrors();
-        Assert.assertTrue(errors.size() == 1);
+        assertEquals(1, errors.size());
 
-        Assert.assertTrue(errors.contains("2010AA is required but not found in 2000A iteration #1"));
+        assertTrue(errors.contains("2010AA is required but not found in 2000A iteration #1"));
     }
 
     //tests a loop that appears the correct number of times but in a parent that appears more than once.
@@ -221,7 +228,7 @@ public class X12ReaderTest {
 
         List<String> errors = reader.getErrors();
 
-        Assert.assertTrue(errors.size() == 0);
+        assertEquals(0, errors.size());
     }
 
     //tests a loop that appears the correct number of times but in a parent that appears more than once.
@@ -232,9 +239,9 @@ public class X12ReaderTest {
 
         List<String> errors = reader.getErrors();
 
-        Assert.assertTrue(errors.size() == 1);
+        assertEquals(1, errors.size());
 
-        Assert.assertTrue(errors.contains("2010BA is required but not found in 2000B iteration #1"));
+        assertTrue(errors.contains("2010BA is required but not found in 2000B iteration #1"));
     }
 
     @Test
@@ -242,14 +249,14 @@ public class X12ReaderTest {
         for (FileType type : FileType.values()) {
             TransactionDefinition definition = type.getDefinition();
 
-            Assert.assertNotNull(definition);
-            Assert.assertNotNull(definition.getLoop());
+            assertNotNull(definition);
+            assertNotNull(definition.getLoop());
 
             // call a second time to make sure cache is working
             definition = type.getDefinition();
 
-            Assert.assertNotNull(definition);
-            Assert.assertNotNull(definition.getLoop());
+            assertNotNull(definition);
+            assertNotNull(definition.getLoop());
         }
     }
 
@@ -258,8 +265,8 @@ public class X12ReaderTest {
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(this.getClass().getResource("/837_5010/x12_no_errors.txt").getFile()));
 
         String xml = reader.getLoop().toXML();
-        Assert.assertTrue(xml.length() > 0);
-        Assert.assertTrue(xml.startsWith("<loop id=\"ISA_LOOP\">"));
+        assertTrue(xml.length() > 0);
+        assertTrue(xml.startsWith("<loop id=\"ISA_LOOP\">"));
     }
 
     @Test
@@ -267,8 +274,8 @@ public class X12ReaderTest {
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(this.getClass().getResource("/837_5010/x12_no_errors.txt").getFile()));
 
         String json = reader.getLoop().toJson();
-        Assert.assertTrue(json.length() > 0);
-        Assert.assertTrue(json.startsWith("{\n  \"id\": \"ISA_LOOP\",\n  \"segments\""));
+        assertTrue(json.length() > 0);
+        assertTrue(json.startsWith("{\n  \"id\": \"ISA_LOOP\",\n  \"segments\""));
 
         // TODO test JSON equality
         //        reader = new X12Reader(FileType.ANSI837_5010_X222, new File(this.getClass().getResource("/837_5010/x12_multiple_gs.txt").getFile()));
@@ -284,251 +291,250 @@ public class X12ReaderTest {
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
 
         List<String> errors = reader.getErrors();
-        Assert.assertTrue(errors.size() == 4);
+        assertEquals(4, errors.size());
 
-        Assert.assertTrue(errors.contains("Unable to find a matching segment format in loop 2300"));
-        Assert.assertTrue(errors.contains("2400 is required but not found in 2300 iteration #2"));
-        Assert.assertTrue(errors.contains("2400 is required but not found in 2300 iteration #5"));
+        assertTrue(errors.contains("Unable to find a matching segment format in loop 2300"));
+        assertTrue(errors.contains("2400 is required but not found in 2300 iteration #2"));
+        assertTrue(errors.contains("2400 is required but not found in 2300 iteration #5"));
     }
 
     /**
      * Valid output for a testing file
-     * @param loop
      */
     private void validate837Valid(Loop loop) {
-        Assert.assertEquals(1, loop.getLoops().size());
-        Assert.assertEquals(1, loop.getLoop("GS_LOOP").getLoops().size());
-        Assert.assertEquals(2, loop.getLoop("ST_LOOP").getLoops().size());
-        Assert.assertEquals(2, loop.getLoop("HEADER").getLoops().size());
-        Assert.assertEquals(0, loop.getLoop("1000A").getLoops().size());
-        Assert.assertEquals(0, loop.getLoop("1000B").getLoops().size());
-        Assert.assertEquals(1, loop.getLoop("DETAIL").getLoops().size());
-        Assert.assertEquals(4, loop.getLoop("2000A").getLoops().size());
-        Assert.assertEquals(0, loop.getLoop("2010AA").getLoops().size());
-        Assert.assertEquals(0, loop.getLoop("2010AB").getLoops().size());
-        Assert.assertEquals(2, loop.findLoop("2000B").size());
-        Assert.assertEquals(3, loop.getLoop("2000B", 0).getLoops().size());
-        Assert.assertEquals(0, loop.getLoop("2010BA", 0).getLoops().size());
-        Assert.assertEquals(0, loop.getLoop("2010BB", 0).getLoops().size());
-        Assert.assertEquals(1, loop.getLoop("2300", 0).getLoops().size());
-        Assert.assertEquals(0, loop.getLoop("2400", 0).getLoops().size());
-        Assert.assertEquals(3, loop.getLoop("2000B", 1).getLoops().size());
-        Assert.assertEquals(0, loop.getLoop("2010BA", 1).getLoops().size());
-        Assert.assertEquals(0, loop.getLoop("2010BB", 1).getLoops().size());
-        Assert.assertEquals(1, loop.getLoop("2300", 1).getLoops().size());
-        Assert.assertEquals(0, loop.getLoop("2400", 1).getLoops().size());
+        assertEquals(1, loop.getLoops().size());
+        assertEquals(1, loop.getLoop("GS_LOOP").getLoops().size());
+        assertEquals(2, loop.getLoop("ST_LOOP").getLoops().size());
+        assertEquals(2, loop.getLoop("HEADER").getLoops().size());
+        assertEquals(0, loop.getLoop("1000A").getLoops().size());
+        assertEquals(0, loop.getLoop("1000B").getLoops().size());
+        assertEquals(1, loop.getLoop("DETAIL").getLoops().size());
+        assertEquals(4, loop.getLoop("2000A").getLoops().size());
+        assertEquals(0, loop.getLoop("2010AA").getLoops().size());
+        assertEquals(0, loop.getLoop("2010AB").getLoops().size());
+        assertEquals(2, loop.findLoop("2000B").size());
+        assertEquals(3, loop.getLoop("2000B", 0).getLoops().size());
+        assertEquals(0, loop.getLoop("2010BA", 0).getLoops().size());
+        assertEquals(0, loop.getLoop("2010BB", 0).getLoops().size());
+        assertEquals(1, loop.getLoop("2300", 0).getLoops().size());
+        assertEquals(0, loop.getLoop("2400", 0).getLoops().size());
+        assertEquals(3, loop.getLoop("2000B", 1).getLoops().size());
+        assertEquals(0, loop.getLoop("2010BA", 1).getLoops().size());
+        assertEquals(0, loop.getLoop("2010BB", 1).getLoops().size());
+        assertEquals(1, loop.getLoop("2300", 1).getLoops().size());
+        assertEquals(0, loop.getLoop("2400", 1).getLoops().size());
 
         //Testing null results
-        Assert.assertNull(loop.getLoop("2400", 2));
-        Assert.assertNull(loop.getLoop("2310"));
-        Assert.assertNull(loop.getLoop("2400").getSegment("MEA"));
-        Assert.assertNull(loop.getLoop("2000B").getSegment("HL", 2));
+        assertNull(loop.getLoop("2400", 2));
+        assertNull(loop.getLoop("2310"));
+        assertNull(loop.getLoop("2400").getSegment("MEA"));
+        assertNull(loop.getLoop("2000B").getSegment("HL", 2));
         try {
-            Assert.assertNull(loop.getLoop("2400", 2).getSegment("MEA"));
-            Assert.fail("Expecting a null pointer exception to be thrown (test #1)");
+            assertNull(loop.getLoop("2400", 2).getSegment("MEA"));
+            fail("Expecting a null pointer exception to be thrown (test #1)");
         }
         catch (NullPointerException e) {
             //Expected
         }
         try {
-            Assert.assertNull(loop.getLoop("2400").getSegment("MEA").getElementValue("MEA02"));
-            Assert.fail("Expecting a null pointer exception to be thrown (test #2)");
+            assertNull(loop.getLoop("2400").getSegment("MEA").getElementValue("MEA02"));
+            fail("Expecting a null pointer exception to be thrown (test #2)");
         }
         catch (NullPointerException e) {
             //Expected
         }
 
         // testing loopID match for each subloop
-        Assert.assertEquals("GS_LOOP", loop.getLoops().get(0).getId());
-        Assert.assertEquals("ST_LOOP", loop.getLoop("GS_LOOP").getLoops().get(0).getId());
-        Assert.assertEquals("HEADER", loop.getLoop("ST_LOOP").getLoops().get(0).getId());
-        Assert.assertEquals("DETAIL", loop.getLoop("ST_LOOP").getLoops().get(1).getId());
-        Assert.assertEquals("1000A", loop.getLoop("HEADER").getLoops().get(0).getId());
-        Assert.assertEquals("1000B", loop.getLoop("HEADER").getLoops().get(1).getId());
-        Assert.assertEquals("2000A", loop.getLoop("DETAIL").getLoops().get(0).getId());
-        Assert.assertEquals("2010AA", loop.getLoop("2000A").getLoops().get(0).getId());
-        Assert.assertEquals("2010AB", loop.getLoop("2000A").getLoops().get(1).getId());
-        Assert.assertEquals("2000B", loop.getLoop("2000A").getLoops().get(2).getId());
-        Assert.assertEquals("2000B", loop.getLoop("2000A").getLoops().get(3).getId());
-        Assert.assertEquals("2010BA", loop.getLoop("2000B", 0).getLoops().get(0).getId());
-        Assert.assertEquals("2010BB", loop.getLoop("2000B", 0).getLoops().get(1).getId());
-        Assert.assertEquals("2300", loop.getLoop("2000B", 0).getLoops().get(2).getId());
-        Assert.assertEquals("2400", loop.getLoop("2300", 0).getLoops().get(0).getId());
-        Assert.assertEquals("2010BA", loop.getLoop("2000B", 1).getLoops().get(0).getId());
-        Assert.assertEquals("2010BB", loop.getLoop("2000B", 1).getLoops().get(1).getId());
-        Assert.assertEquals("2300", loop.getLoop("2000B", 1).getLoops().get(2).getId());
-        Assert.assertEquals("2400", loop.getLoop("2300", 1).getLoops().get(0).getId());
+        assertEquals("GS_LOOP", loop.getLoops().get(0).getId());
+        assertEquals("ST_LOOP", loop.getLoop("GS_LOOP").getLoops().get(0).getId());
+        assertEquals("HEADER", loop.getLoop("ST_LOOP").getLoops().get(0).getId());
+        assertEquals("DETAIL", loop.getLoop("ST_LOOP").getLoops().get(1).getId());
+        assertEquals("1000A", loop.getLoop("HEADER").getLoops().get(0).getId());
+        assertEquals("1000B", loop.getLoop("HEADER").getLoops().get(1).getId());
+        assertEquals("2000A", loop.getLoop("DETAIL").getLoops().get(0).getId());
+        assertEquals("2010AA", loop.getLoop("2000A").getLoops().get(0).getId());
+        assertEquals("2010AB", loop.getLoop("2000A").getLoops().get(1).getId());
+        assertEquals("2000B", loop.getLoop("2000A").getLoops().get(2).getId());
+        assertEquals("2000B", loop.getLoop("2000A").getLoops().get(3).getId());
+        assertEquals("2010BA", loop.getLoop("2000B", 0).getLoops().get(0).getId());
+        assertEquals("2010BB", loop.getLoop("2000B", 0).getLoops().get(1).getId());
+        assertEquals("2300", loop.getLoop("2000B", 0).getLoops().get(2).getId());
+        assertEquals("2400", loop.getLoop("2300", 0).getLoops().get(0).getId());
+        assertEquals("2010BA", loop.getLoop("2000B", 1).getLoops().get(0).getId());
+        assertEquals("2010BB", loop.getLoop("2000B", 1).getLoops().get(1).getId());
+        assertEquals("2300", loop.getLoop("2000B", 1).getLoops().get(2).getId());
+        assertEquals("2400", loop.getLoop("2300", 1).getLoops().get(0).getId());
 
         // testing grabbing data from each line
-        Assert.assertEquals("030101", loop.getSegment("ISA").getElementValue("ISA09"));//First loop
-        Assert.assertEquals("19991231", loop.getLoop("GS_LOOP").getSegment("GS").getElementValue("GS04"));
-        Assert.assertEquals("987654", loop.getLoop("ST_LOOP").getSegment("ST").getElementValue("ST02"));
-        Assert.assertEquals("0932", loop.getLoop("HEADER").getSegment("BHT").getElementValue("BHT05"));
-        Assert.assertEquals("NM1", loop.getLoop("1000A").getSegment("NM1").getId());
-        Assert.assertEquals("3016809770", loop.getLoop("1000A").getSegment("PER").getElementValue("PER04"));
-        Assert.assertEquals("2", loop.getLoop("1000B").getSegment("NM1").getElementValue("NM102"));
-        Assert.assertEquals("", loop.getLoop("2000A").getSegment("HL").getElementValue("HL02"));
-        Assert.assertEquals("85", loop.getLoop("2010AA").getSegment("NM1").getElementValue("NM101"));
-        Assert.assertEquals("N3", loop.getLoop("2010AA").getSegment("N3").getId());
-        Assert.assertEquals("20705", loop.getLoop("2010AA").getSegment("N4").getElementValue("N403"));
-        Assert.assertEquals("EI", loop.getLoop("2010AA").getSegment("REF").getElementValue("REF01"));
-        Assert.assertEquals("JANE JONES", loop.getLoop("2010AA").getSegment("PER").getElementValue("PER02"));
-        Assert.assertEquals("201", loop.getLoop("2010AA").getSegment("PER", 1).getElementValue("PER06"));
-        Assert.assertEquals("87", loop.getLoop("2010AB").getSegment("NM1").getElementValue("NM101"));
-        Assert.assertEquals("227 LASTNER LANE", loop.getLoop("2010AB").getSegment("N3").getElementValue("N301"));
-        Assert.assertEquals("GREENBELT", loop.getLoop("2010AB").getSegment("N4").getElementValue("N401"));
-        Assert.assertEquals("22", loop.getLoop("2000B").getSegment("HL").getElementValue("HL03"));
-        Assert.assertEquals("", loop.getLoop("2000B").getSegment("SBR").getElementValue("SBR02"));
-        Assert.assertEquals("123456", loop.getLoop("2010BA").getSegment("NM1").getElementValue("NM109"));
-        Assert.assertEquals("PI", loop.getLoop("2010BB").getSegment("NM1").getElementValue("NM108"));
-        Assert.assertEquals("A37YH556", loop.getLoop("2300").getSegment("CLM").getElementValue("CLM01"));
-        Assert.assertEquals("BK", loop.getLoop("2300").getSegment("HI").getElementValue("HI01"));
-        Assert.assertEquals("1", loop.getLoop("2400").getSegment("LX").getElementValue("LX01"));
+        assertEquals("030101", loop.getSegment("ISA").getElementValue("ISA09"));//First loop
+        assertEquals("19991231", loop.getLoop("GS_LOOP").getSegment("GS").getElementValue("GS04"));
+        assertEquals("987654", loop.getLoop("ST_LOOP").getSegment("ST").getElementValue("ST02"));
+        assertEquals("0932", loop.getLoop("HEADER").getSegment("BHT").getElementValue("BHT05"));
+        assertEquals("NM1", loop.getLoop("1000A").getSegment("NM1").getId());
+        assertEquals("3016809770", loop.getLoop("1000A").getSegment("PER").getElementValue("PER04"));
+        assertEquals("2", loop.getLoop("1000B").getSegment("NM1").getElementValue("NM102"));
+        assertEquals("", loop.getLoop("2000A").getSegment("HL").getElementValue("HL02"));
+        assertEquals("85", loop.getLoop("2010AA").getSegment("NM1").getElementValue("NM101"));
+        assertEquals("N3", loop.getLoop("2010AA").getSegment("N3").getId());
+        assertEquals("20705", loop.getLoop("2010AA").getSegment("N4").getElementValue("N403"));
+        assertEquals("EI", loop.getLoop("2010AA").getSegment("REF").getElementValue("REF01"));
+        assertEquals("JANE JONES", loop.getLoop("2010AA").getSegment("PER").getElementValue("PER02"));
+        assertEquals("201", loop.getLoop("2010AA").getSegment("PER", 1).getElementValue("PER06"));
+        assertEquals("87", loop.getLoop("2010AB").getSegment("NM1").getElementValue("NM101"));
+        assertEquals("227 LASTNER LANE", loop.getLoop("2010AB").getSegment("N3").getElementValue("N301"));
+        assertEquals("GREENBELT", loop.getLoop("2010AB").getSegment("N4").getElementValue("N401"));
+        assertEquals("22", loop.getLoop("2000B").getSegment("HL").getElementValue("HL03"));
+        assertEquals("", loop.getLoop("2000B").getSegment("SBR").getElementValue("SBR02"));
+        assertEquals("123456", loop.getLoop("2010BA").getSegment("NM1").getElementValue("NM109"));
+        assertEquals("PI", loop.getLoop("2010BB").getSegment("NM1").getElementValue("NM108"));
+        assertEquals("A37YH556", loop.getLoop("2300").getSegment("CLM").getElementValue("CLM01"));
+        assertEquals("BK", loop.getLoop("2300").getSegment("HI").getElementValue("HI01"));
+        assertEquals("1", loop.getLoop("2400").getSegment("LX").getElementValue("LX01"));
         Character compositeSeparator = loop.getLoop("2400").getSegment("SV1").getSeparators().getCompositeElement();
-        Assert.assertEquals("HC" + compositeSeparator + "99211" + compositeSeparator + "25", loop.getLoop("2400").getSegment("SV1").getElementValue("SV101"));
-        Assert.assertEquals("RD8", loop.getLoop("2400").getSegment("DTP").getElementValue("DTP02"));
+        assertEquals("HC" + compositeSeparator + "99211" + compositeSeparator + "25", loop.getLoop("2400").getSegment("SV1").getElementValue("SV101"));
+        assertEquals("RD8", loop.getLoop("2400").getSegment("DTP").getElementValue("DTP02"));
 
         // Tests of differences between repeating loops
-        Assert.assertEquals("1", loop.getLoop("2000B", 0).getSegment("HL").getElementValue("HL02"));
-        Assert.assertEquals("3", loop.getLoop("2000B", 1).getSegment("HL").getElementValue("HL02"));
+        assertEquals("1", loop.getLoop("2000B", 0).getSegment("HL").getElementValue("HL02"));
+        assertEquals("3", loop.getLoop("2000B", 1).getSegment("HL").getElementValue("HL02"));
 
-        Assert.assertEquals("SUBSCRIBER GROUP", loop.getLoop("2000B", 0).getSegment("SBR").getElementValue("SBR03"));
-        Assert.assertEquals("SUBSCRIBER GROUP TWO", loop.getLoop("2000B", 1).getSegment("SBR").getElementValue("SBR03"));
+        assertEquals("SUBSCRIBER GROUP", loop.getLoop("2000B", 0).getSegment("SBR").getElementValue("SBR03"));
+        assertEquals("SUBSCRIBER GROUP TWO", loop.getLoop("2000B", 1).getSegment("SBR").getElementValue("SBR03"));
 
-        Assert.assertEquals("JOHN", loop.getLoop("2010BA", 0).getSegment("NM1").getElementValue("NM104"));
-        Assert.assertEquals("DAVID", loop.getLoop("2010BA", 1).getSegment("NM1").getElementValue("NM104"));
+        assertEquals("JOHN", loop.getLoop("2010BA", 0).getSegment("NM1").getElementValue("NM104"));
+        assertEquals("DAVID", loop.getLoop("2010BA", 1).getSegment("NM1").getElementValue("NM104"));
 
-        Assert.assertEquals("HEALTH INSURANCE COMPANY", loop.getLoop("2010BB", 0).getSegment("NM1").getElementValue("NM103"));
-        Assert.assertEquals("HEALTH INSURANCE COMPANY TWO", loop.getLoop("2010BB", 1).getSegment("NM1").getElementValue("NM103"));
+        assertEquals("HEALTH INSURANCE COMPANY", loop.getLoop("2010BB", 0).getSegment("NM1").getElementValue("NM103"));
+        assertEquals("HEALTH INSURANCE COMPANY TWO", loop.getLoop("2010BB", 1).getSegment("NM1").getElementValue("NM103"));
 
-        Assert.assertEquals("A37YH556", loop.getLoop("2300", 0).getSegment("CLM").getElementValue("CLM01"));
-        Assert.assertEquals("A37YH667", loop.getLoop("2300", 1).getSegment("CLM").getElementValue("CLM01"));
-        Assert.assertEquals(1, loop.getLoop("2300", 1).getSegment("CLM").getElement("CLM01").getNumOfSubElements());
+        assertEquals("A37YH556", loop.getLoop("2300", 0).getSegment("CLM").getElementValue("CLM01"));
+        assertEquals("A37YH667", loop.getLoop("2300", 1).getSegment("CLM").getElementValue("CLM01"));
+        assertEquals(1, loop.getLoop("2300", 1).getSegment("CLM").getElement("CLM01").getNumOfSubElements());
 
-        Assert.assertEquals("8901", loop.getLoop("2300", 0).getSegment("HI").getElementValue("HI02"));
-        Assert.assertEquals("1987", loop.getLoop("2300", 1).getSegment("HI").getElementValue("HI02"));
-        Assert.assertEquals(1, loop.getLoop("2300", 1).getSegment("HI").getElement("HI02").getNumOfSubElements());
+        assertEquals("8901", loop.getLoop("2300", 0).getSegment("HI").getElementValue("HI02"));
+        assertEquals("1987", loop.getLoop("2300", 1).getSegment("HI").getElementValue("HI02"));
+        assertEquals(1, loop.getLoop("2300", 1).getSegment("HI").getElement("HI02").getNumOfSubElements());
 
-        Assert.assertEquals("1", loop.getLoop("2400", 0).getSegment("LX").getElementValue("LX01"));
-        Assert.assertEquals("2", loop.getLoop("2400", 1).getSegment("LX").getElementValue("LX01"));
+        assertEquals("1", loop.getLoop("2400", 0).getSegment("LX").getElementValue("LX01"));
+        assertEquals("2", loop.getLoop("2400", 1).getSegment("LX").getElementValue("LX01"));
 
         compositeSeparator = loop.getLoop("2400", 1).getSegment("SV1").getSeparators().getCompositeElement();
-        Assert.assertEquals("HC" + compositeSeparator + "99211" + compositeSeparator + "25", loop.getLoop("2400", 0).getSegment("SV1").getElementValue("SV101"));
-        Assert.assertEquals("HC" + compositeSeparator + "478331" + compositeSeparator + "25", loop.getLoop("2400", 1).getSegment("SV1").getElementValue("SV101"));
-        Assert.assertEquals(3, loop.getLoop("2400", 1).getSegment("SV1").getElement("SV101").getNumOfSubElements());
-        Assert.assertEquals("478331", loop.getLoop("2400", 1).getSegment("SV1").getElement("SV101", 1));
-        Assert.assertNull(loop.getLoop("2400", 1).getSegment("SV1").getElement("SV101", 3));
-        Assert.assertEquals(3, loop.getLoop("2400", 1).getSegment("SV1").getElement("SV107").getNumOfSubElements());
-        Assert.assertEquals(1, loop.getLoop("2400", 0).getSegment("SV1").getElement("SV107").getNumOfSubElements());
+        assertEquals("HC" + compositeSeparator + "99211" + compositeSeparator + "25", loop.getLoop("2400", 0).getSegment("SV1").getElementValue("SV101"));
+        assertEquals("HC" + compositeSeparator + "478331" + compositeSeparator + "25", loop.getLoop("2400", 1).getSegment("SV1").getElementValue("SV101"));
+        assertEquals(3, loop.getLoop("2400", 1).getSegment("SV1").getElement("SV101").getNumOfSubElements());
+        assertEquals("478331", loop.getLoop("2400", 1).getSegment("SV1").getElement("SV101", 1));
+        assertNull(loop.getLoop("2400", 1).getSegment("SV1").getElement("SV101", 3));
+        assertEquals(3, loop.getLoop("2400", 1).getSegment("SV1").getElement("SV107").getNumOfSubElements());
+        assertEquals(1, loop.getLoop("2400", 0).getSegment("SV1").getElement("SV107").getNumOfSubElements());
 
-        Assert.assertEquals("20050314-20050325", loop.getLoop("2400", 0).getSegment("DTP").getElementValue("DTP03"));
-        Assert.assertEquals("20050322-20050325", loop.getLoop("2400", 1).getSegment("DTP").getElementValue("DTP03"));
-        Assert.assertEquals(1, loop.getLoop("2400", 1).getSegment("DTP").getElement("DTP03").getNumOfSubElements());
+        assertEquals("20050314-20050325", loop.getLoop("2400", 0).getSegment("DTP").getElementValue("DTP03"));
+        assertEquals("20050322-20050325", loop.getLoop("2400", 1).getSegment("DTP").getElementValue("DTP03"));
+        assertEquals(1, loop.getLoop("2400", 1).getSegment("DTP").getElement("DTP03").getNumOfSubElements());
     }
 
     private void validateMultipleGSLoops(Loop loop) {
-        Assert.assertEquals(3, loop.getLoops().size());
-        Assert.assertEquals(1, loop.getLoop("GS_LOOP", 0).getLoops().size());
-        Assert.assertEquals(2, loop.getLoop("ST_LOOP").getLoops().size());
-        Assert.assertEquals(2, loop.getLoop("HEADER").getLoops().size());
-        Assert.assertEquals(0, loop.getLoop("1000A").getLoops().size());
-        Assert.assertEquals(0, loop.getLoop("1000B").getLoops().size());
-        Assert.assertEquals(1, loop.getLoop("DETAIL").getLoops().size());
-        Assert.assertEquals(4, loop.getLoop("2000A").getLoops().size());
-        Assert.assertEquals(0, loop.getLoop("2010AA").getLoops().size());
-        Assert.assertEquals(0, loop.getLoop("2010AB").getLoops().size());
-        Assert.assertEquals(6, loop.findLoop("2000B").size());
-        Assert.assertEquals(3, loop.getLoop("2000B", 0).getLoops().size());
-        Assert.assertEquals(0, loop.getLoop("2010BA", 0).getLoops().size());
-        Assert.assertEquals(0, loop.getLoop("2010BB", 0).getLoops().size());
-        Assert.assertEquals(1, loop.getLoop("2300", 0).getLoops().size());
-        Assert.assertEquals(0, loop.getLoop("2400", 0).getLoops().size());
-        Assert.assertEquals(3, loop.getLoop("2000B", 1).getLoops().size());
-        Assert.assertEquals(0, loop.getLoop("2010BA", 1).getLoops().size());
-        Assert.assertEquals(0, loop.getLoop("2010BB", 1).getLoops().size());
-        Assert.assertEquals(1, loop.getLoop("2300", 1).getLoops().size());
-        Assert.assertEquals(0, loop.getLoop("2400", 1).getLoops().size());
+        assertEquals(3, loop.getLoops().size());
+        assertEquals(1, loop.getLoop("GS_LOOP", 0).getLoops().size());
+        assertEquals(2, loop.getLoop("ST_LOOP").getLoops().size());
+        assertEquals(2, loop.getLoop("HEADER").getLoops().size());
+        assertEquals(0, loop.getLoop("1000A").getLoops().size());
+        assertEquals(0, loop.getLoop("1000B").getLoops().size());
+        assertEquals(1, loop.getLoop("DETAIL").getLoops().size());
+        assertEquals(4, loop.getLoop("2000A").getLoops().size());
+        assertEquals(0, loop.getLoop("2010AA").getLoops().size());
+        assertEquals(0, loop.getLoop("2010AB").getLoops().size());
+        assertEquals(6, loop.findLoop("2000B").size());
+        assertEquals(3, loop.getLoop("2000B", 0).getLoops().size());
+        assertEquals(0, loop.getLoop("2010BA", 0).getLoops().size());
+        assertEquals(0, loop.getLoop("2010BB", 0).getLoops().size());
+        assertEquals(1, loop.getLoop("2300", 0).getLoops().size());
+        assertEquals(0, loop.getLoop("2400", 0).getLoops().size());
+        assertEquals(3, loop.getLoop("2000B", 1).getLoops().size());
+        assertEquals(0, loop.getLoop("2010BA", 1).getLoops().size());
+        assertEquals(0, loop.getLoop("2010BB", 1).getLoops().size());
+        assertEquals(1, loop.getLoop("2300", 1).getLoops().size());
+        assertEquals(0, loop.getLoop("2400", 1).getLoops().size());
 
-        Assert.assertEquals(1, loop.getLoop("GS_LOOP", 1).getLoops().size());
-        Assert.assertEquals(2, loop.getLoop(1).getLoop("ST_LOOP").getLoops().size());
-        Assert.assertEquals(2, loop.getLoop(1).getLoop("HEADER").getLoops().size());
-        Assert.assertEquals(0, loop.getLoop(1).getLoop("1000A").getLoops().size());
-        Assert.assertEquals(0, loop.getLoop(1).getLoop("1000B").getLoops().size());
-        Assert.assertEquals(1, loop.getLoop(1).getLoop("DETAIL").getLoops().size());
-        Assert.assertEquals(4, loop.getLoop(1).getLoop("2000A").getLoops().size());
-        Assert.assertEquals(0, loop.getLoop(1).getLoop("2010AA").getLoops().size());
-        Assert.assertEquals(0, loop.getLoop(1).getLoop("2010AB").getLoops().size());
-        Assert.assertEquals(3, loop.getLoop(1).getLoop("2000B", 0).getLoops().size());
-        Assert.assertEquals(0, loop.getLoop(1).getLoop("2010BA", 0).getLoops().size());
-        Assert.assertEquals(0, loop.getLoop(1).getLoop("2010BB", 0).getLoops().size());
-        Assert.assertEquals(1, loop.getLoop(1).getLoop("2300", 0).getLoops().size());
-        Assert.assertEquals(0, loop.getLoop(1).getLoop("2400", 0).getLoops().size());
-        Assert.assertEquals(3, loop.getLoop(1).getLoop("2000B", 1).getLoops().size());
-        Assert.assertEquals(0, loop.getLoop(1).getLoop("2010BA", 1).getLoops().size());
-        Assert.assertEquals(0, loop.getLoop(1).getLoop("2010BB", 1).getLoops().size());
-        Assert.assertEquals(1, loop.getLoop(1).getLoop("2300", 1).getLoops().size());
-        Assert.assertEquals(0, loop.getLoop(1).getLoop("2400", 1).getLoops().size());
+        assertEquals(1, loop.getLoop("GS_LOOP", 1).getLoops().size());
+        assertEquals(2, loop.getLoop(1).getLoop("ST_LOOP").getLoops().size());
+        assertEquals(2, loop.getLoop(1).getLoop("HEADER").getLoops().size());
+        assertEquals(0, loop.getLoop(1).getLoop("1000A").getLoops().size());
+        assertEquals(0, loop.getLoop(1).getLoop("1000B").getLoops().size());
+        assertEquals(1, loop.getLoop(1).getLoop("DETAIL").getLoops().size());
+        assertEquals(4, loop.getLoop(1).getLoop("2000A").getLoops().size());
+        assertEquals(0, loop.getLoop(1).getLoop("2010AA").getLoops().size());
+        assertEquals(0, loop.getLoop(1).getLoop("2010AB").getLoops().size());
+        assertEquals(3, loop.getLoop(1).getLoop("2000B", 0).getLoops().size());
+        assertEquals(0, loop.getLoop(1).getLoop("2010BA", 0).getLoops().size());
+        assertEquals(0, loop.getLoop(1).getLoop("2010BB", 0).getLoops().size());
+        assertEquals(1, loop.getLoop(1).getLoop("2300", 0).getLoops().size());
+        assertEquals(0, loop.getLoop(1).getLoop("2400", 0).getLoops().size());
+        assertEquals(3, loop.getLoop(1).getLoop("2000B", 1).getLoops().size());
+        assertEquals(0, loop.getLoop(1).getLoop("2010BA", 1).getLoops().size());
+        assertEquals(0, loop.getLoop(1).getLoop("2010BB", 1).getLoops().size());
+        assertEquals(1, loop.getLoop(1).getLoop("2300", 1).getLoops().size());
+        assertEquals(0, loop.getLoop(1).getLoop("2400", 1).getLoops().size());
 
-        Assert.assertEquals("20050314-20050325", loop.getLoop(1).getLoop("2400", 0).getSegment("DTP").getElementValue("DTP03"));
-        Assert.assertEquals("20010523-20010601", loop.getLoop(1).getLoop("2400", 1).getSegment("DTP").getElementValue("DTP03"));
+        assertEquals("20050314-20050325", loop.getLoop(1).getLoop("2400", 0).getSegment("DTP").getElementValue("DTP03"));
+        assertEquals("20010523-20010601", loop.getLoop(1).getLoop("2400", 1).getSegment("DTP").getElementValue("DTP03"));
 
-        Assert.assertEquals("GREENBELT", loop.getLoop(0).getLoop("2010AB").getSegment("N4").getElementValue("N401"));
-        Assert.assertEquals("COLLEGE PARK", loop.getLoop(1).getLoop("2010AB").getSegment("N4").getElementValue("N401"));
+        assertEquals("GREENBELT", loop.getLoop(0).getLoop("2010AB").getSegment("N4").getElementValue("N401"));
+        assertEquals("COLLEGE PARK", loop.getLoop(1).getLoop("2010AB").getSegment("N4").getElementValue("N401"));
 
-        Assert.assertEquals("DAVID ANGELASZEK", loop.getLoop(0).getLoop("1000A").getSegment("PER").getElementValue("PER02"));
-        Assert.assertEquals("DAVID JEFFREY ANGELASZEK", loop.getLoop(2).getLoop("1000A").getSegment("PER").getElementValue("PER02"));
+        assertEquals("DAVID ANGELASZEK", loop.getLoop(0).getLoop("1000A").getSegment("PER").getElementValue("PER02"));
+        assertEquals("DAVID JEFFREY ANGELASZEK", loop.getLoop(2).getLoop("1000A").getSegment("PER").getElementValue("PER02"));
     }
 
     private void validateMultipleSTLoops(Loop loop) {
-        Assert.assertEquals(1, loop.getLoops().size());
-        Assert.assertEquals(2, loop.getLoop("GS_LOOP").getLoops().size());
-        Assert.assertEquals(2, loop.getLoop("ST_LOOP").getLoops().size());
-        Assert.assertEquals(2, loop.getLoop("HEADER").getLoops().size());
-        Assert.assertEquals(0, loop.getLoop("1000A").getLoops().size());
-        Assert.assertEquals(0, loop.getLoop("1000B").getLoops().size());
-        Assert.assertEquals(1, loop.getLoop("DETAIL").getLoops().size());
-        Assert.assertEquals(4, loop.getLoop("2000A").getLoops().size());
-        Assert.assertEquals(0, loop.getLoop("2010AA").getLoops().size());
-        Assert.assertEquals(0, loop.getLoop("2010AB").getLoops().size());
-        Assert.assertEquals(4, loop.findLoop("2000B").size());
-        Assert.assertEquals(3, loop.getLoop("2000B", 0).getLoops().size());
-        Assert.assertEquals(0, loop.getLoop("2010BA", 0).getLoops().size());
-        Assert.assertEquals(0, loop.getLoop("2010BB", 0).getLoops().size());
-        Assert.assertEquals(1, loop.getLoop("2300", 0).getLoops().size());
-        Assert.assertEquals(0, loop.getLoop("2400", 0).getLoops().size());
-        Assert.assertEquals(3, loop.getLoop("2000B", 1).getLoops().size());
-        Assert.assertEquals(0, loop.getLoop("2010BA", 1).getLoops().size());
-        Assert.assertEquals(0, loop.getLoop("2010BB", 1).getLoops().size());
-        Assert.assertEquals(1, loop.getLoop("2300", 1).getLoops().size());
-        Assert.assertEquals(0, loop.getLoop("2400", 1).getLoops().size());
+        assertEquals(1, loop.getLoops().size());
+        assertEquals(2, loop.getLoop("GS_LOOP").getLoops().size());
+        assertEquals(2, loop.getLoop("ST_LOOP").getLoops().size());
+        assertEquals(2, loop.getLoop("HEADER").getLoops().size());
+        assertEquals(0, loop.getLoop("1000A").getLoops().size());
+        assertEquals(0, loop.getLoop("1000B").getLoops().size());
+        assertEquals(1, loop.getLoop("DETAIL").getLoops().size());
+        assertEquals(4, loop.getLoop("2000A").getLoops().size());
+        assertEquals(0, loop.getLoop("2010AA").getLoops().size());
+        assertEquals(0, loop.getLoop("2010AB").getLoops().size());
+        assertEquals(4, loop.findLoop("2000B").size());
+        assertEquals(3, loop.getLoop("2000B", 0).getLoops().size());
+        assertEquals(0, loop.getLoop("2010BA", 0).getLoops().size());
+        assertEquals(0, loop.getLoop("2010BB", 0).getLoops().size());
+        assertEquals(1, loop.getLoop("2300", 0).getLoops().size());
+        assertEquals(0, loop.getLoop("2400", 0).getLoops().size());
+        assertEquals(3, loop.getLoop("2000B", 1).getLoops().size());
+        assertEquals(0, loop.getLoop("2010BA", 1).getLoops().size());
+        assertEquals(0, loop.getLoop("2010BB", 1).getLoops().size());
+        assertEquals(1, loop.getLoop("2300", 1).getLoops().size());
+        assertEquals(0, loop.getLoop("2400", 1).getLoops().size());
 
-        Assert.assertEquals(2, loop.getLoop("ST_LOOP", 1).getLoops().size());
-        Assert.assertEquals(2, loop.getLoop("ST_LOOP", 1).getLoop("HEADER").getLoops().size());
-        Assert.assertEquals(0, loop.getLoop("ST_LOOP", 1).getLoop("1000A").getLoops().size());
-        Assert.assertEquals(0, loop.getLoop("ST_LOOP", 1).getLoop("1000B").getLoops().size());
-        Assert.assertEquals(1, loop.getLoop("ST_LOOP", 1).getLoop("DETAIL").getLoops().size());
-        Assert.assertEquals(4, loop.getLoop("ST_LOOP", 1).getLoop("2000A").getLoops().size());
-        Assert.assertEquals(0, loop.getLoop("ST_LOOP", 1).getLoop("2010AA").getLoops().size());
-        Assert.assertEquals(0, loop.getLoop("ST_LOOP", 1).getLoop("2010AB").getLoops().size());
-        Assert.assertEquals(3, loop.getLoop("ST_LOOP", 1).getLoop("2000B", 0).getLoops().size());
-        Assert.assertEquals(0, loop.getLoop("ST_LOOP", 1).getLoop("2010BA", 0).getLoops().size());
-        Assert.assertEquals(0, loop.getLoop("ST_LOOP", 1).getLoop("2010BB", 0).getLoops().size());
-        Assert.assertEquals(1, loop.getLoop("ST_LOOP", 1).getLoop("2300", 0).getLoops().size());
-        Assert.assertEquals(0, loop.getLoop("ST_LOOP", 1).getLoop("2400", 0).getLoops().size());
-        Assert.assertEquals(3, loop.getLoop("ST_LOOP", 1).getLoop("2000B", 1).getLoops().size());
-        Assert.assertEquals(0, loop.getLoop("ST_LOOP", 1).getLoop("2010BA", 1).getLoops().size());
-        Assert.assertEquals(0, loop.getLoop("ST_LOOP", 1).getLoop("2010BB", 1).getLoops().size());
-        Assert.assertEquals(1, loop.getLoop("ST_LOOP", 1).getLoop("2300", 1).getLoops().size());
-        Assert.assertEquals(0, loop.getLoop("ST_LOOP", 1).getLoop("2400", 1).getLoops().size());
+        assertEquals(2, loop.getLoop("ST_LOOP", 1).getLoops().size());
+        assertEquals(2, loop.getLoop("ST_LOOP", 1).getLoop("HEADER").getLoops().size());
+        assertEquals(0, loop.getLoop("ST_LOOP", 1).getLoop("1000A").getLoops().size());
+        assertEquals(0, loop.getLoop("ST_LOOP", 1).getLoop("1000B").getLoops().size());
+        assertEquals(1, loop.getLoop("ST_LOOP", 1).getLoop("DETAIL").getLoops().size());
+        assertEquals(4, loop.getLoop("ST_LOOP", 1).getLoop("2000A").getLoops().size());
+        assertEquals(0, loop.getLoop("ST_LOOP", 1).getLoop("2010AA").getLoops().size());
+        assertEquals(0, loop.getLoop("ST_LOOP", 1).getLoop("2010AB").getLoops().size());
+        assertEquals(3, loop.getLoop("ST_LOOP", 1).getLoop("2000B", 0).getLoops().size());
+        assertEquals(0, loop.getLoop("ST_LOOP", 1).getLoop("2010BA", 0).getLoops().size());
+        assertEquals(0, loop.getLoop("ST_LOOP", 1).getLoop("2010BB", 0).getLoops().size());
+        assertEquals(1, loop.getLoop("ST_LOOP", 1).getLoop("2300", 0).getLoops().size());
+        assertEquals(0, loop.getLoop("ST_LOOP", 1).getLoop("2400", 0).getLoops().size());
+        assertEquals(3, loop.getLoop("ST_LOOP", 1).getLoop("2000B", 1).getLoops().size());
+        assertEquals(0, loop.getLoop("ST_LOOP", 1).getLoop("2010BA", 1).getLoops().size());
+        assertEquals(0, loop.getLoop("ST_LOOP", 1).getLoop("2010BB", 1).getLoops().size());
+        assertEquals(1, loop.getLoop("ST_LOOP", 1).getLoop("2300", 1).getLoops().size());
+        assertEquals(0, loop.getLoop("ST_LOOP", 1).getLoop("2400", 1).getLoops().size());
 
-        Assert.assertEquals("227 LASTNER LANE", loop.getLoop("ST_LOOP", 0).getLoop("2010AB").getSegment("N3").getElementValue("N301"));
-        Assert.assertEquals("21 CRAMER PATH", loop.getLoop("ST_LOOP", 1).getLoop("2010AB").getSegment("N3").getElementValue("N301"));
+        assertEquals("227 LASTNER LANE", loop.getLoop("ST_LOOP", 0).getLoop("2010AB").getSegment("N3").getElementValue("N301"));
+        assertEquals("21 CRAMER PATH", loop.getLoop("ST_LOOP", 1).getLoop("2010AB").getSegment("N3").getElementValue("N301"));
 
-        Assert.assertEquals("JANE JANES", loop.getLoop("ST_LOOP", 0).getLoop("2010AA").getSegment("PER", 1).getElementValue("PER02"));
-        Assert.assertEquals("JANICE JONES", loop.getLoop("ST_LOOP", 1).getLoop("2010AA").getSegment("PER", 1).getElementValue("PER02"));
+        assertEquals("JANE JANES", loop.getLoop("ST_LOOP", 0).getLoop("2010AA").getSegment("PER", 1).getElementValue("PER02"));
+        assertEquals("JANICE JONES", loop.getLoop("ST_LOOP", 1).getLoop("2010AA").getSegment("PER", 1).getElementValue("PER02"));
 
-        Assert.assertEquals("HEALTH INSURANCE COMPANY TWO", loop.getLoop("ST_LOOP", 0).getLoop("2010BB", 1).getSegment("NM1").getElementValue("NM103"));
-        Assert.assertEquals("AN INSURANCE COMPANY", loop.getLoop("ST_LOOP", 1).getLoop("2010BB", 1).getSegment("NM1").getElementValue("NM103"));
+        assertEquals("HEALTH INSURANCE COMPANY TWO", loop.getLoop("ST_LOOP", 0).getLoop("2010BB", 1).getSegment("NM1").getElementValue("NM103"));
+        assertEquals("AN INSURANCE COMPANY", loop.getLoop("ST_LOOP", 1).getLoop("2010BB", 1).getSegment("NM1").getElementValue("NM103"));
     }
 
     @Test
@@ -538,30 +544,29 @@ public class X12ReaderTest {
 
         List<String> errors = reader.getErrors();
 
-        System.out.println(errors);
-        Assert.assertEquals(2, errors.size());
+        assertEquals(2, errors.size());
 
-        Assert.assertTrue(errors.contains("Segment N4 in loop 2010AA is not in the correct position."));
-        Assert.assertTrue(errors.contains("Segment N3 in loop 2010AB is not in the correct position."));
+        assertTrue(errors.contains("Segment N4 in loop 2010AA is not in the correct position."));
+        assertTrue(errors.contains("Segment N3 in loop 2010AB is not in the correct position."));
     }
 
     @Test
     public void testBadFirstLine() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_bad_first_line.txt");
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
-        Assert.assertEquals(1, reader.getErrors().size());
-        Assert.assertTrue(reader.getErrors().contains("Error getting separators"));
+        assertEquals(1, reader.getErrors().size());
+        assertTrue(reader.getErrors().contains("Error getting separators"));
     }
 
     @Test
     public void testConsistentVersions() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_valid.txt");
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X223, new File(url.getFile()));
-        Assert.assertEquals(1, reader.getErrors().size());
-        Assert.assertTrue(reader.getErrors().get(0).contains("not consistent with version specified"));
+        assertEquals(1, reader.getErrors().size());
+        assertTrue(reader.getErrors().get(0).contains("not consistent with version specified"));
 
         reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
-        Assert.assertTrue(reader.getErrors().isEmpty());
+        assertTrue(reader.getErrors().isEmpty());
 
     }
 }
