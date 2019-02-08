@@ -1,7 +1,8 @@
 package com.imsweb.x12;
 
-import org.junit.Assert;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 public class ElementTest {
 
@@ -9,8 +10,8 @@ public class ElementTest {
     public void testConstruction() {
         Element element = new Element("ID", "VALUE");
 
-        Assert.assertEquals("ID", element.getId());
-        Assert.assertEquals("VALUE", element.getValue());
+        assertEquals("ID", element.getId());
+        assertEquals("VALUE", element.getValue());
     }
 
 }

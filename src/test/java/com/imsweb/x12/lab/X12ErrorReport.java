@@ -52,7 +52,7 @@ public class X12ErrorReport {
                     }
 
                 }
-                System.out.println("");
+                System.out.println();
                 filesWithErrors.add(entry.getName());
 
             }
@@ -80,15 +80,15 @@ public class X12ErrorReport {
 
         }
 
-        System.out.println("");
+        System.out.println();
         System.out.println("Overall Summary");
-        System.out.println("");
+        System.out.println();
         float percentage = ((float)filesWithErrors.size()) / counter * 100;
         System.out.println(String.format("%.2f", percentage) + "% (" + filesWithErrors.size() + " out of " + counter + ") of files have errors.");
 
-        System.out.println("");
+        System.out.println();
         System.out.println("Individual Error Summary");
-        System.out.println("");
+        System.out.println();
         System.out.println("Count   Error");
         System.out.println("-----   -----");
         for (int i = 0; i < sortedErrorsByCount.size(); i++)

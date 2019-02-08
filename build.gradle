@@ -7,7 +7,7 @@ plugins {
 }
 
 group = 'com.imsweb'
-version = '1.4'
+version = '1.5-SNAPSHOT'
 description = 'Java client library for parsing x12 files'
 
 // UTF-8 for all compilation tasks
@@ -18,7 +18,7 @@ repositories {
 }
 
 dependencies {
-    compile 'com.thoughtworks.xstream:xstream:1.4.10'
+    compile 'com.thoughtworks.xstream:xstream:1.4.11.1'
 
     testCompile 'junit:junit:4.12'
 }
@@ -42,7 +42,7 @@ checkstyle {
 }
 
 spotbugs {
-    toolVersion = '3.1.8'
+    toolVersion = '3.1.11'
     excludeFilter = file('config/spotbugs/spotbugs-exclude.xml')
 }
 
