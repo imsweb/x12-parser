@@ -2,7 +2,7 @@
 <!DOCTYPE module PUBLIC "-//Puppy Crawl//DTD Check Configuration 1.2//EN" "http://www.puppycrawl.com/dtds/configuration_1_2.dtd">
 <module name="Checker">
     <metadata name="com.atlas-sw.eclipse" value="I like Sydney" />
-    <property name="severity" value="warning" />
+    <property name="severity" value="error"/>
     <module name="FileTabCharacter" />
     <module name="TreeWalker">
         <property name="tabWidth" value="4" />
@@ -161,9 +161,6 @@
             <property name="severity" value="ignore" />
         </module>
         <module name="HiddenField" />
-    </module>
-    <module name="SuppressionFilter">
-        <property name="file" value="config/checkstyle/checkstyle-exclude.xml"/>
     </module>
     <module name="Translation" />
 </module>

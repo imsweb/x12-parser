@@ -26,6 +26,7 @@ public class ElementConverter implements Converter {
     }
 
     @Override
+    @SuppressWarnings("rawtypes")
     public boolean canConvert(Class type) {
         return type.equals(Element.class);
     }

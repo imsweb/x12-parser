@@ -16,6 +16,7 @@ import com.imsweb.x12.reader.X12Reader;
 
 public class X12ErrorReport {
 
+    @SuppressWarnings("rawtypes")
     public static void main(String[] args) throws IOException {
         ZipFile zip = new ZipFile(new File("P:\\csb\\seerdms\\samples\\CLAIMS DATA - UNLIMITED\\5010 Files.zip"));
         int counter = 0;

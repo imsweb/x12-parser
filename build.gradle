@@ -4,14 +4,24 @@ plugins {
     id "com.github.spotbugs" version "1.6.9"
     id 'com.bmuschko.nexus' version '2.3.1'          // prepares and copies artifacts to Sonotype OSS
     id "io.codearte.nexus-staging" version "0.20.0"  // logs into Sonotype OSS and does a "Close" and "Release"
+    id 'com.adarshr.test-logger' version '1.6.0'
 }
 
 group = 'com.imsweb'
 version = '1.5-SNAPSHOT'
 description = 'Java client library for parsing x12 files'
 
-// UTF-8 for all compilation tasks
-[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+// fail the build if there are compiler warnings
+tasks.withType(JavaCompile) {
+    // UTF-8 for all compilation tasks
+    options.encoding = 'UTF-8'
+
+    // set language level
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+
+    options.compilerArgs << "-Xlint:all" << "-Xlint:-processing" << "-Xlint:-serial" << "-Werror"
+}
 
 repositories {
     mavenCentral()
@@ -35,6 +45,10 @@ jar {
                 'Automatic-Module-Name': 'com.imsweb.x12'
         )
     }
+}
+
+testlogger {
+    theme 'mocha'
 }
 
 checkstyle {
