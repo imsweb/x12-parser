@@ -15,7 +15,7 @@ jobs:
           command: chmod +x ./gradlew
       - run:
           name: Run tests
-          command: ./gradlew assemble test
+          command: ./gradlew build
       - run:
           name: Save test results
           command: |
