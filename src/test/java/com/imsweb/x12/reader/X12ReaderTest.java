@@ -494,38 +494,39 @@ public class X12ReaderTest {
     }
 
     private void validateMultipleISALoops(List<Loop> loops) {
-    	assertEquals(2,loops.size());
-    	for( Loop loop:loops )
-    	{
-	        assertEquals(1, loop.getLoops().size());
-	        assertEquals(1, loop.getLoop("GS_LOOP", 0).getLoops().size());
-	        assertEquals(2, loop.getLoop("ST_LOOP").getLoops().size());
-	        assertEquals(2, loop.getLoop("HEADER").getLoops().size());
-	        assertEquals(0, loop.getLoop("1000A").getLoops().size());
-	        assertEquals(0, loop.getLoop("1000B").getLoops().size());
-	        assertEquals(1, loop.getLoop("DETAIL").getLoops().size());
-	        assertEquals(4, loop.getLoop("2000A").getLoops().size());
-	        assertEquals(0, loop.getLoop("2010AA").getLoops().size());
-	        assertEquals(0, loop.getLoop("2010AB").getLoops().size());
-	        assertEquals(2, loop.findLoop("2000B").size());
-	        assertEquals(3, loop.getLoop("2000B", 0).getLoops().size());
-	        assertEquals(0, loop.getLoop("2010BA", 0).getLoops().size());
-	        assertEquals(0, loop.getLoop("2010BB", 0).getLoops().size());
-	        assertEquals(2, loop.findLoop("2300").size());
-	        assertEquals(1, loop.getLoop("2300", 0).getLoops().size());
-	        assertEquals(1, loop.getLoop("2300", 1).getLoops().size());
-	        assertEquals(0, loop.getLoop("2400", 0).getLoops().size());
-	        assertEquals(3, loop.getLoop("2000B", 1).getLoops().size());
-	        assertEquals(0, loop.getLoop("2010BA", 1).getLoops().size());
-	        assertEquals(0, loop.getLoop("2010BB", 1).getLoops().size());
-	        assertEquals(0, loop.getLoop("2300", 0).getLoop("2400", 0).getLoops().size());
-	        assertEquals("20050314-20050325", loop.getLoop("2300").getLoop("2400", 0).getSegment("DTP").getElementValue("DTP03"));
-	        assertEquals("20050322-20050325", loop.getLoop("2300",1).getLoop("2400", 0).getSegment("DTP").getElementValue("DTP03"));
-	        assertEquals("GREENBELT", loop.getLoop(0).getLoop("2010AB").getSegment("N4").getElementValue("N401"));
-	        assertEquals("DAVID ANGELASZEK", loop.getLoop(0).getLoop("1000A").getSegment("PER").getElementValue("PER02"));
-    	}
+        assertEquals(2,loops.size());
+        for( Loop loop:loops ) {
+            assertEquals("ISA_LOOP",loop.getId());
+            assertEquals(1, loop.getLoops().size());
+            assertEquals(1, loop.getLoop("GS_LOOP", 0).getLoops().size());
+            assertEquals(2, loop.getLoop("ST_LOOP").getLoops().size());
+            assertEquals(2, loop.getLoop("HEADER").getLoops().size());
+            assertEquals(0, loop.getLoop("1000A").getLoops().size());
+            assertEquals(0, loop.getLoop("1000B").getLoops().size());
+            assertEquals(1, loop.getLoop("DETAIL").getLoops().size());
+            assertEquals(4, loop.getLoop("2000A").getLoops().size());
+            assertEquals(0, loop.getLoop("2010AA").getLoops().size());
+            assertEquals(0, loop.getLoop("2010AB").getLoops().size());
+            assertEquals(2, loop.findLoop("2000B").size());
+            assertEquals(3, loop.getLoop("2000B", 0).getLoops().size());
+            assertEquals(0, loop.getLoop("2010BA", 0).getLoops().size());
+            assertEquals(0, loop.getLoop("2010BB", 0).getLoops().size());
+            assertEquals(2, loop.findLoop("2300").size());
+            assertEquals(1, loop.getLoop("2300", 0).getLoops().size());
+            assertEquals(1, loop.getLoop("2300", 1).getLoops().size());
+            assertEquals(0, loop.getLoop("2400", 0).getLoops().size());
+            assertEquals(3, loop.getLoop("2000B", 1).getLoops().size());
+            assertEquals(0, loop.getLoop("2010BA", 1).getLoops().size());
+            assertEquals(0, loop.getLoop("2010BB", 1).getLoops().size());
+            assertEquals(0, loop.getLoop("2300", 0).getLoop("2400", 0).getLoops().size());
+            assertEquals("20050314-20050325", loop.getLoop("2300").getLoop("2400", 0).getSegment("DTP").getElementValue("DTP03"));
+            assertEquals("20050322-20050325", loop.getLoop("2300",1).getLoop("2400", 0).getSegment("DTP").getElementValue("DTP03"));
+            assertEquals("GREENBELT", loop.getLoop(0).getLoop("2010AB").getSegment("N4").getElementValue("N401"));
+            assertEquals("DAVID ANGELASZEK", loop.getLoop(0).getLoop("1000A").getSegment("PER").getElementValue("PER02"));
+            assertNotNull( loop.getLoop("2300",1).getLoop("2400",0).getSegment("IEA")); // test to ensure the final segment is included!
+        }
     }
-    
+
     private void validateMultipleSTLoops(Loop loop) {
         assertEquals(1, loop.getLoops().size());
         assertEquals(2, loop.getLoop("GS_LOOP").getLoops().size());
