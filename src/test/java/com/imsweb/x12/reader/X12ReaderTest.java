@@ -22,7 +22,7 @@ public class X12ReaderTest {
     public void testDifferentSeparators() throws IOException {
         URL url = this.getClass().getResource("/837_5010/x12_valid_different_separators.txt");
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
-        validate837Valid(reader.getLoop());
+        validate837Valid(reader.getLoops().get(0));
     }
 
     @Test
@@ -34,8 +34,8 @@ public class X12ReaderTest {
         X12Reader fromInputStream = new X12Reader(FileType.ANSI837_5010_X222, new FileInputStream(url.getFile()));
         X12Reader fromInputStreamUtf8 = new X12Reader(FileType.ANSI837_5010_X222, new FileInputStream(url.getFile()), StandardCharsets.UTF_8);
 
-        Assert.assertEquals(fromFile.getLoop().toString(), fromInputStream.getLoop().toString());
-        Assert.assertEquals(fromFileUtf8.getLoop().toString(), fromInputStreamUtf8.getLoop().toString());
+        Assert.assertEquals(fromFile.getLoops().get(0).toString(), fromInputStream.getLoops().get(0).toString());
+        Assert.assertEquals(fromFileUtf8.getLoops().get(0).toString(), fromInputStreamUtf8.getLoops().get(0).toString());
     }
 
     @Test
@@ -43,7 +43,7 @@ public class X12ReaderTest {
         URL url = this.getClass().getResource("/837_5010/x12_multiple_gs.txt");
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
 
-        validateMultipleGSLoops(reader.getLoop());
+        validateMultipleGSLoops(reader.getLoops().get(0));
     }
 
     @Test
@@ -51,7 +51,7 @@ public class X12ReaderTest {
         URL url = this.getClass().getResource("/837_5010/x12_multiple_st.txt");
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
 
-        validateMultipleSTLoops(reader.getLoop());
+        validateMultipleSTLoops(reader.getLoops().get(0));
     }
 
     @Test
@@ -76,9 +76,9 @@ public class X12ReaderTest {
     public void testNewGetMethods() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_valid.txt");
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
-        Loop loop = reader.getLoop();
+        Loop loop = reader.getLoops().get(0);
 
-        Loop test = reader.getLoop().getLoop("2000B");
+        Loop test = reader.getLoops().get(0).getLoop("2000B");
 
         //valid loop, no indices
         Assert.assertEquals("123456", loop.getElement("2010BA", "NM1", "NM109"));
@@ -104,7 +104,7 @@ public class X12ReaderTest {
         URL url = this.getClass().getResource("/837_5010/x12_valid.txt");
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
 
-        validate837Valid(reader.getLoop());
+        validate837Valid(reader.getLoops().get(0));
     }
 
     @Test
@@ -112,7 +112,7 @@ public class X12ReaderTest {
         URL url = this.getClass().getResource("/837_5010/x12_valid.txt");
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
 
-        validate837Valid(reader.getLoop());
+        validate837Valid(reader.getLoops().get(0));
     }
 
     @Test
@@ -120,7 +120,7 @@ public class X12ReaderTest {
         URL url = this.getClass().getResource("/837_5010/x12_valid.txt");
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new FileInputStream(new File(url.getFile())));
 
-        validate837Valid(reader.getLoop());
+        validate837Valid(reader.getLoops().get(0));
     }
 
     @Test
@@ -257,7 +257,7 @@ public class X12ReaderTest {
     public void testToXml() throws IOException {
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(this.getClass().getResource("/837_5010/x12_no_errors.txt").getFile()));
 
-        String xml = reader.getLoop().toXML();
+        String xml = reader.getLoops().get(0).toXML();
         Assert.assertTrue(xml.length() > 0);
         Assert.assertTrue(xml.startsWith("<loop id=\"ISA_LOOP\">"));
     }
@@ -266,7 +266,7 @@ public class X12ReaderTest {
     public void testToJson() throws IOException {
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(this.getClass().getResource("/837_5010/x12_no_errors.txt").getFile()));
 
-        String json = reader.getLoop().toJson();
+        String json = reader.getLoops().get(0).toJson();
         Assert.assertTrue(json.length() > 0);
         Assert.assertTrue(json.startsWith("{\n  \"id\": \"ISA_LOOP\",\n  \"segments\""));
 
