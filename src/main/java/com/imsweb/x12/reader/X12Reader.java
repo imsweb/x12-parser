@@ -221,6 +221,10 @@ public class X12Reader {
                 loopId = getMatchedLoop(line.split(Pattern.quote(separators.getElement().toString())), previousLoopId);
                 if (loopId != null) {
                     if( loopId.equals( _definition.getLoop().getXid() ) ) {
+                    	if( null!=currentLoopId )
+                    	{
+                    		storeData(previousLoopId, loopLines, currentLoopId, getCurrentLoop().getSeparators());
+                    	}
                     	previousLoopId=null;
                     	currentLoopId=null;
                         _dataLoops.add(new Loop(null) );
