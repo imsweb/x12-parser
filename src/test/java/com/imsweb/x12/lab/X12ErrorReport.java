@@ -1,7 +1,5 @@
 package com.imsweb.x12.lab;
 
-import com.imsweb.x12.reader.X12Reader;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,6 +11,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+
+import com.imsweb.x12.reader.X12Reader;
 
 public class X12ErrorReport {
 
@@ -27,7 +27,7 @@ public class X12ErrorReport {
 
         for (Enumeration e = zip.entries(); e.hasMoreElements(); ) {
             counter++;
-            ZipEntry entry = (ZipEntry) e.nextElement();
+            ZipEntry entry = (ZipEntry)e.nextElement();
 
             InputStream is = zip.getInputStream(entry);
 
@@ -84,7 +84,7 @@ public class X12ErrorReport {
         System.out.println();
         System.out.println("Overall Summary");
         System.out.println();
-        float percentage = ((float) filesWithErrors.size()) / counter * 100;
+        float percentage = ((float)filesWithErrors.size()) / counter * 100;
         System.out.println(String.format("%.2f", percentage) + "% (" + filesWithErrors.size() + " out of " + counter + ") of files have errors.");
 
         System.out.println();

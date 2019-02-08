@@ -3,12 +3,13 @@
  */
 package com.imsweb.x12.mapping;
 
-import com.imsweb.x12.mapping.TransactionDefinition.Usage;
 import com.thoughtworks.xstream.converters.Converter;
 import com.thoughtworks.xstream.converters.MarshallingContext;
 import com.thoughtworks.xstream.converters.UnmarshallingContext;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
+
+import com.imsweb.x12.mapping.TransactionDefinition.Usage;
 
 public class UsageConverter implements Converter {
 

@@ -48,7 +48,7 @@ jar {
 }
 
 testlogger {
-    theme 'standard'
+    theme 'mocha'
 }
 
 checkstyle {
