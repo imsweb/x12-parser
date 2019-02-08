@@ -51,7 +51,6 @@ public class X12Reader {
 
     private static final Map<FileType, String> _TYPES = new HashMap<>();
 
-
     private List<Loop> _dataLoops = new ArrayList<Loop>();
     private List<String> _errors = new ArrayList<>();
     private List<LoopConfig> _config = new ArrayList<>();
@@ -144,6 +143,7 @@ public class X12Reader {
      * Constructs an X12Reader using an InputStream
      * @param type the type of x12 file
      * @param input an InputStream to an input file
+     * @param charset character encoding
      * @throws IOException if there was an error reading the input file
      */
     public X12Reader(FileType type, InputStream input, Charset charset) throws IOException {
@@ -190,7 +190,6 @@ public class X12Reader {
      * Parse a Readable into a Loop
      * @param type file type definition
      * @param reader reader
-     * @return
      */
     private void parse(FileType type, Reader reader) throws IOException {
         Scanner scanner = new Scanner(reader);
@@ -328,7 +327,7 @@ public class X12Reader {
             String lineString = line.toString();
             int versionStartPos = lineString.lastIndexOf(elementSeparator);
             if (versionStartPos != -1)
-                version = lineString.substring(versionStartPos + 1, lineString.length());
+                version = lineString.substring(versionStartPos + 1);
         }
         reader.reset();
 
@@ -344,7 +343,7 @@ public class X12Reader {
      * Determines the characters for each separator used in an x12 file
      * @param reader that is used to read the x12 file
      * @return Separator object instantiated with the appropriate separators.
-     * @throws IOException
+     * @throws IOException exception with Reader
      */
     private Separators getSeparators(Reader reader) throws IOException {
         reader.mark(1);
@@ -519,7 +518,7 @@ public class X12Reader {
      * @param loop ---- object to loop over
      * @param id --- the id of the loop we want to find parents for
      * @param parentLoop --- list of parent loops.
-     * @return
+     * @return list of parent loops
      */
     private List<String> getParentLoopsFromDefintion(LoopDefinition loop, String id, List<String> parentLoop) {
         if (loop.getLoop() != null)
@@ -660,10 +659,8 @@ public class X12Reader {
     private boolean codesValidatedForLoopId(String[] tokens, SegmentDefinition segmentConf) {
         Map<List<String>, Integer> validCodes = getValidCodes(segmentConf);
         List<Integer> requiredElements = getRequiredElementPositions(segmentConf);
-        List<Integer> positions = new ArrayList<>();
-        List<List<String>> codes = new ArrayList<>();
-        positions.addAll(validCodes.values());
-        codes.addAll(validCodes.keySet());
+        List<Integer> positions = new ArrayList<>(validCodes.values());
+        List<List<String>> codes = new ArrayList<>(validCodes.keySet());
 
         for (int i = 1; i < tokens.length; i++)
             if (tokens[i] != null && !tokens[i].isEmpty() && positions.contains(i) && requiredElements.contains(i))
@@ -682,10 +679,8 @@ public class X12Reader {
      */
     private boolean codesValidated(String[] tokens, SegmentDefinition segmentConf) {
         Map<List<String>, Integer> validCodes = getValidCodes(segmentConf);
-        List<Integer> positions = new ArrayList<>();
-        List<List<String>> codes = new ArrayList<>();
-        positions.addAll(validCodes.values());
-        codes.addAll(validCodes.keySet());
+        List<Integer> positions = new ArrayList<>(validCodes.values());
+        List<List<String>> codes = new ArrayList<>(validCodes.keySet());
 
         for (int i = 1; i < tokens.length; i++)
             if (tokens[i] != null && !tokens[i].isEmpty() && positions.contains(i))
