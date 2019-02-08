@@ -1,21 +1,17 @@
 package com.imsweb.x12.lab;
 
+import com.imsweb.x12.reader.X12Reader;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import com.imsweb.x12.reader.X12Reader;
-
 public class X12ErrorReport {
 
+    @SuppressWarnings("rawtypes")
     public static void main(String[] args) throws IOException {
         ZipFile zip = new ZipFile(new File("P:\\csb\\seerdms\\samples\\CLAIMS DATA - UNLIMITED\\5010 Files.zip"));
         int counter = 0;
