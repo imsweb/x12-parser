@@ -1,7 +1,7 @@
 version: 2.0
 
 jobs:
-  build:
+  check:
     docker:
       - image: circleci/openjdk:8-jdk
     environment:
@@ -52,13 +52,9 @@ workflows:
   # runs tests
   check:
     jobs:
-      - build
-
-  # release to maven central
-  release-to-maven-central:
-    jobs:
+      - check            # run unit tests
       - approve-release: # require manual approval in the CircleCI web application.
           type: approval
-      - release:
+      - release:         # release to Maven Central
           requires:
             - approve-release
