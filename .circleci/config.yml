@@ -55,7 +55,7 @@ workflows:
       - build
 
   # release to maven central
-  release:
+  release-to-maven-central:
     jobs:
       - approve-release: # require manual approval in the CircleCI web application.
           type: approval
