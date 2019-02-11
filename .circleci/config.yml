@@ -59,5 +59,6 @@ workflows:
     jobs:
       - approve-release: # require manual approval in the CircleCI web application.
           type: approval
-      - release:
-          - requires: approve-release
+      - release
+        requires
+        - approve-release
