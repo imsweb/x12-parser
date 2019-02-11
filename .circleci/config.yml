@@ -1,4 +1,5 @@
 version: 2.0
+
 jobs:
   build:
     docker:
@@ -30,3 +31,33 @@ jobs:
           paths:
             - ~/.gradle
           key: gradle-{{ checksum "build.gradle" }}
+  release:
+    docker:
+      - image: circleci/openjdk:8-jdk
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - gradle-{{ checksum "build.gradle" }}
+      - run:
+          name: chmod permissions
+          command: chmod +x ./gradlew
+      - run:
+          name: Run tests
+          command: ./gradlew clean uploadArchives closeAndReleaseRepository
+
+workflows:
+  version: 2
+
+  # runs tests
+  check:
+    jobs:
+      - build
+
+  # release to maven central
+  release:
+    jobs:
+      - approve-release: # require manual approval in the CircleCI web application.
+          type: approval
+      - release:
+          - requires: approve-release
