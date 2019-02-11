@@ -12,11 +12,10 @@ jobs:
           keys:
             - gradle-{{ checksum "build.gradle" }}
       - run:
-          name: Fix permissions
-          command: chmod +x ./gradlew
-      - run:
           name: Run tests
-          command: ./gradlew check
+          command: |
+            chmod +x ./gradlew
+            ./gradlew check
       - run:
           name: Save test results
           command: |
@@ -40,11 +39,10 @@ jobs:
           keys:
             - gradle-{{ checksum "build.gradle" }}
       - run:
-          name: Fix permissions
-          command: chmod +x ./gradlew
-      - run:
           name: Release to Maven Central
-          command: ./gradlew clean uploadArchives closeAndReleaseRepository
+          command: |
+            chmod +x ./gradlew
+            ./gradlew clean uploadArchives closeAndReleaseRepository
 
 workflows:
   version: 2
