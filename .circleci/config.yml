@@ -43,7 +43,7 @@ jobs:
           name: chmod permissions
           command: chmod +x ./gradlew
       - run:
-          name: Run tests
+          name: Release to Maven Central
           command: ./gradlew clean uploadArchives closeAndReleaseRepository
 
 workflows:
