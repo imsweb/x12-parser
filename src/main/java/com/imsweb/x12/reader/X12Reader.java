@@ -216,12 +216,12 @@ public class X12Reader {
             _errors = new ArrayList<>();
 
             String line = scanner.next().trim();
-            while (scanner.hasNext() || line.length()>0) { 
+            while (scanner.hasNext() ) { 
                 // Determine if we have started a new loop
                 loopId = getMatchedLoop(line.split(Pattern.quote(separators.getElement().toString())), previousLoopId);
                 if (loopId != null) {
                     if( loopId.equals( _definition.getLoop().getXid() ) ) {
-                        if( null!=currentLoopId ) {
+                        if( currentLoopId!=null ) {
                             storeData(previousLoopId, loopLines, currentLoopId, getCurrentLoop().getSeparators());
                             loopLines = new ArrayList<>();
                         }
@@ -264,7 +264,7 @@ public class X12Reader {
                     break;
                 }
             }
-
+            if (!line.isEmpty() && !loopLines.contains(line)) loopLines.add(line);
             storeData(previousLoopId, loopLines, currentLoopId, separators);
 
             //checking the loop data to see if there any requirements violations

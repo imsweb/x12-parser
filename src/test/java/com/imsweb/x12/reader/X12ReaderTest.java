@@ -49,15 +49,14 @@ public class X12ReaderTest {
     public void testMultipleGSLoops() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_multiple_gs.txt");
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
-
         validateMultipleGSLoops(reader.getLoops().get(0));
+        
     }
 
     @Test
     public void testMultipleISALoops() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_multiple_isa.txt");
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
-
         validateMultipleISALoops(reader.getLoops());
     }
 
