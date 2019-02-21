@@ -51,7 +51,7 @@ public class X12Reader {
 
     private static final Map<FileType, String> _TYPES = new HashMap<>();
 
-    private List<Loop> _dataLoops = new ArrayList<Loop>();
+    private List<Loop> _dataLoops = new ArrayList<>();
     private List<String> _errors = new ArrayList<>();
     private List<LoopConfig> _config = new ArrayList<>();
     TransactionDefinition _definition;
@@ -378,7 +378,6 @@ public class X12Reader {
      * @param prevousLoopId---the previous loop id that was stored
      * @return loopID----the id of the loop that was just stored
      */
-
     private String storeData(String currentLoopId, List<String> loopLines, String prevousLoopId, Separators separators) {
         Loop newLoop = new Loop(separators, currentLoopId);
         for (String s : loopLines) {
@@ -453,7 +452,6 @@ public class X12Reader {
      * @param loop loop to be proceesed
      * @param parentID parent loop id of the loop being processed
      */
-
     private void getLoopConfiguration(LoopDefinition loop, String parentID) {
         if (!containsLoop(loop.getXid())) {
             if (loop.getLoop() != null) {
