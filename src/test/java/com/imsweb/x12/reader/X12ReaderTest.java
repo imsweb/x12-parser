@@ -27,7 +27,7 @@ public class X12ReaderTest {
     public void testDifferentSeparators() throws IOException {
         URL url = this.getClass().getResource("/837_5010/x12_valid_different_separators.txt");
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
-        validate837Valid(reader.getLoop());
+        validate837Valid(reader.getLoops().get(0));
     }
 
     @Test
@@ -40,17 +40,24 @@ public class X12ReaderTest {
         X12Reader fromInputStreamUtf8 = new X12Reader(FileType.ANSI837_5010_X222, new FileInputStream(url.getFile()), StandardCharsets.UTF_8);
         X12Reader fromReaderUtf8 = new X12Reader(FileType.ANSI837_5010_X222, new BufferedReader(new InputStreamReader(new FileInputStream(url.getFile()), StandardCharsets.UTF_8)));
 
-        assertEquals(fromFile.getLoop().toString(), fromInputStream.getLoop().toString());
-        assertEquals(fromFileUtf8.getLoop().toString(), fromInputStreamUtf8.getLoop().toString());
-        assertEquals(fromFileUtf8.getLoop().toString(), fromReaderUtf8.getLoop().toString());
+        assertEquals(fromFile.getLoops().get(0).toString(), fromInputStream.getLoops().get(0).toString());
+        assertEquals(fromFileUtf8.getLoops().get(0).toString(), fromInputStreamUtf8.getLoops().get(0).toString());
+        assertEquals(fromFileUtf8.getLoops().get(0).toString(), fromReaderUtf8.getLoops().get(0).toString());
     }
 
     @Test
     public void testMultipleGSLoops() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_multiple_gs.txt");
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
+        validateMultipleGSLoops(reader.getLoops().get(0));
+        
+    }
 
-        validateMultipleGSLoops(reader.getLoop());
+    @Test
+    public void testMultipleISALoops() throws Exception {
+        URL url = this.getClass().getResource("/837_5010/x12_multiple_isa.txt");
+        X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
+        validateMultipleISALoops(reader.getLoops());
     }
 
     @Test
@@ -58,9 +65,9 @@ public class X12ReaderTest {
         URL url = this.getClass().getResource("/837_5010/x12_multiple_st.txt");
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
 
-        validateMultipleSTLoops(reader.getLoop());
+        validateMultipleSTLoops(reader.getLoops().get(0));
     }
-
+    
     @Test
     public void testMarkingFiles() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_valid.txt");
@@ -83,9 +90,9 @@ public class X12ReaderTest {
     public void testNewGetMethods() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_valid.txt");
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
-        Loop loop = reader.getLoop();
+        Loop loop = reader.getLoops().get(0);
 
-        Loop test = reader.getLoop().getLoop("2000B");
+        Loop test = reader.getLoops().get(0).getLoop("2000B");
 
         //valid loop, no indices
         assertEquals("123456", loop.getElement("2010BA", "NM1", "NM109"));
@@ -111,7 +118,7 @@ public class X12ReaderTest {
         URL url = this.getClass().getResource("/837_5010/x12_valid.txt");
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
 
-        validate837Valid(reader.getLoop());
+        validate837Valid(reader.getLoops().get(0));
     }
 
     @Test
@@ -119,7 +126,7 @@ public class X12ReaderTest {
         URL url = this.getClass().getResource("/837_5010/x12_valid.txt");
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
 
-        validate837Valid(reader.getLoop());
+        validate837Valid(reader.getLoops().get(0));
     }
 
     @Test
@@ -127,7 +134,7 @@ public class X12ReaderTest {
         URL url = this.getClass().getResource("/837_5010/x12_valid.txt");
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new FileInputStream(new File(url.getFile())));
 
-        validate837Valid(reader.getLoop());
+        validate837Valid(reader.getLoops().get(0));
     }
 
     @Test
@@ -264,7 +271,7 @@ public class X12ReaderTest {
     public void testToXml() throws IOException {
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(this.getClass().getResource("/837_5010/x12_no_errors.txt").getFile()));
 
-        String xml = reader.getLoop().toXML();
+        String xml = reader.getLoops().get(0).toXML();
         assertTrue(xml.length() > 0);
         assertTrue(xml.startsWith("<loop id=\"ISA_LOOP\">"));
     }
@@ -273,7 +280,7 @@ public class X12ReaderTest {
     public void testToJson() throws IOException {
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(this.getClass().getResource("/837_5010/x12_no_errors.txt").getFile()));
 
-        String json = reader.getLoop().toJson();
+        String json = reader.getLoops().get(0).toJson();
         assertTrue(json.length() > 0);
         assertTrue(json.startsWith("{\n  \"id\": \"ISA_LOOP\",\n  \"segments\""));
 
@@ -483,6 +490,40 @@ public class X12ReaderTest {
 
         assertEquals("DAVID ANGELASZEK", loop.getLoop(0).getLoop("1000A").getSegment("PER").getElementValue("PER02"));
         assertEquals("DAVID JEFFREY ANGELASZEK", loop.getLoop(2).getLoop("1000A").getSegment("PER").getElementValue("PER02"));
+    }
+
+    private void validateMultipleISALoops(List<Loop> loops) {
+        assertEquals(2,loops.size());
+        for( Loop loop:loops ) {
+            assertEquals("ISA_LOOP",loop.getId());
+            assertEquals(1, loop.getLoops().size());
+            assertEquals(1, loop.getLoop("GS_LOOP", 0).getLoops().size());
+            assertEquals(2, loop.getLoop("ST_LOOP").getLoops().size());
+            assertEquals(2, loop.getLoop("HEADER").getLoops().size());
+            assertEquals(0, loop.getLoop("1000A").getLoops().size());
+            assertEquals(0, loop.getLoop("1000B").getLoops().size());
+            assertEquals(1, loop.getLoop("DETAIL").getLoops().size());
+            assertEquals(4, loop.getLoop("2000A").getLoops().size());
+            assertEquals(0, loop.getLoop("2010AA").getLoops().size());
+            assertEquals(0, loop.getLoop("2010AB").getLoops().size());
+            assertEquals(2, loop.findLoop("2000B").size());
+            assertEquals(3, loop.getLoop("2000B", 0).getLoops().size());
+            assertEquals(0, loop.getLoop("2010BA", 0).getLoops().size());
+            assertEquals(0, loop.getLoop("2010BB", 0).getLoops().size());
+            assertEquals(2, loop.findLoop("2300").size());
+            assertEquals(1, loop.getLoop("2300", 0).getLoops().size());
+            assertEquals(1, loop.getLoop("2300", 1).getLoops().size());
+            assertEquals(0, loop.getLoop("2400", 0).getLoops().size());
+            assertEquals(3, loop.getLoop("2000B", 1).getLoops().size());
+            assertEquals(0, loop.getLoop("2010BA", 1).getLoops().size());
+            assertEquals(0, loop.getLoop("2010BB", 1).getLoops().size());
+            assertEquals(0, loop.getLoop("2300", 0).getLoop("2400", 0).getLoops().size());
+            assertEquals("20050314-20050325", loop.getLoop("2300").getLoop("2400", 0).getSegment("DTP").getElementValue("DTP03"));
+            assertEquals("20050322-20050325", loop.getLoop("2300",1).getLoop("2400", 0).getSegment("DTP").getElementValue("DTP03"));
+            assertEquals("GREENBELT", loop.getLoop(0).getLoop("2010AB").getSegment("N4").getElementValue("N401"));
+            assertEquals("DAVID ANGELASZEK", loop.getLoop(0).getLoop("1000A").getSegment("PER").getElementValue("PER02"));
+            assertNotNull( loop.getLoop("2300",1).getLoop("2400",0).getSegment("IEA")); // test to ensure the final segment is included!
+        }
     }
 
     private void validateMultipleSTLoops(Loop loop) {
