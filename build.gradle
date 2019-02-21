@@ -8,7 +8,7 @@ plugins {
 }
 
 group = 'com.imsweb'
-version = '1.5-SNAPSHOT'
+version = '1.5'
 description = 'Java client library for parsing x12 files'
 
 // fail the build if there are compiler warnings

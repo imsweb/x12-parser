@@ -66,7 +66,7 @@ public class Element {
     }
 
     public void setValue(String value) {
-        String values[] = value.split(Pattern.quote(_separators.getCompositeElement().toString()));
+        String[] values = value.split(Pattern.quote(_separators.getCompositeElement().toString()));
         if (values.length >= 1)
             _subValues.addAll(Arrays.asList(values));
 

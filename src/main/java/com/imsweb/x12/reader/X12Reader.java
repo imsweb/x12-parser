@@ -169,15 +169,17 @@ public class X12Reader {
      * @return the loop
      */
     private Loop getCurrentLoop() {
-        return (_dataLoops.isEmpty()?null:_dataLoops.get(_dataLoops.size()-1));
+        return (_dataLoops.isEmpty() ? null : _dataLoops.get(_dataLoops.size() - 1));
     }
+
     /**
      * Return the resulting loops, this would possible if multiple ISA segments were included in one single file
      * @return the loop list
      */
-    public List<Loop> getLoops(){
+    public List<Loop> getLoops() {
         return _dataLoops;
     }
+
     /**
      * Return the list of errors, if any
      * @return a list of errors
@@ -216,18 +218,18 @@ public class X12Reader {
             _errors = new ArrayList<>();
 
             String line = scanner.next().trim();
-            while (scanner.hasNext() ) { 
+            while (scanner.hasNext()) {
                 // Determine if we have started a new loop
                 loopId = getMatchedLoop(line.split(Pattern.quote(separators.getElement().toString())), previousLoopId);
                 if (loopId != null) {
-                    if( loopId.equals( _definition.getLoop().getXid() ) ) {
-                        if( currentLoopId!=null ) {
+                    if (loopId.equals(_definition.getLoop().getXid())) {
+                        if (currentLoopId != null) {
                             storeData(previousLoopId, loopLines, currentLoopId, getCurrentLoop().getSeparators());
                             loopLines = new ArrayList<>();
                         }
-                        previousLoopId=null;
-                        currentLoopId=null;
-                        _dataLoops.add(new Loop(null) );
+                        previousLoopId = null;
+                        currentLoopId = null;
+                        _dataLoops.add(new Loop(null));
                         getCurrentLoop().setSeparators(separators);
                     }
                     updateLoopCounts(loopId);
@@ -264,7 +266,8 @@ public class X12Reader {
                     break;
                 }
             }
-            if (!line.isEmpty() && !loopLines.contains(line)) loopLines.add(line);
+            if (!line.isEmpty() && !loopLines.contains(line))
+                loopLines.add(line);
             storeData(previousLoopId, loopLines, currentLoopId, separators);
 
             //checking the loop data to see if there any requirements violations
@@ -398,7 +401,8 @@ public class X12Reader {
             int index = getCurrentLoop().getLoops().size();
             getCurrentLoop().addLoop(index, newLoop);
         }
-        else if (getCurrentLoop().getLoop(primaryIndex).getLoops().size() != 0 && !getCurrentLoop().getLoop(primaryIndex).getLoop(secondaryIndex).hasLoop(parentName) && !getCurrentLoop().getLoop(primaryIndex).getId()
+        else if (getCurrentLoop().getLoop(primaryIndex).getLoops().size() != 0 && !getCurrentLoop().getLoop(primaryIndex).getLoop(secondaryIndex).hasLoop(parentName) && !getCurrentLoop().getLoop(
+                primaryIndex).getId()
                 .equals(
                         parentName)) { //if the parent loop for the current loop has not been stored---we need to create it. (Happens for loops with no segements!!!)
             String oldParentName = parentName;
@@ -432,7 +436,8 @@ public class X12Reader {
                 index = getCurrentLoop().getLoop(primaryIndex).getLoop(secondaryIndex).getLoop(parentName, parentIndex).getLoops().size();
             }
             //if the primary loop path has child loops and the first loop is NOT the parent loop
-            if (getCurrentLoop().getLoop(primaryIndex).getLoops().size() != 0 && getCurrentLoop().getLoop(primaryIndex).getLoop(secondaryIndex).getLoops().size() != 0 && !getCurrentLoop().getLoop(primaryIndex).getId()
+            if (getCurrentLoop().getLoop(primaryIndex).getLoops().size() != 0 && getCurrentLoop().getLoop(primaryIndex).getLoop(secondaryIndex).getLoops().size() != 0 && !getCurrentLoop().getLoop(
+                    primaryIndex).getId()
                     .equals(
                             parentName))
                 getCurrentLoop().getLoop(primaryIndex).getLoop(secondaryIndex).getLoop(parentName, parentIndex).addLoop(index, newLoop);

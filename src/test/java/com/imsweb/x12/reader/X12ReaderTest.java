@@ -50,7 +50,7 @@ public class X12ReaderTest {
         URL url = this.getClass().getResource("/837_5010/x12_multiple_gs.txt");
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
         validateMultipleGSLoops(reader.getLoops().get(0));
-        
+
     }
 
     @Test
@@ -67,7 +67,7 @@ public class X12ReaderTest {
 
         validateMultipleSTLoops(reader.getLoops().get(0));
     }
-    
+
     @Test
     public void testMarkingFiles() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_valid.txt");
@@ -493,9 +493,9 @@ public class X12ReaderTest {
     }
 
     private void validateMultipleISALoops(List<Loop> loops) {
-        assertEquals(2,loops.size());
-        for( Loop loop:loops ) {
-            assertEquals("ISA_LOOP",loop.getId());
+        assertEquals(2, loops.size());
+        for (Loop loop : loops) {
+            assertEquals("ISA_LOOP", loop.getId());
             assertEquals(1, loop.getLoops().size());
             assertEquals(1, loop.getLoop("GS_LOOP", 0).getLoops().size());
             assertEquals(2, loop.getLoop("ST_LOOP").getLoops().size());
@@ -519,10 +519,10 @@ public class X12ReaderTest {
             assertEquals(0, loop.getLoop("2010BB", 1).getLoops().size());
             assertEquals(0, loop.getLoop("2300", 0).getLoop("2400", 0).getLoops().size());
             assertEquals("20050314-20050325", loop.getLoop("2300").getLoop("2400", 0).getSegment("DTP").getElementValue("DTP03"));
-            assertEquals("20050322-20050325", loop.getLoop("2300",1).getLoop("2400", 0).getSegment("DTP").getElementValue("DTP03"));
+            assertEquals("20050322-20050325", loop.getLoop("2300", 1).getLoop("2400", 0).getSegment("DTP").getElementValue("DTP03"));
             assertEquals("GREENBELT", loop.getLoop(0).getLoop("2010AB").getSegment("N4").getElementValue("N401"));
             assertEquals("DAVID ANGELASZEK", loop.getLoop(0).getLoop("1000A").getSegment("PER").getElementValue("PER02"));
-            assertNotNull( loop.getLoop("2300",1).getLoop("2400",0).getSegment("IEA")); // test to ensure the final segment is included!
+            assertNotNull(loop.getLoop("2300", 1).getLoop("2400", 0).getSegment("IEA")); // test to ensure the final segment is included!
         }
     }
 
