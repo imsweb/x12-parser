@@ -11,16 +11,14 @@ group = 'com.imsweb'
 version = '1.6-SNAPSHOT'
 description = 'Java client library for parsing x12 files'
 
-// fail the build if there are compiler warnings
 tasks.withType(JavaCompile) {
-    // UTF-8 for all compilation tasks
-    options.encoding = 'UTF-8'
+    options.encoding = 'UTF-8'                         // UTF-8 for all compilation tasks
+    options.compilerArgs << "-Xlint:all" << "-Werror"  // fail the build if there are compiler warnings
+}
 
-    // set language level
+java {
     sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
-
-    options.compilerArgs << "-Xlint:all" << "-Xlint:-processing" << "-Xlint:-serial" << "-Werror"
+    targetCompatibility = JavaVersion.VERSION_1_8    
 }
 
 repositories {
