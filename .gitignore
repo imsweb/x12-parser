@@ -2,6 +2,7 @@
 /build
 /classes
 /dist
+/out
 /.idea
 *.iml
 .dbshell
