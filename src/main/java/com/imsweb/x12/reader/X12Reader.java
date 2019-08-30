@@ -27,6 +27,8 @@ import com.thoughtworks.xstream.security.WildcardTypePermission;
 import com.imsweb.x12.Loop;
 import com.imsweb.x12.Segment;
 import com.imsweb.x12.Separators;
+import com.imsweb.x12.InterchangeTransaction;
+import com.imsweb.x12.TransactionSet;
 import com.imsweb.x12.mapping.CompositeDefinition;
 import com.imsweb.x12.mapping.ElementDefinition;
 import com.imsweb.x12.mapping.LoopDefinition;
@@ -54,6 +56,7 @@ public class X12Reader {
     private List<Loop> _dataLoops = new ArrayList<>();
     private List<String> _errors = new ArrayList<>();
     private List<LoopConfig> _config = new ArrayList<>();
+    private List<InterchangeTransaction> _interchangeTransactions = new ArrayList<>();
     TransactionDefinition _definition;
 
     /**
@@ -106,6 +109,12 @@ public class X12Reader {
         _TYPES.put(FileType.ANSI835_5010_X221, _X221_ANSI_VERSION);
         _TYPES.put(FileType.ANSI837_5010_X222, _X222_ANSI_VERSION);
         _TYPES.put(FileType.ANSI837_5010_X223, _X223_ANSI_VERSION);
+    }
+
+    public enum DataType {
+        INTERCHANGE_TRANSACTION_DATA,
+        TRANSACTION_SET_DATA,
+        CLAIM_MESSAGE_DATA;
     }
 
     /**
@@ -164,20 +173,45 @@ public class X12Reader {
             parse(type, reader);
     }
 
+    private InterchangeTransaction getCurrentTransaction() {
+        if (_interchangeTransactions.isEmpty())
+            _interchangeTransactions.add(new InterchangeTransaction());
+
+        return _interchangeTransactions.get(_interchangeTransactions.size() - 1);
+    }
+
+    private TransactionSet getCurrentTransactionSet() {
+        if (getCurrentTransaction().getTransactionSets().isEmpty())
+            getCurrentTransaction().getTransactionSets().add(new TransactionSet());
+
+        return getCurrentTransaction().getTransactionSets().get(getCurrentTransaction().getTransactionSets().size() - 1);
+    }
+
     /**
      * Return the current loop
      * @return the loop
      */
-    private Loop getCurrentLoop() {
-        return (_dataLoops.isEmpty() ? null : _dataLoops.get(_dataLoops.size() - 1));
+    private Loop getCurrentLoop(DataType dataType) {
+        if (DataType.INTERCHANGE_TRANSACTION_DATA.equals(dataType))
+            return getCurrentTransaction().getInterchangeLoop() == null ? new Loop(null) : getCurrentTransaction().getInterchangeLoop();
+
+        if (DataType.TRANSACTION_SET_DATA.equals(dataType))
+            return getCurrentTransactionSet().getHeaderLoop() == null ? new Loop(null) : getCurrentTransactionSet().getHeaderLoop();
+
+        if (DataType.CLAIM_MESSAGE_DATA.equals(dataType)) {
+            getCurrentTransactionSet().getDataLoops().size();
+            return getCurrentTransactionSet().getDataLoops().isEmpty() ? new Loop(null) : getCurrentTransactionSet().getDataLoops().get(getCurrentTransactionSet().getDataLoops().size() - 1);
+        }
+
+        return null;
     }
 
     /**
      * Return the resulting loops, this would possible if multiple ISA segments were included in one single file
      * @return the loop list
      */
-    public List<Loop> getLoops() {
-        return _dataLoops;
+    public List<InterchangeTransaction> getInterchangeTransactions() {
+        return _interchangeTransactions;
     }
 
     /**
@@ -218,37 +252,56 @@ public class X12Reader {
             _errors = new ArrayList<>();
 
             String line = scanner.next().trim();
+            DataType dataType = DataType.INTERCHANGE_TRANSACTION_DATA;
             while (scanner.hasNext()) {
                 // Determine if we have started a new loop
                 loopId = getMatchedLoop(line.split(Pattern.quote(separators.getElement().toString())), previousLoopId);
-                if (loopId != null) {
+                if ("DETAIL".equals(loopId) || "DETAIL".equals(getParentLoop(loopId, previousLoopId))) {
+                    storeData(previousLoopId, loopLines, currentLoopId, getCurrentLoop(dataType).getSeparators(), dataType);
+                    loopLines = new ArrayList<>();
+
+                    dataType  = DataType.CLAIM_MESSAGE_DATA;
+                    getCurrentTransactionSet().getDataLoops().add(new Loop(null));
+                    getCurrentLoop(dataType).setSeparators(separators);
+                }
+                else if (loopId != null) {
                     if (loopId.equals(_definition.getLoop().getXid())) {
                         if (currentLoopId != null) {
-                            storeData(previousLoopId, loopLines, currentLoopId, getCurrentLoop().getSeparators());
+                            storeData(previousLoopId, loopLines, currentLoopId, getCurrentLoop(dataType).getSeparators(), dataType);
                             loopLines = new ArrayList<>();
                         }
                         previousLoopId = null;
                         currentLoopId = null;
-                        _dataLoops.add(new Loop(null));
-                        getCurrentLoop().setSeparators(separators);
+                        dataType  = DataType.INTERCHANGE_TRANSACTION_DATA;
+                        _interchangeTransactions.add(new InterchangeTransaction());
+                        getCurrentLoop(dataType).setSeparators(separators);
                     }
+                    else if ("ST_LOOP".equals(loopId)) {
+                        storeData(previousLoopId, loopLines, currentLoopId, getCurrentLoop(dataType).getSeparators(), dataType);
+                        loopLines = new ArrayList<>();
+
+                        dataType  = DataType.TRANSACTION_SET_DATA;
+                        getCurrentTransaction().getTransactionSets().add(new TransactionSet());
+                        getCurrentLoop(dataType).setSeparators(separators);
+                    }
+
                     updateLoopCounts(loopId);
 
                     // validate the lines and add to list of errors if there are any
                     validateLines(loopLines, previousLoopId, separators);
 
-                    if (getCurrentLoop().getId() == null && loopLines.size() > 0) {
-                        getCurrentLoop().setId(previousLoopId);
+                    if (getCurrentLoop(dataType).getId() == null && loopLines.size() > 0) {
+                        getCurrentLoop(dataType).setId(previousLoopId);
                         for (String s : loopLines) {
-                            Segment seg = new Segment(getCurrentLoop().getSeparators());
+                            Segment seg = new Segment(getCurrentLoop(dataType).getSeparators());
                             seg.addElements(s);
-                            getCurrentLoop().addSegment(seg);
+                            getCurrentLoop(dataType).addSegment(seg);
                         }
                     }
-                    else if (getCurrentLoop().getId() != null) {
+                    else if (getCurrentLoop(dataType).getId() != null) {
                         if (currentLoopId == null)
                             currentLoopId = previousLoopId;
-                        currentLoopId = storeData(previousLoopId, loopLines, currentLoopId, getCurrentLoop().getSeparators());
+                        currentLoopId = storeData(previousLoopId, loopLines, currentLoopId, getCurrentLoop(dataType).getSeparators(), dataType);
                     }
 
                     loopLines = new ArrayList<>();
@@ -268,7 +321,7 @@ public class X12Reader {
             }
             if (!line.isEmpty() && !loopLines.contains(line))
                 loopLines.add(line);
-            storeData(previousLoopId, loopLines, currentLoopId, separators);
+            storeData(previousLoopId, loopLines, currentLoopId, separators ,dataType);
 
             //checking the loop data to see if there any requirements violations
             for (LoopConfig lc : _config) {
@@ -286,8 +339,8 @@ public class X12Reader {
 
                 Set<String> requiredChildLoops = new HashSet<>();
                 requiredChildLoops = getRequiredChildLoops(_definition.getLoop(), lc.getLoopId(), requiredChildLoops);
-                for (int i = 0; i < getCurrentLoop().findLoop(lc.getLoopId()).size(); i++) {
-                    List<String> childLoops = getChildLoopsFromData(getCurrentLoop().findLoop(lc.getLoopId()).get(i).getLoops());
+                for (int i = 0; i < getCurrentLoop(dataType).findLoop(lc.getLoopId()).size(); i++) {
+                    List<String> childLoops = getChildLoopsFromData(getCurrentLoop(dataType).findLoop(lc.getLoopId()).get(i).getLoops());
                     for (String ids : requiredChildLoops)
                         if (!childLoops.contains(ids))
                             _errors.add(ids + " is required but not found in " + lc.getLoopId() + " iteration #" + (i + 1));
@@ -378,7 +431,7 @@ public class X12Reader {
      * @param prevousLoopId---the previous loop id that was stored
      * @return loopID----the id of the loop that was just stored
      */
-    private String storeData(String currentLoopId, List<String> loopLines, String prevousLoopId, Separators separators) {
+    private String storeData(String currentLoopId, List<String> loopLines, String prevousLoopId, Separators separators, DataType dataType) {
         Loop newLoop = new Loop(separators, currentLoopId);
         for (String s : loopLines) {
             Segment seg = new Segment(separators);
@@ -388,36 +441,34 @@ public class X12Reader {
         String parentName = getParentLoop(currentLoopId, prevousLoopId);
         int primaryIndex = 0;
         int secondaryIndex = 0;
+        System.out.println(parentName + " " + currentLoopId);
+        if (getCurrentLoop(dataType).getLoops().size() > 0)
+            primaryIndex = getCurrentLoop(dataType).getLoops().size() - 1;
+        if (getCurrentLoop(dataType).getLoops().size() > 0 && getCurrentLoop(dataType).getLoop(primaryIndex).getLoops().size() > 0)
+            secondaryIndex = getCurrentLoop(dataType).getLoop(primaryIndex).getLoops().size() - 1;
 
-        if (getCurrentLoop().getLoops().size() > 0)
-            primaryIndex = getCurrentLoop().getLoops().size() - 1;
-        if (getCurrentLoop().getLoops().size() > 0 && getCurrentLoop().getLoop(primaryIndex).getLoops().size() > 0)
-            secondaryIndex = getCurrentLoop().getLoop(primaryIndex).getLoops().size() - 1;
-
-        if (getCurrentLoop().getLoops().size() == 0) // if no child loops have been stored yet.
-            getCurrentLoop().addLoop(0, newLoop);
-        else if (getCurrentLoop().getId().equals(parentName)) {
-            int index = getCurrentLoop().getLoops().size();
-            getCurrentLoop().addLoop(index, newLoop);
+        if (getCurrentLoop(dataType).getLoops().size() == 0) // if no child loops have been stored yet.
+            getCurrentLoop(dataType).addLoop(0, newLoop);
+        else if (getCurrentLoop(dataType).getId().equals(parentName)) {
+            int index = getCurrentLoop(dataType).getLoops().size();
+            getCurrentLoop(dataType).addLoop(index, newLoop);
         }
-        else if (getCurrentLoop().getLoop(primaryIndex).getLoops().size() != 0 && !getCurrentLoop().getLoop(primaryIndex).getLoop(secondaryIndex).hasLoop(parentName) && !getCurrentLoop().getLoop(
-                primaryIndex).getId()
-                .equals(
-                        parentName)) { //if the parent loop for the current loop has not been stored---we need to create it. (Happens for loops with no segements!!!)
+        else if (getCurrentLoop(dataType).getLoop(primaryIndex).getLoops().size() != 0 && !getCurrentLoop(dataType).getLoop(primaryIndex).getLoop(secondaryIndex).hasLoop(parentName) && !getCurrentLoop(dataType).getLoop(
+                primaryIndex).getId().equals(parentName)) { //if the parent loop for the current loop has not been stored---we need to create it. (Happens for loops with no segements!!!)
             String oldParentName = parentName;
             parentName = getParentLoop(parentName, prevousLoopId);
 
-            if (!getCurrentLoop().getLoop(primaryIndex).getLoop(secondaryIndex).getId().equals(parentName)) { //if the parent loop of the loop we want to create is NOT the second loop in the path
-                int index = getCurrentLoop().getLoop(primaryIndex).getLoop(secondaryIndex).getLoop(parentName).getLoops().size();
-                getCurrentLoop().getLoop(primaryIndex).getLoop(secondaryIndex).getLoop(parentName).addLoop(index, new Loop(separators, oldParentName));
+            if (!getCurrentLoop(dataType).getLoop(primaryIndex).getLoop(secondaryIndex).getId().equals(parentName)) { //if the parent loop of the loop we want to create is NOT the second loop in the path
+                int index = getCurrentLoop(dataType).getLoop(primaryIndex).getLoop(secondaryIndex).getLoop(parentName).getLoops().size();
+                getCurrentLoop(dataType).getLoop(primaryIndex).getLoop(secondaryIndex).getLoop(parentName).addLoop(index, new Loop(separators, oldParentName));
 
             }
             else { //parent loop of the loop we want to create is the second loop in the path
-                int index = getCurrentLoop().getLoop(primaryIndex).getLoop(parentName, secondaryIndex).getLoops().size();
-                getCurrentLoop().getLoop(primaryIndex).getLoop(parentName, secondaryIndex).addLoop(index, new Loop(separators, oldParentName));
+                int index = getCurrentLoop(dataType).getLoop(primaryIndex).getLoop(parentName, secondaryIndex).getLoops().size();
+                getCurrentLoop(dataType).getLoop(primaryIndex).getLoop(parentName, secondaryIndex).addLoop(index, new Loop(separators, oldParentName));
 
             }
-            getCurrentLoop().getLoop(primaryIndex).getLoop(secondaryIndex).getLoop(oldParentName).addLoop(0, newLoop);
+            getCurrentLoop(dataType).getLoop(primaryIndex).getLoop(secondaryIndex).getLoop(oldParentName).addLoop(0, newLoop);
 
         }
 
@@ -426,23 +477,21 @@ public class X12Reader {
             int index;
 
             //the primary loop path has no loops in it
-            if (getCurrentLoop().getLoop(primaryIndex).getLoops().size() == 0 || getCurrentLoop().getLoop(primaryIndex).getLoop(secondaryIndex).findLoop(parentName).size() == 0) {
-                parentIndex = getCurrentLoop().findLoop(parentName).size() - 1;
-                index = getCurrentLoop().getLoop(parentName, parentIndex).getLoops().size();
+            if (getCurrentLoop(dataType).getLoop(primaryIndex).getLoops().size() == 0 || getCurrentLoop(dataType).getLoop(primaryIndex).getLoop(secondaryIndex).findLoop(parentName).size() == 0) {
+                parentIndex = getCurrentLoop(dataType).findLoop(parentName).size() - 1;
+                index = getCurrentLoop(dataType).getLoop(parentName, parentIndex).getLoops().size();
             }
             else {
-                parentIndex = getCurrentLoop().getLoop(primaryIndex).getLoop(secondaryIndex).findLoop(parentName).size() - 1;
-                index = getCurrentLoop().getLoop(primaryIndex).getLoop(secondaryIndex).getLoop(parentName, parentIndex).getLoops().size();
+                parentIndex = getCurrentLoop(dataType).getLoop(primaryIndex).getLoop(secondaryIndex).findLoop(parentName).size() - 1;
+                index = getCurrentLoop(dataType).getLoop(primaryIndex).getLoop(secondaryIndex).getLoop(parentName, parentIndex).getLoops().size();
             }
             //if the primary loop path has child loops and the first loop is NOT the parent loop
-            if (getCurrentLoop().getLoop(primaryIndex).getLoops().size() != 0 && getCurrentLoop().getLoop(primaryIndex).getLoop(secondaryIndex).getLoops().size() != 0 && !getCurrentLoop().getLoop(
-                    primaryIndex).getId()
-                    .equals(
-                            parentName))
-                getCurrentLoop().getLoop(primaryIndex).getLoop(secondaryIndex).getLoop(parentName, parentIndex).addLoop(index, newLoop);
+            if (getCurrentLoop(dataType).getLoop(primaryIndex).getLoops().size() != 0 && getCurrentLoop(dataType).getLoop(primaryIndex).getLoop(secondaryIndex).getLoops().size() != 0 && !getCurrentLoop(dataType).getLoop(
+                    primaryIndex).getId().equals(parentName))
+                getCurrentLoop(dataType).getLoop(primaryIndex).getLoop(secondaryIndex).getLoop(parentName, parentIndex).addLoop(index, newLoop);
 
             else
-                getCurrentLoop().getLoop(parentName, parentIndex).addLoop(index, newLoop);
+                getCurrentLoop(dataType).getLoop(parentName, parentIndex).addLoop(index, newLoop);
         }
         return currentLoopId;
     }
