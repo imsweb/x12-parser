@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.Charset;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -18,6 +19,8 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import javax.xml.crypto.Data;
 
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.StaxDriver;
@@ -192,15 +195,23 @@ public class X12Reader {
      * @return the loop
      */
     private Loop getCurrentLoop(DataType dataType) {
-        if (DataType.INTERCHANGE_TRANSACTION_DATA.equals(dataType))
-            return getCurrentTransaction().getInterchangeLoop() == null ? new Loop(null) : getCurrentTransaction().getInterchangeLoop();
+        if (DataType.INTERCHANGE_TRANSACTION_DATA.equals(dataType)) {
+            if (getCurrentTransaction().getInterchangeLoop() == null)
+                getCurrentTransaction().setInterchangeLoop(new Loop(null));
 
-        if (DataType.TRANSACTION_SET_DATA.equals(dataType))
-            return getCurrentTransactionSet().getHeaderLoop() == null ? new Loop(null) : getCurrentTransactionSet().getHeaderLoop();
+            return  getCurrentTransaction().getInterchangeLoop();
+        }
 
+        if (DataType.TRANSACTION_SET_DATA.equals(dataType)) {
+            if (getCurrentTransactionSet().getHeaderLoop() == null)
+                getCurrentTransactionSet().setHeaderLoop(new Loop(null));
+            return getCurrentTransactionSet().getHeaderLoop();
+
+        }
         if (DataType.CLAIM_MESSAGE_DATA.equals(dataType)) {
-            getCurrentTransactionSet().getDataLoops().size();
-            return getCurrentTransactionSet().getDataLoops().isEmpty() ? new Loop(null) : getCurrentTransactionSet().getDataLoops().get(getCurrentTransactionSet().getDataLoops().size() - 1);
+            if (getCurrentTransactionSet().getDataLoops().isEmpty())
+                getCurrentTransactionSet().getDataLoops().add(new Loop(null));
+            return getCurrentTransactionSet().getDataLoops().get(getCurrentTransactionSet().getDataLoops().size() - 1);
         }
 
         return null;
@@ -214,6 +225,20 @@ public class X12Reader {
         return _interchangeTransactions;
     }
 
+    public List<Loop> getCompleteTransaction() {
+        List<Loop> result = new ArrayList<>();
+        for (InterchangeTransaction interchangeTransaction : _interchangeTransactions) {
+            Loop loop = interchangeTransaction.getInterchangeLoop();
+            for(TransactionSet transactionSet : interchangeTransaction.getTransactionSets()) {
+                Loop loop2 = transactionSet.getHeaderLoop();
+                loop2.getLoops().addAll(transactionSet.getDataLoops());
+                loop.getLoops().add(loop2);
+            }
+            result.add(loop);
+        }
+        return result;
+    }
+
     /**
      * Return the list of errors, if any
      * @return a list of errors
@@ -221,6 +246,14 @@ public class X12Reader {
     public List<String> getErrors() {
         return _errors;
     }
+
+    /**
+     * TODO DJA (8/30/2019)
+     * Move logic to check child loops so we only do it for each 2000A loop
+     * Make it easier to get top level loop information loop.get("ST_LOOP") should just return itself (this)
+     * Fix footer information. Should be added as segments to the appropriate loops
+     * Add unit tests!!!
+     */
 
     /**
      * Parse a Readable into a Loop
@@ -260,9 +293,8 @@ public class X12Reader {
                     if ("DETAIL".equals(loopId) || "DETAIL".equals(getParentLoop(loopId, previousLoopId))) {
                         storeData(previousLoopId, loopLines, currentLoopId, getCurrentLoop(dataType).getSeparators(), dataType);
                         loopLines = new ArrayList<>();
-
-                        dataType = DataType.CLAIM_MESSAGE_DATA;
                         getCurrentTransactionSet().getDataLoops().add(new Loop(null));
+                        dataType = DataType.CLAIM_MESSAGE_DATA;
                         getCurrentLoop(dataType).setSeparators(separators);
                     }
                     else if (loopId.equals(_definition.getLoop().getXid())) {
@@ -432,6 +464,7 @@ public class X12Reader {
      * @return loopID----the id of the loop that was just stored
      */
     private String storeData(String currentLoopId, List<String> loopLines, String prevousLoopId, Separators separators, DataType dataType) {
+        System.out.println(currentLoopId + " " + loopLines);
         Loop newLoop = new Loop(separators, currentLoopId);
         for (String s : loopLines) {
             Segment seg = new Segment(separators);
@@ -441,7 +474,7 @@ public class X12Reader {
         String parentName = getParentLoop(currentLoopId, prevousLoopId);
         int primaryIndex = 0;
         int secondaryIndex = 0;
-        System.out.println(parentName + " " + currentLoopId);
+       // System.out.println(parentName + " " + currentLoopId);
         if (getCurrentLoop(dataType).getLoops().size() > 0)
             primaryIndex = getCurrentLoop(dataType).getLoops().size() - 1;
         if (getCurrentLoop(dataType).getLoops().size() > 0 && getCurrentLoop(dataType).getLoop(primaryIndex).getLoops().size() > 0)
