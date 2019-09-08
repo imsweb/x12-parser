@@ -307,6 +307,17 @@ public class Loop implements Iterable<Segment> {
         return foundLoops;
     }
 
+    public List<Loop> findAllLoops(String id) {
+        List<Loop> foundLoops = new ArrayList<>();
+
+        if (_id != null && _id.equals(id))
+            foundLoops.add(this);
+
+        foundLoops.addAll(findLoop(id));
+
+        return foundLoops;
+    }
+
     /**
      * Get the segment in the X12 transaction It will check the current loop.
      * @param id id of a segment

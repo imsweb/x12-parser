@@ -15,6 +15,7 @@ public class LoopConfig {
     private String _parentLoop;
 
     private SegmentDefinition _firstSegmentXid;
+    private SegmentDefinition _lastSegmentXid; // used for ISA_LOOP, GS_LOOP, ST_LOOP since the segments for these loops appear only at the beginning and end of a transaction
 
     public LoopConfig(String loopName, String parentLoop, List<String> childList, String loopRepeats, Usage loopUsage) {
         _loopId = loopName;
@@ -60,4 +61,11 @@ public class LoopConfig {
         _firstSegmentXid = firstSegmentXid;
     }
 
+    public SegmentDefinition getLastSegmentXid() {
+        return _lastSegmentXid;
+    }
+
+    public void setLastSegmentXid(SegmentDefinition lastSegmentXid) {
+        _lastSegmentXid = lastSegmentXid;
+    }
 }

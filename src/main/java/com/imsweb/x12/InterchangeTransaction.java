@@ -26,4 +26,17 @@ public class InterchangeTransaction {
     public void setTransactionSets(List<TransactionSet> transactionSets) {
         _transactionSets = transactionSets;
     }
+
+    public Loop getLoop() {
+        Loop masterLoop = _interchangeLoop;
+        for (TransactionSet set : _transactionSets) {
+            Loop tsLoop = set.getHeaderLoop();
+            set.getDataLoops().forEach(d -> tsLoop.getLoops().add(d));
+            if (masterLoop.getLoops().isEmpty())
+                masterLoop.getLoops().add(tsLoop);
+            else
+                masterLoop.getLoop(masterLoop.getLoops().size() -1).getLoops().add(tsLoop);
+        }
+        return masterLoop;
+    }
 }
