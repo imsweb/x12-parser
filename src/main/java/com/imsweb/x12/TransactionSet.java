@@ -6,8 +6,6 @@ package com.imsweb.x12;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.imsweb.x12.Loop;
-
 public class TransactionSet {
 
     private Loop _headerLoop;
