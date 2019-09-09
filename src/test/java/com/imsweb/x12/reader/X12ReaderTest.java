@@ -7,17 +7,13 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.imsweb.x12.InterchangeTransaction;
 import com.imsweb.x12.Loop;
 import com.imsweb.x12.mapping.TransactionDefinition;
-import com.imsweb.x12.reader.X12Reader.DataType;
 import com.imsweb.x12.reader.X12Reader.FileType;
 
 import static org.junit.Assert.assertEquals;
