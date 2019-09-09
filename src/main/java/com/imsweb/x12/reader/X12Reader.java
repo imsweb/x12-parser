@@ -25,6 +25,7 @@ import com.thoughtworks.xstream.io.xml.StaxDriver;
 import com.thoughtworks.xstream.security.NoTypePermission;
 import com.thoughtworks.xstream.security.WildcardTypePermission;
 
+import com.imsweb.x12.FunctionalGroup;
 import com.imsweb.x12.Loop;
 import com.imsweb.x12.Segment;
 import com.imsweb.x12.Separators;
@@ -59,8 +60,8 @@ public class X12Reader {
 
     private static final Map<FileType, String> _TYPES = new HashMap<>();
 
-    private List<Loop> _dataLoops = new ArrayList<>();
     private List<String> _errors = new ArrayList<>();
+    private List<String> _fatalErrors = new ArrayList<>(); // structure issues so bad we should stop processing.
     private List<LoopConfig> _config = new ArrayList<>();
     private List<InterchangeTransaction> _interchangeTransactions = new ArrayList<>();
     TransactionDefinition _definition;
@@ -119,6 +120,7 @@ public class X12Reader {
 
     public enum DataType {
         INTERCHANGE_TRANSACTION_DATA,
+        FUNCTIONAL_GROUP_DATA,
         TRANSACTION_SET_DATA,
         CLAIM_MESSAGE_DATA,
         FOOTER_DATA;
@@ -187,11 +189,18 @@ public class X12Reader {
         return _interchangeTransactions.get(_interchangeTransactions.size() - 1);
     }
 
-    private TransactionSet getCurrentTransactionSet() {
-        if (getCurrentTransaction().getTransactionSets().isEmpty())
-            getCurrentTransaction().getTransactionSets().add(new TransactionSet());
+    private FunctionalGroup getCurrentFunctionalGroup() {
+        if (getCurrentTransaction().getFunctionalGroups().isEmpty())
+            getCurrentTransaction().getFunctionalGroups().add(new FunctionalGroup());
 
-        return getCurrentTransaction().getTransactionSets().get(getCurrentTransaction().getTransactionSets().size() - 1);
+        return getCurrentTransaction().getFunctionalGroups().get(getCurrentTransaction().getFunctionalGroups().size() - 1);
+    }
+
+    private TransactionSet getCurrentTransactionSet() {
+        if (getCurrentFunctionalGroup().getTransactionSets().isEmpty())
+            getCurrentFunctionalGroup().getTransactionSets().add(new TransactionSet());
+
+        return getCurrentFunctionalGroup().getTransactionSets().get(getCurrentFunctionalGroup().getTransactionSets().size() - 1);
     }
 
     /**
@@ -201,24 +210,31 @@ public class X12Reader {
     private Loop getCurrentLoop(DataType dataType) {
         if (DataType.INTERCHANGE_TRANSACTION_DATA.equals(dataType)) {
             if (getCurrentTransaction().getInterchangeLoop() == null)
-                getCurrentTransaction().setInterchangeLoop(new Loop(null));
+                getCurrentTransaction().setInterchangeLoop(new Loop());
 
             return getCurrentTransaction().getInterchangeLoop();
         }
 
+        if (DataType.FUNCTIONAL_GROUP_DATA.equals(dataType)) {
+            if (getCurrentFunctionalGroup().getGroupHeaderLoop() == null)
+                getCurrentFunctionalGroup().setGroupHeaderLoop(new Loop());
+            return getCurrentFunctionalGroup().getGroupHeaderLoop();
+        }
+
         if (DataType.TRANSACTION_SET_DATA.equals(dataType)) {
             if (getCurrentTransactionSet().getHeaderLoop() == null)
-                getCurrentTransactionSet().setHeaderLoop(new Loop(null));
+                getCurrentTransactionSet().setHeaderLoop(new Loop());
             return getCurrentTransactionSet().getHeaderLoop();
-
         }
+
         if (DataType.CLAIM_MESSAGE_DATA.equals(dataType)) {
             if (getCurrentTransactionSet().getDataLoops().isEmpty())
-                getCurrentTransactionSet().getDataLoops().add(new Loop(null));
+                getCurrentTransactionSet().getDataLoops().add(new Loop());
             return getCurrentTransactionSet().getDataLoops().get(getCurrentTransactionSet().getDataLoops().size() - 1);
         }
 
-        return null;
+        _errors.add("Unknown type of data processed");
+        throw new RuntimeException("Unknown type of data processed");
     }
 
     /**
@@ -229,18 +245,22 @@ public class X12Reader {
         return _interchangeTransactions;
     }
 
-    public List<Loop> getCompleteTransaction() {
-        List<Loop> result = new ArrayList<>();
+    public List<Loop> getLoops() {
+        List<Loop> loops = new ArrayList<>();
         for (InterchangeTransaction interchangeTransaction : _interchangeTransactions) {
-            Loop loop = interchangeTransaction.getInterchangeLoop();
-            for (TransactionSet transactionSet : interchangeTransaction.getTransactionSets()) {
-                Loop loop2 = transactionSet.getHeaderLoop();
-                loop2.getLoops().addAll(transactionSet.getDataLoops());
-                loop.getLoops().add(loop2);
+            Loop masterLoop = new Loop(interchangeTransaction.getInterchangeLoop());
+            for (FunctionalGroup functionalGroup : interchangeTransaction.getFunctionalGroups()) {
+                Loop functionalLoop = new Loop(functionalGroup.getGroupHeaderLoop());
+                for (TransactionSet set : functionalGroup.getTransactionSets()) {
+                    Loop tsLoop = new Loop(set.getHeaderLoop());
+                    set.getDataLoops().forEach(d -> tsLoop.getLoops().add(new Loop(d)));
+                    functionalLoop.getLoops().add(tsLoop);
+                }
+                    masterLoop.getLoops().add(functionalLoop);
             }
-            result.add(loop);
+            loops.add(masterLoop);
         }
-        return result;
+        return loops;
     }
 
     /**
@@ -251,13 +271,9 @@ public class X12Reader {
         return _errors;
     }
 
-    /**
-     * TODO DJA (8/30/2019)
-     * Move logic to check child loops so we only do it for each 2000A loop
-     * Make it easier to get top level loop information loop.get("ST_LOOP") should just return itself (this)
-     * Fix footer information. Should be added as segments to the appropriate loops
-     * Add unit tests!!!
-     */
+    public List<String> getFatalErrors() {
+        return _fatalErrors;
+    }
 
     /**
      * Parse a Readable into a Loop
@@ -295,37 +311,79 @@ public class X12Reader {
                 loopId = getMatchedLoop(line.split(Pattern.quote(separators.getElement().toString())), previousLoopId);
                 if (loopId != null) {
                     if ("DETAIL".equals(getParentLoop(loopId, previousLoopId))) {
+                        if (!DataType.TRANSACTION_SET_DATA.equals(dataType) && !DataType.CLAIM_MESSAGE_DATA.equals(dataType)) {
+                            _fatalErrors.add("Claim message data should always come after the transaction set headers or repeat!");
+                            break;
+                        }
                         storeData(previousLoopId, loopLines, currentLoopId, getCurrentLoop(dataType).getSeparators(), dataType);
                         loopLines = new ArrayList<>();
-                        getCurrentTransactionSet().getDataLoops().add(new Loop(null));
+                        getCurrentTransactionSet().getDataLoops().add(new Loop());
                         dataType = DataType.CLAIM_MESSAGE_DATA;
                         getCurrentLoop(dataType).setSeparators(separators);
                     }
                     else if (loopId.equals(_definition.getLoop().getXid()) && (previousLoopId == null || previousLoopId.equals(_definition.getLoop().getXid()))) {
-                        if (currentLoopId != null) {
-                            storeData(previousLoopId, loopLines, currentLoopId, getCurrentLoop(dataType).getSeparators(), dataType);
-                            loopLines = new ArrayList<>();
+                        if (!DataType.INTERCHANGE_TRANSACTION_DATA.equals(dataType) && !DataType.FOOTER_DATA.equals(dataType)) {
+                            _fatalErrors.add("Interchange transaction data should always be at the beginning of the transaction or after the footer data of the previous transaction!");
+                            break;
                         }
+
+                        if (currentLoopId != null && !DataType.FOOTER_DATA.equals(dataType))
+                            storeData(previousLoopId, loopLines, currentLoopId, getCurrentLoop(dataType).getSeparators(), dataType);
+
+                        loopLines = new ArrayList<>();
                         previousLoopId = null;
                         currentLoopId = null;
                         dataType = DataType.INTERCHANGE_TRANSACTION_DATA;
                         _interchangeTransactions.add(new InterchangeTransaction());
                         getCurrentLoop(dataType).setSeparators(separators);
                     }
-                    else if ("ST_LOOP".equals(loopId)) {
-                        if (DataType.INTERCHANGE_TRANSACTION_DATA.equals(dataType)) {
-                            storeData(previousLoopId, loopLines, currentLoopId, getCurrentLoop(dataType).getSeparators(), dataType);
+                    else if (_GS_LOOP_XID.equals(loopId) && !_ST_LOOP_XID.equals(previousLoopId)) {
+                        if (DataType.INTERCHANGE_TRANSACTION_DATA.equals(dataType) || DataType.FOOTER_DATA.equals(dataType)) {
+
+                            if (DataType.INTERCHANGE_TRANSACTION_DATA.equals(dataType)) {
+                                getCurrentLoop(dataType).setId(previousLoopId);
+                                for (String s : loopLines) {
+                                    Segment seg = new Segment(getCurrentLoop(dataType).getSeparators());
+                                    seg.addElements(s);
+                                    getCurrentLoop(dataType).addSegment(seg);
+                                }
+                            }
+
                             loopLines = new ArrayList<>();
+                            dataType = DataType.FUNCTIONAL_GROUP_DATA;
+                            getCurrentTransaction().getFunctionalGroups().add(new FunctionalGroup());
+                            getCurrentLoop(dataType).setSeparators(separators);
+                        }
+                        else {
+                            _fatalErrors.add("Functional group data should only come right after transaction set data or repeat after the footer.");
+                            break;
+                        }
+                    }
+                    else if (_ST_LOOP_XID.equals(loopId)) {
+                        if (DataType.FUNCTIONAL_GROUP_DATA.equals(dataType) || DataType.FOOTER_DATA.equals(dataType)) {
+
+                            if (DataType.FUNCTIONAL_GROUP_DATA.equals(dataType)) {
+                                getCurrentLoop(dataType).setId(previousLoopId);
+                                for (String s : loopLines) {
+                                    Segment seg = new Segment(getCurrentLoop(dataType).getSeparators());
+                                    seg.addElements(s);
+                                    getCurrentLoop(dataType).addSegment(seg);
+                                }
+                            }
 
                             dataType = DataType.TRANSACTION_SET_DATA;
-                            getCurrentTransaction().getTransactionSets().add(new TransactionSet());
+                            getCurrentFunctionalGroup().getTransactionSets().add(new TransactionSet());
                             getCurrentLoop(dataType).setSeparators(separators);
                         }
                         else if (DataType.CLAIM_MESSAGE_DATA.equals(dataType)) {
                             storeData(previousLoopId, loopLines, currentLoopId, separators, dataType);
-                            loopLines.clear();
                             dataType = DataType.FOOTER_DATA;
                         }
+                        else {
+                            _fatalErrors.add("Transaction set data should only come right after functional group data, right after claim message data or repeat after the footer");
+                            break;
+                        }
+                        loopLines = new ArrayList<>();
                     }
 
                     if (DataType.FOOTER_DATA.equals(dataType)) {
@@ -333,19 +391,22 @@ public class X12Reader {
                         segment.addElements(line);
                         if (loopId.equals(getCurrentTransaction().getInterchangeLoop().getId()))
                             getCurrentTransaction().getInterchangeLoop().addSegment(segment);
+                        else if (loopId.equals(getCurrentFunctionalGroup().getGroupHeaderLoop().getId()))
+                            getCurrentFunctionalGroup().getGroupHeaderLoop().addSegment(segment);
                         else if (loopId.equals(getCurrentTransactionSet().getHeaderLoop().getId()))
                             getCurrentTransactionSet().getHeaderLoop().addSegment(segment);
                         else {
                             List<Loop> transactionLoops = getCurrentTransaction().getInterchangeLoop().findLoop(loopId);
                             if (transactionLoops.size() == 1)
                                 transactionLoops.get(0).addSegment(segment);
-                            else
-                                _errors.add("Transaction has an invalid structure!");
+                            else {
+                                _fatalErrors.add("Invalid structure - interchange and transaction loops should only have 1 instance");
+                                break;
+                            }
                         }
                     }
                     else {
                         updateLoopCounts(loopId);
-
                         if (getCurrentLoop(dataType).getId() == null && loopLines.size() > 0) {
                             getCurrentLoop(dataType).setId(previousLoopId);
                             for (String s : loopLines) {
@@ -376,10 +437,19 @@ public class X12Reader {
                     break;
                 }
             }
+
+            // store the final segment if the last line of the file has data.
+            if (!line.isEmpty()) {
+                Segment segment = new Segment(separators);
+                segment.addElements(line);
+                loopId = getMatchedLoop(line.split(Pattern.quote(separators.getElement().toString())), previousLoopId);
+                if (loopId != null && loopId.equals(getCurrentTransaction().getInterchangeLoop().getId()))
+                    getCurrentTransaction().getInterchangeLoop().addSegment(segment);
+                else
+                    _fatalErrors.add("CLOSE of final ISA_LOOP not found!");
+            }
+
             checkLoopErrors();
-            //            if (!line.isEmpty() && !loopLines.contains(line))
-            //                loopLines.add(line);
-            //            storeData(previousLoopId, loopLines, currentLoopId, separators, dataType);
 
         }
     }
@@ -403,16 +473,18 @@ public class X12Reader {
 
         // test internal loop data
         for (InterchangeTransaction interchangeTransaction : _interchangeTransactions) {
-            for (TransactionSet transactionSet : interchangeTransaction.getTransactionSets()) {
-                for (Loop loop : transactionSet.getDataLoops()) {
-                    for (LoopConfig lc : _config) {
-                        Set<String> requiredChildLoops = new HashSet<>();
-                        requiredChildLoops = getRequiredChildLoops(_definition.getLoop(), lc.getLoopId(), requiredChildLoops);
-                        for (int i = 0; i < loop.findAllLoops(lc.getLoopId()).size(); i++) {
-                            List<String> childLoops = getChildLoopsFromData(loop.findAllLoops(lc.getLoopId()).get(i).getLoops());
-                            for (String ids : requiredChildLoops)
-                                if (!childLoops.contains(ids))
-                                    _errors.add(ids + " is required but not found in " + lc.getLoopId() + " iteration #" + (i + 1));
+            for (FunctionalGroup functionalGroup : interchangeTransaction.getFunctionalGroups()) {
+                for (TransactionSet transactionSet : functionalGroup.getTransactionSets()) {
+                    for (Loop loop : transactionSet.getDataLoops()) {
+                        for (LoopConfig lc : _config) {
+                            Set<String> requiredChildLoops = new HashSet<>();
+                            requiredChildLoops = getRequiredChildLoops(_definition.getLoop(), lc.getLoopId(), requiredChildLoops);
+                            for (int i = 0; i < loop.findAllLoops(lc.getLoopId()).size(); i++) {
+                                List<String> childLoops = getChildLoopsFromData(loop.findAllLoops(lc.getLoopId()).get(i).getLoops());
+                                for (String ids : requiredChildLoops)
+                                    if (!childLoops.contains(ids))
+                                        _errors.add(ids + " is required but not found in " + lc.getLoopId() + " iteration #" + (i + 1));
+                            }
                         }
                     }
                 }

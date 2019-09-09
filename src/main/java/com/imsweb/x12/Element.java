@@ -24,6 +24,13 @@ public class Element {
     @XStreamAlias("subValue")
     private List<String> _subValues = new ArrayList<>();
 
+    public Element(Element element) {
+        _separators = new Separators(element.getSeparators().getSegment(), element.getSeparators().getElement(), element.getSeparators().getCompositeElement());
+        _id = element.getId();
+        _value = element.getValue();
+        _subValues.addAll(element.getSubValues());
+    }
+
     /**
      * Constructor
      * @param id an element identifier
@@ -51,6 +58,14 @@ public class Element {
         _separators = new Separators();
         setId(id);
         setValue(value == null ? "" : value);
+    }
+
+    public Separators getSeparators() {
+        return _separators;
+    }
+
+    public List<String> getSubValues() {
+        return _subValues;
     }
 
     public String getId() {

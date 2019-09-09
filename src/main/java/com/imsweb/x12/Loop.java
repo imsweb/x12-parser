@@ -40,6 +40,21 @@ public class Loop implements Iterable<Segment> {
     @XStreamOmitField
     private Loop _parent;
 
+    public Loop() {
+        _separators = new Separators();
+        _id = null;
+        _parent = null;
+    }
+
+    public Loop(Loop loop) {
+        _separators = new Separators(loop.getSeparators().getSegment(), loop.getSeparators().getElement(), loop.getSeparators().getCompositeElement());
+        _id = loop.getId();
+        for (Segment segment : loop.getSegments())
+            _segments.add(new Segment(segment));
+        for (Loop loop1 : loop.getLoops())
+            _loops.add(new Loop(loop1));
+    }
+
     /**
      * The constructor uses the default set of separators
      * @param id loop identifier
