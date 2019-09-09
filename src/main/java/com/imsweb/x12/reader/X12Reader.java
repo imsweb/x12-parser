@@ -241,9 +241,6 @@ public class X12Reader {
      * Return the resulting loops, this would possible if multiple ISA segments were included in one single file
      * @return the loop list
      */
-    public List<InterchangeTransaction> getInterchangeTransactions() {
-        return _interchangeTransactions;
-    }
 
     public List<Loop> getLoops() {
         List<Loop> loops = new ArrayList<>();
