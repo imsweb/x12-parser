@@ -253,7 +253,7 @@ public class X12Reader {
                     set.getDataLoops().forEach(d -> tsLoop.getLoops().add(new Loop(d)));
                     functionalLoop.getLoops().add(tsLoop);
                 }
-                    masterLoop.getLoops().add(functionalLoop);
+                masterLoop.getLoops().add(functionalLoop);
             }
             loops.add(masterLoop);
         }
@@ -306,27 +306,37 @@ public class X12Reader {
             while (scanner.hasNext()) {
                 // Determine if we have started a new loop
                 loopId = getMatchedLoop(line.split(Pattern.quote(separators.getElement().toString())), previousLoopId);
-                if (loopId != null) {
+                if (loopId == null)
+                    loopLines.add(line); // didn't start a new loop, just add the lines for the current loop
+                else {
+                    // found a new loop - process the data from the previous one
+
+                    // detail is the wrapper loop of 2000A it has no segments
                     if ("DETAIL".equals(getParentLoop(loopId, previousLoopId))) {
+                        // start processing actual claim message data
+                        // claim data always comes after the transaction set data - no claim data should come before encountering the detail wrapper loop
                         if (!DataType.TRANSACTION_SET_DATA.equals(dataType) && !DataType.CLAIM_MESSAGE_DATA.equals(dataType)) {
                             _fatalErrors.add("Claim message data should always come after the transaction set headers or repeat!");
                             break;
                         }
+                        //store the data for the previous loop and clear the list storing the lines for that loop
                         storeData(previousLoopId, loopLines, currentLoopId, getCurrentLoop(dataType).getSeparators(), dataType);
                         loopLines = new ArrayList<>();
+
+                        //add a new claim data loop for the current transaction set
                         getCurrentTransactionSet().getDataLoops().add(new Loop());
                         dataType = DataType.CLAIM_MESSAGE_DATA;
                         getCurrentLoop(dataType).setSeparators(separators);
                     }
                     else if (loopId.equals(_definition.getLoop().getXid()) && (previousLoopId == null || previousLoopId.equals(_definition.getLoop().getXid()))) {
+                        // start of interchange transaction (ISA segment)
+                        // this segment is either at the very top of a file or should be after the footer data of the previous interchange transaction (IEA segment)
                         if (!DataType.INTERCHANGE_TRANSACTION_DATA.equals(dataType) && !DataType.FOOTER_DATA.equals(dataType)) {
                             _fatalErrors.add("Interchange transaction data should always be at the beginning of the transaction or after the footer data of the previous transaction!");
                             break;
                         }
 
-                        if (currentLoopId != null && !DataType.FOOTER_DATA.equals(dataType))
-                            storeData(previousLoopId, loopLines, currentLoopId, getCurrentLoop(dataType).getSeparators(), dataType);
-
+                        // create a new interchange transaction and add it to the overall list of transactions
                         loopLines = new ArrayList<>();
                         previousLoopId = null;
                         currentLoopId = null;
@@ -335,17 +345,18 @@ public class X12Reader {
                         getCurrentLoop(dataType).setSeparators(separators);
                     }
                     else if (_GS_LOOP_XID.equals(loopId) && !_ST_LOOP_XID.equals(previousLoopId)) {
+                        // functional group data that comes right after the beginning of the interchange transaction data (GS)
+                        // this data can also come after the footer data for the previous functional group (GE)
                         if (DataType.INTERCHANGE_TRANSACTION_DATA.equals(dataType) || DataType.FOOTER_DATA.equals(dataType)) {
 
+                            // if this the previous loop was the interchange transaction data - store the segments
+                            // for all supported versions - interchange transaction data just has segments. Only direct subloop is the GS_LOOP (functional group)
                             if (DataType.INTERCHANGE_TRANSACTION_DATA.equals(dataType)) {
-                                getCurrentLoop(dataType).setId(previousLoopId);
-                                for (String s : loopLines) {
-                                    Segment seg = new Segment(getCurrentLoop(dataType).getSeparators());
-                                    seg.addElements(s);
-                                    getCurrentLoop(dataType).addSegment(seg);
-                                }
+                                if (getCurrentLoop(dataType).getId() == null && loopLines.size() > 0)
+                                    addFirstLoop(dataType, loopLines, previousLoopId);
                             }
 
+                            // mark that we are not processing functional group data and add a new functional group to the current transaction
                             loopLines = new ArrayList<>();
                             dataType = DataType.FUNCTIONAL_GROUP_DATA;
                             getCurrentTransaction().getFunctionalGroups().add(new FunctionalGroup());
@@ -357,22 +368,24 @@ public class X12Reader {
                         }
                     }
                     else if (_ST_LOOP_XID.equals(loopId)) {
+                        // transaction set data comes after the functional group data
+                        // it can also come after the footer data for the previous transaction set
                         if (DataType.FUNCTIONAL_GROUP_DATA.equals(dataType) || DataType.FOOTER_DATA.equals(dataType)) {
 
+                            // if the previous loop was functional group data - store the segments
+                            // for all supported versions - functional group data only has segments. Only direct subloop is the ST_LOOP (transaction set)
                             if (DataType.FUNCTIONAL_GROUP_DATA.equals(dataType)) {
-                                getCurrentLoop(dataType).setId(previousLoopId);
-                                for (String s : loopLines) {
-                                    Segment seg = new Segment(getCurrentLoop(dataType).getSeparators());
-                                    seg.addElements(s);
-                                    getCurrentLoop(dataType).addSegment(seg);
-                                }
+                                if (getCurrentLoop(dataType).getId() == null && loopLines.size() > 0)
+                                    addFirstLoop(dataType, loopLines, previousLoopId);
                             }
 
+                            // create a new transaction set and add it to the current functional group
                             dataType = DataType.TRANSACTION_SET_DATA;
                             getCurrentFunctionalGroup().getTransactionSets().add(new TransactionSet());
                             getCurrentLoop(dataType).setSeparators(separators);
                         }
                         else if (DataType.CLAIM_MESSAGE_DATA.equals(dataType)) {
+                            // entering the ST_LOOP after processing claim message data means we have hit the footer segments
                             storeData(previousLoopId, loopLines, currentLoopId, separators, dataType);
                             dataType = DataType.FOOTER_DATA;
                         }
@@ -383,6 +396,7 @@ public class X12Reader {
                         loopLines = new ArrayList<>();
                     }
 
+                    // process footer data if needed, otherwise process data loops
                     if (DataType.FOOTER_DATA.equals(dataType)) {
                         Segment segment = new Segment(separators);
                         segment.addElements(line);
@@ -393,25 +407,14 @@ public class X12Reader {
                         else if (loopId.equals(getCurrentTransactionSet().getHeaderLoop().getId()))
                             getCurrentTransactionSet().getHeaderLoop().addSegment(segment);
                         else {
-                            List<Loop> transactionLoops = getCurrentTransaction().getInterchangeLoop().findLoop(loopId);
-                            if (transactionLoops.size() == 1)
-                                transactionLoops.get(0).addSegment(segment);
-                            else {
-                                _fatalErrors.add("Invalid structure - interchange and transaction loops should only have 1 instance");
-                                break;
-                            }
+                            _fatalErrors.add("Footer data should only be in the interchange, functional or transaction set loops!");
+                            break;
                         }
                     }
                     else {
                         updateLoopCounts(loopId);
-                        if (getCurrentLoop(dataType).getId() == null && loopLines.size() > 0) {
-                            getCurrentLoop(dataType).setId(previousLoopId);
-                            for (String s : loopLines) {
-                                Segment seg = new Segment(getCurrentLoop(dataType).getSeparators());
-                                seg.addElements(s);
-                                getCurrentLoop(dataType).addSegment(seg);
-                            }
-                        }
+                        if (getCurrentLoop(dataType).getId() == null && loopLines.size() > 0)
+                            addFirstLoop(dataType, loopLines, previousLoopId);
                         else if (getCurrentLoop(dataType).getId() != null) {
                             if (currentLoopId == null)
                                 currentLoopId = previousLoopId;
@@ -423,8 +426,6 @@ public class X12Reader {
                     }
                     previousLoopId = loopId;
                 }
-                else
-                    loopLines.add(line);
 
                 try {
                     line = scanner.next().trim();
@@ -448,6 +449,15 @@ public class X12Reader {
 
             checkLoopErrors();
 
+        }
+    }
+
+    private void addFirstLoop(DataType dataType, List<String> loopLines, String previousLoopId) {
+        getCurrentLoop(dataType).setId(previousLoopId);
+        for (String s : loopLines) {
+            Segment seg = new Segment(getCurrentLoop(dataType).getSeparators());
+            seg.addElements(s);
+            getCurrentLoop(dataType).addSegment(seg);
         }
     }
 
@@ -579,59 +589,38 @@ public class X12Reader {
             newLoop.addSegment(seg);
         }
         String parentName = getParentLoop(currentLoopId, previousLoopId);
+        Loop currentLoop = getCurrentLoop(dataType);
         int primaryIndex = 0;
         int secondaryIndex = 0;
-        if (getCurrentLoop(dataType).getLoops().size() > 0)
-            primaryIndex = getCurrentLoop(dataType).getLoops().size() - 1;
-        if (getCurrentLoop(dataType).getLoops().size() > 0 && getCurrentLoop(dataType).getLoop(primaryIndex).getLoops().size() > 0)
-            secondaryIndex = getCurrentLoop(dataType).getLoop(primaryIndex).getLoops().size() - 1;
+        if (currentLoop.getLoops().size() > 0)
+            primaryIndex = currentLoop.getLoops().size() - 1;
+        if (currentLoop.getLoops().size() > 0 && currentLoop.getLoop(primaryIndex).getLoops().size() > 0)
+            secondaryIndex = currentLoop.getLoop(primaryIndex).getLoops().size() - 1;
 
-        if (getCurrentLoop(dataType).getLoops().size() == 0) // if no child loops have been stored yet.
-            getCurrentLoop(dataType).addLoop(0, newLoop);
-        else if (getCurrentLoop(dataType).getId().equals(parentName)) {
-            int index = getCurrentLoop(dataType).getLoops().size();
-            getCurrentLoop(dataType).addLoop(index, newLoop);
-        }
-        else if (getCurrentLoop(dataType).getLoop(primaryIndex).getLoops().size() != 0 && !getCurrentLoop(dataType).getLoop(primaryIndex).getLoop(secondaryIndex).hasLoop(parentName)
-                && !getCurrentLoop(dataType).getLoop(primaryIndex).getId().equals(
-                parentName)) { //if the parent loop for the current loop has not been stored---we need to create it. (Happens for loops with no segements!!!)
-            String oldParentName = parentName;
-            parentName = getParentLoop(parentName, previousLoopId);
-
-            if (!getCurrentLoop(dataType).getLoop(primaryIndex).getLoop(secondaryIndex).getId().equals(
-                    parentName)) { //if the parent loop of the loop we want to create is NOT the second loop in the path
-                int index = getCurrentLoop(dataType).getLoop(primaryIndex).getLoop(secondaryIndex).getLoop(parentName).getLoops().size();
-                getCurrentLoop(dataType).getLoop(primaryIndex).getLoop(secondaryIndex).getLoop(parentName).addLoop(index, new Loop(separators, oldParentName));
-            }
-            else { //parent loop of the loop we want to create is the second loop in the path
-                int index = getCurrentLoop(dataType).getLoop(primaryIndex).getLoop(parentName, secondaryIndex).getLoops().size();
-                getCurrentLoop(dataType).getLoop(primaryIndex).getLoop(parentName, secondaryIndex).addLoop(index, new Loop(separators, oldParentName));
-            }
-            getCurrentLoop(dataType).getLoop(primaryIndex).getLoop(secondaryIndex).getLoop(oldParentName).addLoop(0, newLoop);
-
-        }
-
+        if (currentLoop.getLoops().size() == 0)// if no child loops have been stored yet.
+            currentLoop.addLoop(0, newLoop);
+        else if (currentLoop.getId().equals(parentName)) // top loop is the parent loop, just add this to the top loop's list of loops
+            currentLoop.addLoop(currentLoop.getLoops().size(), newLoop);
         else {
             int parentIndex;
             int index;
 
             //the primary loop path has no loops in it
-            if (getCurrentLoop(dataType).getLoop(primaryIndex).getLoops().size() == 0 || getCurrentLoop(dataType).getLoop(primaryIndex).getLoop(secondaryIndex).findLoop(parentName).size() == 0) {
-                parentIndex = getCurrentLoop(dataType).findLoop(parentName).size() - 1;
-                index = getCurrentLoop(dataType).getLoop(parentName, parentIndex).getLoops().size();
+            if (currentLoop.getLoop(primaryIndex).getLoops().size() == 0 || currentLoop.getLoop(primaryIndex).getLoop(secondaryIndex).findLoop(parentName).size() == 0) {
+                parentIndex = currentLoop.findLoop(parentName).size() - 1;
+                index = currentLoop.getLoop(parentName, parentIndex).getLoops().size();
             }
             else {
-                parentIndex = getCurrentLoop(dataType).getLoop(primaryIndex).getLoop(secondaryIndex).findLoop(parentName).size() - 1;
-                index = getCurrentLoop(dataType).getLoop(primaryIndex).getLoop(secondaryIndex).getLoop(parentName, parentIndex).getLoops().size();
+                parentIndex = currentLoop.getLoop(primaryIndex).getLoop(secondaryIndex).findLoop(parentName).size() - 1;
+                index = currentLoop.getLoop(primaryIndex).getLoop(secondaryIndex).getLoop(parentName, parentIndex).getLoops().size();
             }
-            //if the primary loop path has child loops and the first loop is NOT the parent loop
-            if (getCurrentLoop(dataType).getLoop(primaryIndex).getLoops().size() != 0 && getCurrentLoop(dataType).getLoop(primaryIndex).getLoop(secondaryIndex).getLoops().size() != 0
-                    && !getCurrentLoop(dataType).getLoop(
-                    primaryIndex).getId().equals(parentName))
-                getCurrentLoop(dataType).getLoop(primaryIndex).getLoop(secondaryIndex).getLoop(parentName, parentIndex).addLoop(index, newLoop);
 
+            //if the primary loop path has child loops and the first loop is NOT the parent loop
+            if (currentLoop.getLoop(primaryIndex).getLoops().size() != 0 && currentLoop.getLoop(primaryIndex).getLoop(secondaryIndex).getLoops().size() != 0
+                    && !currentLoop.getLoop(primaryIndex).getId().equals(parentName))
+                currentLoop.getLoop(primaryIndex).getLoop(secondaryIndex).getLoop(parentName, parentIndex).addLoop(index, newLoop);
             else
-                getCurrentLoop(dataType).getLoop(parentName, parentIndex).addLoop(index, newLoop);
+                currentLoop.getLoop(parentName, parentIndex).addLoop(index, newLoop);
         }
         return currentLoopId;
     }

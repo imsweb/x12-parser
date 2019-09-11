@@ -448,6 +448,28 @@ public class X12ReaderTest {
         assertEquals("20050314-20050325", loop.getLoop("2400", 0).getSegment("DTP").getElementValue("DTP03"));
         assertEquals("20050322-20050325", loop.getLoop("2400", 1).getSegment("DTP").getElementValue("DTP03"));
         assertEquals(1, loop.getLoop("2400", 1).getSegment("DTP").getElement("DTP03").getNumOfSubElements());
+
+        assertEquals("ISA_LOOP", loop.getId());
+        assertNotNull(loop.getSegment("ISA"));
+        assertEquals("00", loop.getSegment("ISA").getElementValue("ISA01"));
+        assertEquals("030101", loop.getSegment("ISA").getElementValue("ISA09"));
+        assertNotNull(loop.getSegment("IEA"));
+        assertEquals("1", loop.getSegment("IEA").getElementValue("IEA01"));
+        assertEquals("000000905", loop.getSegment("IEA").getElementValue("IEA02"));
+
+        assertNotNull(loop.getLoop("GS_LOOP").getSegment("GS"));
+        assertEquals("HC", loop.getLoop("GS_LOOP").getSegment("GS").getElementValue("GS01"));
+        assertEquals("19991231", loop.getLoop("GS_LOOP").getSegment("GS").getElementValue("GS04"));
+        assertNotNull(loop.getLoop("GS_LOOP").getSegment("GE"));
+        assertEquals("1", loop.getLoop("GS_LOOP").getSegment("GE").getElementValue("GE01"));
+        assertEquals("1", loop.getLoop("GS_LOOP").getSegment("GE").getElementValue("GE02"));
+
+        assertNotNull(loop.getLoop("ST_LOOP").getSegment("ST"));
+        assertEquals("837", loop.getLoop("ST_LOOP").getSegment("ST").getElementValue("ST01"));
+        assertEquals("987654", loop.getLoop("ST_LOOP").getSegment("ST").getElementValue("ST02"));
+        assertNotNull(loop.getLoop("ST_LOOP").getSegment("SE"));
+        assertEquals("25", loop.getLoop("ST_LOOP").getSegment("SE").getElementValue("SE01"));
+        assertEquals("987654", loop.getLoop("ST_LOOP").getSegment("SE").getElementValue("SE02"));
     }
 
     private void validateMultipleGSLoops(Loop loop) {
@@ -627,11 +649,258 @@ public class X12ReaderTest {
         assertTrue(reader.getErrors().isEmpty());
         Assert.assertTrue(reader.getFatalErrors().isEmpty());
     }
-//
+
 //    @Test
 //    public void test2() throws Exception {
 //        X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File("C:\\Users\\angelasd\\Desktop\\testing-files\\x12_valid_one_huge_claim.txt"));
 //        //X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File("C:\\Users\\angelasd\\Desktop\\testing-files\\x12_valid_many_average_claims.txt"));
 //        Assert.assertTrue(reader.getFatalErrors().isEmpty());
+//        List<Loop> loops = reader.getLoops();
+//
+//        Assert.assertEquals(1, loops.size());
+//        Loop loop = loops.get(0);
+//
+//        assertEquals("ISA_LOOP", loop.getId());
+//        assertNotNull(loop.getSegment("ISA"));
+//        assertEquals("00", loop.getSegment("ISA").getElementValue("ISA01"));
+//        assertEquals("030101", loop.getSegment("ISA").getElementValue("ISA09"));
+//        assertNotNull(loop.getSegment("IEA"));
+//        assertEquals("1", loop.getSegment("IEA").getElementValue("IEA01"));
+//        assertEquals("000000905", loop.getSegment("IEA").getElementValue("IEA02"));
+//
+//        assertNotNull(loop.getLoop("GS_LOOP").getSegment("GS"));
+//        assertEquals("HC", loop.getLoop("GS_LOOP").getSegment("GS").getElementValue("GS01"));
+//        assertEquals("19991231", loop.getLoop("GS_LOOP").getSegment("GS").getElementValue("GS04"));
+//        assertNotNull(loop.getLoop("GS_LOOP").getSegment("GE"));
+//        assertEquals("1", loop.getLoop("GS_LOOP").getSegment("GE").getElementValue("GE01"));
+//        assertEquals("1", loop.getLoop("GS_LOOP").getSegment("GE").getElementValue("GE02"));
+//
+//        assertNotNull(loop.getLoop("ST_LOOP").getSegment("ST"));
+//        assertEquals("837", loop.getLoop("ST_LOOP").getSegment("ST").getElementValue("ST01"));
+//        assertEquals("987654", loop.getLoop("ST_LOOP").getSegment("ST").getElementValue("ST02"));
+//        assertNotNull(loop.getLoop("ST_LOOP").getSegment("SE"));
+//        assertEquals("25", loop.getLoop("ST_LOOP").getSegment("SE").getElementValue("SE01"));
+//        assertEquals("987654", loop.getLoop("ST_LOOP").getSegment("SE").getElementValue("SE02"));
+//
+//        assertEquals(2, loop.getLoop("HEADER").getLoops().size());
+//        assertEquals(0, loop.getLoop("1000A").getLoops().size());
+//        assertEquals(0, loop.getLoop("1000B").getLoops().size());
+//        assertEquals(37908, loop.getLoop("ST_LOOP").findLoop("2000A").size());
+//
+//        for (Loop loop2000A : loop.getLoop("ST_LOOP").findLoop("2000A")) {
+//            assertEquals(4, loop2000A.getLoops().size());
+//            assertEquals(0, loop2000A.getLoop("2010AA").getLoops().size());
+//            assertEquals(0, loop2000A.getLoop("2010AB").getLoops().size());
+//            assertEquals(2, loop2000A.findLoop("2000B").size());
+//            assertEquals(3, loop2000A.getLoop("2000B", 0).getLoops().size());
+//            assertEquals(0, loop2000A.getLoop("2010BA", 0).getLoops().size());
+//            assertEquals(0, loop2000A.getLoop("2010BB", 0).getLoops().size());
+//            assertEquals(1, loop2000A.getLoop("2300", 0).getLoops().size());
+//            assertEquals(0, loop2000A.getLoop("2400", 0).getLoops().size());
+//            assertEquals(3, loop2000A.getLoop("2000B", 1).getLoops().size());
+//            assertEquals(0, loop2000A.getLoop("2010BA", 1).getLoops().size());
+//            assertEquals(0, loop2000A.getLoop("2010BB", 1).getLoops().size());
+//            assertEquals(1, loop2000A.getLoop("2300", 1).getLoops().size());
+//            assertEquals(0, loop2000A.getLoop("2400", 1).getLoops().size());
+//
+//            assertEquals("2010AA", loop2000A.getLoops().get(0).getId());
+//            assertEquals("2010AB", loop2000A.getLoops().get(1).getId());
+//            assertEquals("2000B", loop2000A.getLoops().get(2).getId());
+//            assertEquals("2000B", loop2000A.getLoops().get(3).getId());
+//            assertEquals("2010BA", loop2000A.getLoop("2000B", 0).getLoops().get(0).getId());
+//            assertEquals("2010BB", loop2000A.getLoop("2000B", 0).getLoops().get(1).getId());
+//            assertEquals("2300", loop2000A.getLoop("2000B", 0).getLoops().get(2).getId());
+//            assertEquals("2400", loop2000A.getLoop("2300", 0).getLoops().get(0).getId());
+//            assertEquals("2010BA", loop2000A.getLoop("2000B", 1).getLoops().get(0).getId());
+//            assertEquals("2010BB", loop2000A.getLoop("2000B", 1).getLoops().get(1).getId());
+//            assertEquals("2300", loop2000A.getLoop("2000B", 1).getLoops().get(2).getId());
+//            assertEquals("2400", loop2000A.getLoop("2300", 1).getLoops().get(0).getId());
+//
+//            // testing grabbing data from each line
+//            assertEquals("", loop2000A.getSegment("HL").getElementValue("HL02"));
+//            assertEquals("85", loop2000A.getLoop("2010AA").getSegment("NM1").getElementValue("NM101"));
+//            assertEquals("N3", loop2000A.getLoop("2010AA").getSegment("N3").getId());
+//            assertEquals("20705", loop2000A.getLoop("2010AA").getSegment("N4").getElementValue("N403"));
+//            assertEquals("EI", loop2000A.getLoop("2010AA").getSegment("REF").getElementValue("REF01"));
+//            assertEquals("JANE JONES", loop2000A.getLoop("2010AA").getSegment("PER").getElementValue("PER02"));
+//            assertEquals("201", loop2000A.getLoop("2010AA").getSegment("PER", 1).getElementValue("PER06"));
+//            assertEquals("87", loop2000A.getLoop("2010AB").getSegment("NM1").getElementValue("NM101"));
+//            assertEquals("227 LASTNER LANE", loop2000A.getLoop("2010AB").getSegment("N3").getElementValue("N301"));
+//            assertEquals("GREENBELT", loop2000A.getLoop("2010AB").getSegment("N4").getElementValue("N401"));
+//            assertEquals("22", loop2000A.getLoop("2000B").getSegment("HL").getElementValue("HL03"));
+//            assertEquals("", loop2000A.getLoop("2000B").getSegment("SBR").getElementValue("SBR02"));
+//            assertEquals("123456", loop2000A.getLoop("2010BA").getSegment("NM1").getElementValue("NM109"));
+//            assertEquals("PI", loop2000A.getLoop("2010BB").getSegment("NM1").getElementValue("NM108"));
+//            assertEquals("A37YH556", loop2000A.getLoop("2300").getSegment("CLM").getElementValue("CLM01"));
+//            assertEquals("BK", loop2000A.getLoop("2300").getSegment("HI").getElementValue("HI01"));
+//            assertEquals("1", loop2000A.getLoop("2400").getSegment("LX").getElementValue("LX01"));
+//            Character compositeSeparator = loop2000A.getLoop("2400").getSegment("SV1").getSeparators().getCompositeElement();
+//            assertEquals("HC" + compositeSeparator + "99211" + compositeSeparator + "25", loop2000A.getLoop("2400").getSegment("SV1").getElementValue("SV101"));
+//            assertEquals("RD8", loop2000A.getLoop("2400").getSegment("DTP").getElementValue("DTP02"));
+//
+//            // Tests of differences between repeating loops
+//            assertEquals("1", loop2000A.getLoop("2000B", 0).getSegment("HL").getElementValue("HL02"));
+//            assertEquals("3", loop2000A.getLoop("2000B", 1).getSegment("HL").getElementValue("HL02"));
+//
+//            assertEquals("SUBSCRIBER GROUP", loop2000A.getLoop("2000B", 0).getSegment("SBR").getElementValue("SBR03"));
+//            assertEquals("SUBSCRIBER GROUP TWO", loop2000A.getLoop("2000B", 1).getSegment("SBR").getElementValue("SBR03"));
+//
+//            assertEquals("JOHN", loop2000A.getLoop("2010BA", 0).getSegment("NM1").getElementValue("NM104"));
+//            assertEquals("DAVID", loop2000A.getLoop("2010BA", 1).getSegment("NM1").getElementValue("NM104"));
+//
+//            assertEquals("HEALTH INSURANCE COMPANY", loop2000A.getLoop("2010BB", 0).getSegment("NM1").getElementValue("NM103"));
+//            assertEquals("HEALTH INSURANCE COMPANY TWO", loop2000A.getLoop("2010BB", 1).getSegment("NM1").getElementValue("NM103"));
+//
+//            assertEquals("A37YH556", loop2000A.getLoop("2300", 0).getSegment("CLM").getElementValue("CLM01"));
+//            assertEquals("A37YH667", loop2000A.getLoop("2300", 1).getSegment("CLM").getElementValue("CLM01"));
+//            assertEquals(1, loop2000A.getLoop("2300", 1).getSegment("CLM").getElement("CLM01").getNumOfSubElements());
+//
+//            assertEquals("8901", loop2000A.getLoop("2300", 0).getSegment("HI").getElementValue("HI02"));
+//            assertEquals("1987", loop2000A.getLoop("2300", 1).getSegment("HI").getElementValue("HI02"));
+//            assertEquals(1, loop2000A.getLoop("2300", 1).getSegment("HI").getElement("HI02").getNumOfSubElements());
+//
+//            assertEquals("1", loop2000A.getLoop("2400", 0).getSegment("LX").getElementValue("LX01"));
+//            assertEquals("2", loop2000A.getLoop("2400", 1).getSegment("LX").getElementValue("LX01"));
+//
+//            compositeSeparator = loop2000A.getLoop("2400", 1).getSegment("SV1").getSeparators().getCompositeElement();
+//            assertEquals("HC" + compositeSeparator + "99211" + compositeSeparator + "25", loop2000A.getLoop("2400", 0).getSegment("SV1").getElementValue("SV101"));
+//            assertEquals("HC" + compositeSeparator + "478331" + compositeSeparator + "25", loop2000A.getLoop("2400", 1).getSegment("SV1").getElementValue("SV101"));
+//            assertEquals(3, loop2000A.getLoop("2400", 1).getSegment("SV1").getElement("SV101").getNumOfSubElements());
+//            assertEquals("478331", loop2000A.getLoop("2400", 1).getSegment("SV1").getElement("SV101", 1));
+//            assertNull(loop2000A.getLoop("2400", 1).getSegment("SV1").getElement("SV101", 3));
+//            assertEquals(3, loop2000A.getLoop("2400", 1).getSegment("SV1").getElement("SV107").getNumOfSubElements());
+//            assertEquals(1, loop2000A.getLoop("2400", 0).getSegment("SV1").getElement("SV107").getNumOfSubElements());
+//
+//            assertEquals("20050314-20050325", loop2000A.getLoop("2400", 0).getSegment("DTP").getElementValue("DTP03"));
+//            assertEquals("20050322-20050325", loop2000A.getLoop("2400", 1).getSegment("DTP").getElementValue("DTP03"));
+//            assertEquals(1, loop2000A.getLoop("2400", 1).getSegment("DTP").getElement("DTP03").getNumOfSubElements());
+//        }
+//    }
+//
+//    @Test
+//    public void test3() throws Exception {
+//        X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File("C:\\Users\\angelasd\\Desktop\\testing-files\\x12_valid_many_average_claims.txt"));
+//        //X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File("C:\\Users\\angelasd\\Desktop\\testing-files\\x12_valid_many_average_claims.txt"));
+//        Assert.assertTrue(reader.getFatalErrors().isEmpty());
+//        List<Loop> loops = reader.getLoops();
+//        assertEquals(31741, loops.size());
+//
+//        for(Loop loop : loops) {
+//            assertEquals("ISA_LOOP", loop.getId());
+//            assertNotNull(loop.getSegment("ISA"));
+//            assertEquals("00", loop.getSegment("ISA").getElementValue("ISA01"));
+//            assertEquals("030101", loop.getSegment("ISA").getElementValue("ISA09"));
+//            assertNotNull(loop.getSegment("IEA"));
+//            assertEquals("1", loop.getSegment("IEA").getElementValue("IEA01"));
+//            assertEquals("000000905", loop.getSegment("IEA").getElementValue("IEA02"));
+//
+//            assertNotNull(loop.getLoop("GS_LOOP").getSegment("GS"));
+//            assertEquals("HC", loop.getLoop("GS_LOOP").getSegment("GS").getElementValue("GS01"));
+//            assertEquals("19991231", loop.getLoop("GS_LOOP").getSegment("GS").getElementValue("GS04"));
+//            assertNotNull(loop.getLoop("GS_LOOP").getSegment("GE"));
+//            assertEquals("1", loop.getLoop("GS_LOOP").getSegment("GE").getElementValue("GE01"));
+//            assertEquals("1", loop.getLoop("GS_LOOP").getSegment("GE").getElementValue("GE02"));
+//
+//            assertNotNull(loop.getLoop("ST_LOOP").getSegment("ST"));
+//            assertEquals("837", loop.getLoop("ST_LOOP").getSegment("ST").getElementValue("ST01"));
+//            assertEquals("987654", loop.getLoop("ST_LOOP").getSegment("ST").getElementValue("ST02"));
+//            assertNotNull(loop.getLoop("ST_LOOP").getSegment("SE"));
+//            assertEquals("25", loop.getLoop("ST_LOOP").getSegment("SE").getElementValue("SE01"));
+//            assertEquals("987654", loop.getLoop("ST_LOOP").getSegment("SE").getElementValue("SE02"));
+//
+//            assertEquals(2, loop.getLoop("HEADER").getLoops().size());
+//            assertEquals(0, loop.getLoop("1000A").getLoops().size());
+//            assertEquals(0, loop.getLoop("1000B").getLoops().size());
+//            assertEquals(1, loop.getLoop("ST_LOOP").findLoop("2000A").size());
+//
+//            for (Loop loop2000A : loop.getLoop("ST_LOOP").findLoop("2000A")) {
+//                assertEquals(4, loop2000A.getLoops().size());
+//                assertEquals(0, loop2000A.getLoop("2010AA").getLoops().size());
+//                assertEquals(0, loop2000A.getLoop("2010AB").getLoops().size());
+//                assertEquals(2, loop2000A.findLoop("2000B").size());
+//                assertEquals(3, loop2000A.getLoop("2000B", 0).getLoops().size());
+//                assertEquals(0, loop2000A.getLoop("2010BA", 0).getLoops().size());
+//                assertEquals(0, loop2000A.getLoop("2010BB", 0).getLoops().size());
+//                assertEquals(1, loop2000A.getLoop("2300", 0).getLoops().size());
+//                assertEquals(0, loop2000A.getLoop("2400", 0).getLoops().size());
+//                assertEquals(3, loop2000A.getLoop("2000B", 1).getLoops().size());
+//                assertEquals(0, loop2000A.getLoop("2010BA", 1).getLoops().size());
+//                assertEquals(0, loop2000A.getLoop("2010BB", 1).getLoops().size());
+//                assertEquals(1, loop2000A.getLoop("2300", 1).getLoops().size());
+//                assertEquals(0, loop2000A.getLoop("2400", 1).getLoops().size());
+//
+//                assertEquals("2010AA", loop2000A.getLoops().get(0).getId());
+//                assertEquals("2010AB", loop2000A.getLoops().get(1).getId());
+//                assertEquals("2000B", loop2000A.getLoops().get(2).getId());
+//                assertEquals("2000B", loop2000A.getLoops().get(3).getId());
+//                assertEquals("2010BA", loop2000A.getLoop("2000B", 0).getLoops().get(0).getId());
+//                assertEquals("2010BB", loop2000A.getLoop("2000B", 0).getLoops().get(1).getId());
+//                assertEquals("2300", loop2000A.getLoop("2000B", 0).getLoops().get(2).getId());
+//                assertEquals("2400", loop2000A.getLoop("2300", 0).getLoops().get(0).getId());
+//                assertEquals("2010BA", loop2000A.getLoop("2000B", 1).getLoops().get(0).getId());
+//                assertEquals("2010BB", loop2000A.getLoop("2000B", 1).getLoops().get(1).getId());
+//                assertEquals("2300", loop2000A.getLoop("2000B", 1).getLoops().get(2).getId());
+//                assertEquals("2400", loop2000A.getLoop("2300", 1).getLoops().get(0).getId());
+//
+//                // testing grabbing data from each line
+//                assertEquals("", loop2000A.getSegment("HL").getElementValue("HL02"));
+//                assertEquals("85", loop2000A.getLoop("2010AA").getSegment("NM1").getElementValue("NM101"));
+//                assertEquals("N3", loop2000A.getLoop("2010AA").getSegment("N3").getId());
+//                assertEquals("20705", loop2000A.getLoop("2010AA").getSegment("N4").getElementValue("N403"));
+//                assertEquals("EI", loop2000A.getLoop("2010AA").getSegment("REF").getElementValue("REF01"));
+//                assertEquals("JANE JONES", loop2000A.getLoop("2010AA").getSegment("PER").getElementValue("PER02"));
+//                assertEquals("201", loop2000A.getLoop("2010AA").getSegment("PER", 1).getElementValue("PER06"));
+//                assertEquals("87", loop2000A.getLoop("2010AB").getSegment("NM1").getElementValue("NM101"));
+//                assertEquals("227 LASTNER LANE", loop2000A.getLoop("2010AB").getSegment("N3").getElementValue("N301"));
+//                assertEquals("GREENBELT", loop2000A.getLoop("2010AB").getSegment("N4").getElementValue("N401"));
+//                assertEquals("22", loop2000A.getLoop("2000B").getSegment("HL").getElementValue("HL03"));
+//                assertEquals("", loop2000A.getLoop("2000B").getSegment("SBR").getElementValue("SBR02"));
+//                assertEquals("123456", loop2000A.getLoop("2010BA").getSegment("NM1").getElementValue("NM109"));
+//                assertEquals("PI", loop2000A.getLoop("2010BB").getSegment("NM1").getElementValue("NM108"));
+//                assertEquals("A37YH556", loop2000A.getLoop("2300").getSegment("CLM").getElementValue("CLM01"));
+//                assertEquals("BK", loop2000A.getLoop("2300").getSegment("HI").getElementValue("HI01"));
+//                assertEquals("1", loop2000A.getLoop("2400").getSegment("LX").getElementValue("LX01"));
+//                Character compositeSeparator = loop2000A.getLoop("2400").getSegment("SV1").getSeparators().getCompositeElement();
+//                assertEquals("HC" + compositeSeparator + "99211" + compositeSeparator + "25", loop2000A.getLoop("2400").getSegment("SV1").getElementValue("SV101"));
+//                assertEquals("RD8", loop2000A.getLoop("2400").getSegment("DTP").getElementValue("DTP02"));
+//
+//                // Tests of differences between repeating loops
+//                assertEquals("1", loop2000A.getLoop("2000B", 0).getSegment("HL").getElementValue("HL02"));
+//                assertEquals("3", loop2000A.getLoop("2000B", 1).getSegment("HL").getElementValue("HL02"));
+//
+//                assertEquals("SUBSCRIBER GROUP", loop2000A.getLoop("2000B", 0).getSegment("SBR").getElementValue("SBR03"));
+//                assertEquals("SUBSCRIBER GROUP TWO", loop2000A.getLoop("2000B", 1).getSegment("SBR").getElementValue("SBR03"));
+//
+//                assertEquals("JOHN", loop2000A.getLoop("2010BA", 0).getSegment("NM1").getElementValue("NM104"));
+//                assertEquals("DAVID", loop2000A.getLoop("2010BA", 1).getSegment("NM1").getElementValue("NM104"));
+//
+//                assertEquals("HEALTH INSURANCE COMPANY", loop2000A.getLoop("2010BB", 0).getSegment("NM1").getElementValue("NM103"));
+//                assertEquals("HEALTH INSURANCE COMPANY TWO", loop2000A.getLoop("2010BB", 1).getSegment("NM1").getElementValue("NM103"));
+//
+//                assertEquals("A37YH556", loop2000A.getLoop("2300", 0).getSegment("CLM").getElementValue("CLM01"));
+//                assertEquals("A37YH667", loop2000A.getLoop("2300", 1).getSegment("CLM").getElementValue("CLM01"));
+//                assertEquals(1, loop2000A.getLoop("2300", 1).getSegment("CLM").getElement("CLM01").getNumOfSubElements());
+//
+//                assertEquals("8901", loop2000A.getLoop("2300", 0).getSegment("HI").getElementValue("HI02"));
+//                assertEquals("1987", loop2000A.getLoop("2300", 1).getSegment("HI").getElementValue("HI02"));
+//                assertEquals(1, loop2000A.getLoop("2300", 1).getSegment("HI").getElement("HI02").getNumOfSubElements());
+//
+//                assertEquals("1", loop2000A.getLoop("2400", 0).getSegment("LX").getElementValue("LX01"));
+//                assertEquals("2", loop2000A.getLoop("2400", 1).getSegment("LX").getElementValue("LX01"));
+//
+//                compositeSeparator = loop2000A.getLoop("2400", 1).getSegment("SV1").getSeparators().getCompositeElement();
+//                assertEquals("HC" + compositeSeparator + "99211" + compositeSeparator + "25", loop2000A.getLoop("2400", 0).getSegment("SV1").getElementValue("SV101"));
+//                assertEquals("HC" + compositeSeparator + "478331" + compositeSeparator + "25", loop2000A.getLoop("2400", 1).getSegment("SV1").getElementValue("SV101"));
+//                assertEquals(3, loop2000A.getLoop("2400", 1).getSegment("SV1").getElement("SV101").getNumOfSubElements());
+//                assertEquals("478331", loop2000A.getLoop("2400", 1).getSegment("SV1").getElement("SV101", 1));
+//                assertNull(loop2000A.getLoop("2400", 1).getSegment("SV1").getElement("SV101", 3));
+//                assertEquals(3, loop2000A.getLoop("2400", 1).getSegment("SV1").getElement("SV107").getNumOfSubElements());
+//                assertEquals(1, loop2000A.getLoop("2400", 0).getSegment("SV1").getElement("SV107").getNumOfSubElements());
+//
+//                assertEquals("20050314-20050325", loop2000A.getLoop("2400", 0).getSegment("DTP").getElementValue("DTP03"));
+//                assertEquals("20050322-20050325", loop2000A.getLoop("2400", 1).getSegment("DTP").getElementValue("DTP03"));
+//                assertEquals(1, loop2000A.getLoop("2400", 1).getSegment("DTP").getElement("DTP03").getNumOfSubElements());
+//            }
+//        }
 //    }
 }
