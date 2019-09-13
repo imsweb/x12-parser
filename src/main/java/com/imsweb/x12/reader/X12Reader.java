@@ -302,7 +302,7 @@ public class X12Reader {
             _errors = new ArrayList<>();
 
             String line = scanner.next().trim();
-            DataType dataType = DataType.INTERCHANGE_TRANSACTION_DATA;
+            DataType dataType = null;
             while (scanner.hasNext()) {
                 // Determine if we have started a new loop
                 loopId = getMatchedLoop(line.split(Pattern.quote(separators.getElement().toString())), previousLoopId);
@@ -331,7 +331,7 @@ public class X12Reader {
                     else if (loopId.equals(_definition.getLoop().getXid()) && (previousLoopId == null || previousLoopId.equals(_definition.getLoop().getXid()))) {
                         // start of interchange transaction (ISA segment)
                         // this segment is either at the very top of a file or should be after the footer data of the previous interchange transaction (IEA segment)
-                        if (!DataType.INTERCHANGE_TRANSACTION_DATA.equals(dataType) && !DataType.FOOTER_DATA.equals(dataType)) {
+                        if (dataType != null && !DataType.FOOTER_DATA.equals(dataType)) {
                             _fatalErrors.add("Interchange transaction data should always be at the beginning of the transaction or after the footer data of the previous transaction!");
                             break;
                         }
@@ -400,8 +400,10 @@ public class X12Reader {
                     if (DataType.FOOTER_DATA.equals(dataType)) {
                         Segment segment = new Segment(separators);
                         segment.addElements(line);
-                        if (loopId.equals(getCurrentTransaction().getInterchangeLoop().getId()))
+                        if (loopId.equals(getCurrentTransaction().getInterchangeLoop().getId())) {
                             getCurrentTransaction().getInterchangeLoop().addSegment(segment);
+                            dataType = null; // end of transaction
+                        }
                         else if (loopId.equals(getCurrentFunctionalGroup().getGroupHeaderLoop().getId()))
                             getCurrentFunctionalGroup().getGroupHeaderLoop().addSegment(segment);
                         else if (loopId.equals(getCurrentTransactionSet().getHeaderLoop().getId()))
@@ -437,19 +439,21 @@ public class X12Reader {
             }
 
             // store the final segment if the last line of the file has data.
-            if (!line.isEmpty()) {
+            if (!line.isEmpty() && _fatalErrors.isEmpty()) {
                 Segment segment = new Segment(separators);
                 segment.addElements(line);
                 loopId = getMatchedLoop(line.split(Pattern.quote(separators.getElement().toString())), previousLoopId);
-                if (loopId != null && loopId.equals(getCurrentTransaction().getInterchangeLoop().getId()))
-                    getCurrentTransaction().getInterchangeLoop().addSegment(segment);
+                if (!getCurrentFunctionalGroup().getGroupHeaderLoop().getId().equals(previousLoopId) || (loopId == null || !loopId.equals(getCurrentTransaction().getInterchangeLoop().getId())))
+                    _fatalErrors.add("Close of transaction not detected!");
                 else
-                    _fatalErrors.add("CLOSE of final ISA_LOOP not found!");
+                    getCurrentTransaction().getInterchangeLoop().addSegment(segment);
             }
 
-            checkLoopErrors();
-
+            if(_fatalErrors.isEmpty())
+                checkLoopErrors();
         }
+        else
+            _fatalErrors.add("Unable to process transaction!");
     }
 
     private void addFirstLoop(DataType dataType, List<String> loopLines, String previousLoopId) {
@@ -478,7 +482,7 @@ public class X12Reader {
             }
         }
 
-        // test internal loop data
+        // check internal loop data
         for (InterchangeTransaction interchangeTransaction : _interchangeTransactions) {
             for (FunctionalGroup functionalGroup : interchangeTransaction.getFunctionalGroups()) {
                 for (TransactionSet transactionSet : functionalGroup.getTransactionSets()) {
