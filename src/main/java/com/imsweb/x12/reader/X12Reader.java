@@ -428,7 +428,8 @@ public class X12Reader {
                     }
                     previousLoopId = loopId;
                 }
-
+                if (!_fatalErrors.isEmpty())
+                    break;
                 try {
                     line = scanner.next().trim();
                 }
@@ -600,9 +601,14 @@ public class X12Reader {
         else if (currentLoop.getId().equals(parentName)) // top loop is the parent loop, just add this to the top loop's list of loops
             currentLoop.addLoop(currentLoop.getLoops().size(), newLoop);
         else {
-            int parentIndex = currentLoop.findLoop(parentName).size() - 1;
-            int index = currentLoop.getLoop(parentName, parentIndex).getLoops().size(); // the index that the current loop will have
-            currentLoop.getLoop(parentName, parentIndex).addLoop(index, newLoop);
+            try {
+                int parentIndex = currentLoop.findLoop(parentName).size() - 1;
+                int index = currentLoop.getLoop(parentName, parentIndex).getLoops().size(); // the index that the current loop will have
+                currentLoop.getLoop(parentName, parentIndex).addLoop(index, newLoop);
+            }
+            catch (IndexOutOfBoundsException e) {
+                _fatalErrors.add("Invalid structure detected - unable to find appropriate parent loop for " + currentLoopId);
+            }
         }
         return currentLoopId;
     }
