@@ -138,7 +138,7 @@ public class X12ReaderTest {
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new FileInputStream(new File(url.getFile())));
 
         validate837Valid(reader.getLoops().get(0));
-}
+    }
 
     @Test
     public void testBadValidCode() throws Exception {
@@ -818,7 +818,7 @@ public class X12ReaderTest {
         List<Loop> loops = reader.getLoops();
         assertEquals(312, loops.size());
 
-        for(Loop loop : loops) {
+        for (Loop loop : loops) {
             assertEquals("ISA_LOOP", loop.getId());
             assertNotNull(loop.getSegment("ISA"));
             assertEquals("00", loop.getSegment("ISA").getElementValue("ISA01"));
@@ -935,5 +935,334 @@ public class X12ReaderTest {
                 assertEquals(1, loop2000A.getLoop("2400", 1).getSegment("DTP").getElement("DTP03").getNumOfSubElements());
             }
         }
+    }
+
+    @Test
+    public void testComplex() throws Exception {
+        URL url = this.getClass().getResource("/837_5010/x12_complex.txt");
+        X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
+        Assert.assertTrue(reader.getFatalErrors().isEmpty());
+        List<Loop> loops = reader.getLoops();
+        assertEquals(1, loops.size());
+
+        Loop loop = loops.get(0);
+        assertEquals("ISA_LOOP", loop.getId());
+        assertNotNull(loop.getSegment("ISA"));
+        assertEquals("00", loop.getSegment("ISA").getElementValue("ISA01"));
+        assertEquals("030101", loop.getSegment("ISA").getElementValue("ISA09"));
+        assertNotNull(loop.getSegment("IEA"));
+        assertEquals("1", loop.getSegment("IEA").getElementValue("IEA01"));
+        assertEquals("000000905", loop.getSegment("IEA").getElementValue("IEA02"));
+
+        assertNotNull(loop.getLoop("GS_LOOP").getSegment("GS"));
+        assertEquals("HC", loop.getLoop("GS_LOOP").getSegment("GS").getElementValue("GS01"));
+        assertEquals("19991231", loop.getLoop("GS_LOOP").getSegment("GS").getElementValue("GS04"));
+        assertNotNull(loop.getLoop("GS_LOOP").getSegment("GE"));
+        assertEquals("1", loop.getLoop("GS_LOOP").getSegment("GE").getElementValue("GE01"));
+        assertEquals("1", loop.getLoop("GS_LOOP").getSegment("GE").getElementValue("GE02"));
+
+        assertNotNull(loop.getLoop("ST_LOOP", 0).getSegment("ST"));
+        assertEquals("837", loop.getLoop("ST_LOOP", 0).getSegment("ST").getElementValue("ST01"));
+        assertEquals("987654", loop.getLoop("ST_LOOP", 0).getSegment("ST").getElementValue("ST02"));
+        assertNotNull(loop.getLoop("ST_LOOP",0).getSegment("SE"));
+        assertEquals("25", loop.getLoop("ST_LOOP", 0).getSegment("SE").getElementValue("SE01"));
+        assertEquals("987654", loop.getLoop("ST_LOOP", 0).getSegment("SE").getElementValue("SE02"));
+
+        assertNotNull(loop.getLoop("ST_LOOP", 1).getSegment("ST"));
+        assertEquals("837", loop.getLoop("ST_LOOP", 1).getSegment("ST").getElementValue("ST01"));
+        assertEquals("987655", loop.getLoop("ST_LOOP", 1).getSegment("ST").getElementValue("ST02"));
+        assertNotNull(loop.getLoop("ST_LOOP",1).getSegment("SE"));
+        assertEquals("26", loop.getLoop("ST_LOOP", 1).getSegment("SE").getElementValue("SE01"));
+        assertEquals("987655", loop.getLoop("ST_LOOP", 1).getSegment("SE").getElementValue("SE02"));
+
+        assertEquals(2, loop.getLoop("HEADER").getLoops().size());
+        assertEquals(0, loop.getLoop("1000A").getLoops().size());
+        assertEquals(0, loop.getLoop("1000B").getLoops().size());
+        assertEquals(2, loop.findLoop("2000A").size());
+
+        for (int i = 0; i < 2; i++) {
+            Loop loop2000A = loop.getLoop("ST_LOOP", i).findLoop("2000A").get(0);
+            assert2000A(loop2000A);
+            assertEquals(1, loop2000A.findLoop("2010AA").size());
+            assertEquals(0, loop2000A.getLoop("2010AA").getLoops().size());
+            assert2010AA(loop.getLoop("2010AA"));
+
+            assertEquals(1, loop2000A.findLoop("2010AB").size());
+            assertEquals(0, loop2000A.getLoop("2010AB").getLoops().size());
+            assert2010AB(loop.getLoop("2010AB"));
+
+            assertEquals(1, loop2000A.findLoop("2010AC").size());
+            assertEquals(0, loop2000A.getLoop("2010AC").getLoops().size());
+            assert2010AC(loop.getLoop("2010AC"));
+
+            assertEquals(2, loop2000A.findLoop("2000B").size());
+            assert2000B(loop2000A);
+
+            assertEquals(2, loop2000A.findLoop("2010BA").size());
+            assert2010BA(loop2000A);
+
+            assertEquals(2, loop2000A.findLoop("2010BB").size());
+            assert2010BB(loop2000A);
+
+            assertEquals(1, loop2000A.findLoop("2000C").size());
+            assert2000C(loop2000A.getLoop("2000B", 1));
+
+            assertEquals(3, loop2000A.findLoop("2300").size());
+            assertEquals(1, loop2000A.getLoop("2000B", 0).findLoop("2300").size());
+            assertEquals(2, loop2000A.getLoop("2000B", 1).findLoop("2300").size());
+            assert2300(loop2000A, i);
+
+            assertEquals(4, loop2000A.findLoop("2310A").size());
+            assertEquals(2, loop2000A.getLoop("2000B", 0).getLoop("2300").findLoop("2310A").size());
+            assertEquals(1, loop2000A.getLoop("2000B", 1).getLoop("2300", 0).findLoop("2310A").size());
+            assertEquals(1, loop2000A.getLoop("2000B", 1).getLoop("2300", 1).findLoop("2310A").size());
+            assert2310A(loop2000A);
+
+            assertEquals(2, loop2000A.findLoop("2310B").size());
+            assertEquals(1, loop2000A.getLoop("2000B", 0).getLoop("2300").findLoop("2310B").size());
+            assertEquals(0, loop2000A.getLoop("2000B", 1).getLoop("2300", 0).findLoop("2310B").size());
+            assertEquals(1, loop2000A.getLoop("2000B", 1).getLoop("2300", 1).findLoop("2310B").size());
+            assert2310B(loop2000A);
+
+            assertEquals(3, loop2000A.findLoop("2310C").size());
+            assertEquals(1, loop2000A.getLoop("2000B", 0).getLoop("2300").findLoop("2310C").size());
+            assertEquals(1, loop2000A.getLoop("2000B", 1).getLoop("2300", 0).findLoop("2310C").size());
+            assertEquals(1, loop2000A.getLoop("2000B", 1).getLoop("2300", 1).findLoop("2310C").size());
+            assert2310C(loop2000A);
+
+            assertEquals(4, loop2000A.findLoop("2320").size());
+            assertEquals(3, loop2000A.getLoop("2000B", 0).getLoop("2300").findLoop("2320").size());
+            assertEquals(1, loop2000A.getLoop("2000B", 1).getLoop("2300", 0).findLoop("2320").size());
+            assertEquals(0, loop2000A.getLoop("2000B", 1).getLoop("2300", 1).findLoop("2320").size());
+            assert2320(loop2000A);
+
+            assertEquals(4, loop2000A.findLoop("2330C").size());
+            assertEquals(1, loop2000A.getLoop("2000B", 0).getLoop("2300").getLoop("2320", 1).findLoop("2330C").size());
+            assertEquals(1, loop2000A.getLoop("2000B", 0).getLoop("2300").getLoop("2320", 2).findLoop("2330C").size());
+            assertEquals(2, loop2000A.getLoop("2000B", 1).getLoop("2300", 0).findLoop("2330C").size());
+            assertEquals(0, loop2000A.getLoop("2000B", 1).getLoop("2300", 1).findLoop("2330C").size());
+            assert2330C(loop2000A);
+
+            assertEquals(1, loop2000A.findLoop("2330E").size());
+            assertEquals(0, loop2000A.getLoop("2000B", 0).getLoop("2300").getLoop("2320", 1).findLoop("2330E").size());
+            assertEquals(0, loop2000A.getLoop("2000B", 0).getLoop("2300").getLoop("2320", 2).findLoop("2330E").size());
+            assertEquals(1, loop2000A.getLoop("2000B", 1).getLoop("2300", 0).findLoop("2330E").size());
+            assertEquals(0, loop2000A.getLoop("2000B", 1).getLoop("2300", 1).findLoop("2330E").size());
+            assert2330E(loop2000A);
+
+            assertEquals(1, loop2000A.findLoop("2330G").size());
+            assertEquals(0, loop2000A.getLoop("2000B", 0).getLoop("2300").getLoop("2320", 1).findLoop("2330G").size());
+            assertEquals(1, loop2000A.getLoop("2000B", 0).getLoop("2300").getLoop("2320", 2).findLoop("2330G").size());
+            assertEquals(0, loop2000A.getLoop("2000B", 1).getLoop("2300", 0).findLoop("2330G").size());
+            assertEquals(0, loop2000A.getLoop("2000B", 1).getLoop("2300", 1).findLoop("2330G").size());
+            assert2330G(loop2000A);
+
+            assertEquals(5, loop2000A.findLoop("2400").size());
+            assertEquals(2, loop2000A.getLoop("2000B", 0).getLoop("2300").findLoop("2400").size());
+            assertEquals(1, loop2000A.getLoop("2000B", 1).getLoop("2300", 0).findLoop("2400").size());
+            assertEquals(2, loop2000A.getLoop("2000B", 1).getLoop("2300", 1).findLoop("2400").size());
+            assert2400(loop2000A, i);
+
+            assertEquals(1, loop2000A.findLoop("2410").size());
+            assertEquals(1, loop2000A.getLoop("2000B", 0).getLoop("2300").getLoop("2400", 0).findLoop("2410").size());
+            assertEquals(0, loop2000A.getLoop("2000B", 0).getLoop("2300").getLoop("2400", 1).findLoop("2410").size());
+            assertEquals(0, loop2000A.getLoop("2000B", 1).getLoop("2300", 0).getLoop("2400", 0).findLoop("2410").size());
+            assertEquals(0, loop2000A.getLoop("2000B", 1).getLoop("2300", 1).getLoop("2400", 0).findLoop("2410").size());
+            assertEquals(0, loop2000A.getLoop("2000B", 1).getLoop("2300", 1).getLoop("2400", 1).findLoop("2410").size());
+            assert2410(loop2000A);
+
+            assertEquals(1, loop2000A.findLoop("2420E").size());
+            assertEquals(0, loop2000A.getLoop("2000B", 0).getLoop("2300").getLoop("2400", 0).findLoop("2420E").size());
+            assertEquals(0, loop2000A.getLoop("2000B", 0).getLoop("2300").getLoop("2400", 1).findLoop("2420E").size());
+            assertEquals(1, loop2000A.getLoop("2000B", 1).getLoop("2300", 0).getLoop("2400", 0).findLoop("2420E").size());
+            assertEquals(0, loop2000A.getLoop("2000B", 1).getLoop("2300", 1).getLoop("2400", 0).findLoop("2420E").size());
+            assertEquals(0, loop2000A.getLoop("2000B", 1).getLoop("2300", 1).getLoop("2400", 1).findLoop("2420E").size());
+            assert2420E(loop2000A, i);
+
+            assertEquals(2, loop2000A.findLoop("2420F").size());
+            assertEquals(2, loop2000A.getLoop("2000B", 0).getLoop("2300").getLoop("2400", 0).findLoop("2420F").size());
+            assertEquals(0, loop2000A.getLoop("2000B", 0).getLoop("2300").getLoop("2400", 1).findLoop("2420F").size());
+            assertEquals(0, loop2000A.getLoop("2000B", 1).getLoop("2300", 0).getLoop("2400", 0).findLoop("2420F").size());
+            assertEquals(0, loop2000A.getLoop("2000B", 1).getLoop("2300", 1).getLoop("2400", 0).findLoop("2420F").size());
+            assertEquals(0, loop2000A.getLoop("2000B", 1).getLoop("2300", 1).getLoop("2400", 1).findLoop("2420F").size());
+            assert2420F(loop2000A);
+
+            assertEquals(3, loop2000A.findLoop("2440").size());
+            assertEquals(1, loop2000A.getLoop("2000B", 0).getLoop("2300").getLoop("2400", 0).findLoop("2440").size());
+            assertEquals(0, loop2000A.getLoop("2000B", 0).getLoop("2300").getLoop("2400", 1).findLoop("2440").size());
+            assertEquals(0, loop2000A.getLoop("2000B", 1).getLoop("2300", 0).getLoop("2400", 0).findLoop("2440").size());
+            assertEquals(0, loop2000A.getLoop("2000B", 1).getLoop("2300", 1).getLoop("2400", 0).findLoop("2440").size());
+            assertEquals(2, loop2000A.getLoop("2000B", 1).getLoop("2300", 1).getLoop("2400", 1).findLoop("2440").size());
+            assert2440(loop2000A);
+        }
+    }
+
+    private void assert2000A(Loop loop) {
+        assertEquals("", loop.getSegment("HL").getElementValue("HL02"));
+        assertEquals("20", loop.getSegment("HL").getElementValue("HL03"));
+        assertEquals("PXC", loop.getSegment("PRV").getElementValue("PRV02"));
+    }
+
+    private void assert2010AA(Loop loop) {
+        assertEquals("85", loop.getSegment("NM1").getElementValue("NM101"));
+        assertEquals("N3", loop.getSegment("N3").getId());
+        assertEquals("20705", loop.getSegment("N4").getElementValue("N403"));
+        assertEquals("EI", loop.getSegment("REF").getElementValue("REF01"));
+        assertEquals("JANE JONES", loop.getSegment("PER").getElementValue("PER02"));
+        assertEquals("201", loop.getSegment("PER", 1).getElementValue("PER06"));
+    }
+
+    private void assert2010AB(Loop loop) {
+        assertEquals("87", loop.getSegment("NM1").getElementValue("NM101"));
+        assertEquals("227 LASTNER LANE", loop.getSegment("N3").getElementValue("N301"));
+        assertEquals("GREENBELT", loop.getSegment("N4").getElementValue("N401"));
+    }
+
+    private void assert2010AC(Loop loop) {
+        assertEquals("NAME", loop.getSegment("NM1").getElementValue("NM103"));
+        assertEquals("ADDRESS", loop.getSegment("N3").getElementValue("N301"));
+        assertEquals("GERMANTOWN", loop.getSegment("N4").getElementValue("N401"));
+        assertEquals("EI", loop.getSegment("REF").getElementValue("REF01"));
+    }
+
+    private void assert2000B(Loop loop) {
+        assertEquals("1", loop.getLoop("2000B", 0).getSegment("HL").getElementValue("HL02"));
+        assertEquals("SUBSCRIBER GROUP", loop.getLoop("2000B", 0).getSegment("SBR").getElementValue("SBR03"));
+
+        assertEquals("3", loop.getLoop("2000B", 1).getSegment("HL").getElementValue("HL02"));
+        assertEquals("SUBSCRIBER GROUP TWO", loop.getLoop("2000B", 1).getSegment("SBR").getElementValue("SBR03"));
+    }
+
+    private void assert2010BA(Loop loop) {
+        assertEquals("JOHN", loop.getLoop("2010BA", 0).getSegment("NM1").getElementValue("NM104"));
+        assertEquals("DAVID", loop.getLoop("2010BA", 1).getSegment("NM1").getElementValue("NM104"));
+    }
+
+    private void assert2010BB(Loop loop) {
+        assertEquals("HEALTH INSURANCE COMPANY", loop.getLoop("2010BB", 0).getSegment("NM1").getElementValue("NM103"));
+        assertEquals("HEALTH INSURANCE COMPANY TWO", loop.getLoop("2010BB", 1).getSegment("NM1").getElementValue("NM103"));
+    }
+
+    private void assert2000C(Loop loop) {
+        assertEquals("23", loop.getLoop("2000C").getSegment("HL").getElementValue("HL03"));
+        assertEquals("01", loop.getLoop("2000C").getSegment("PAT").getElementValue("PAT01"));
+    }
+
+    private void assert2300(Loop loop, int i) {
+        assertEquals("A37YH556", loop.getLoop("2300", 0).getSegment("CLM").getElementValue("CLM01"));
+        assertEquals("8901", loop.getLoop("2300", 0).getSegment("HI").getElementValue("HI02"));
+        assertEquals("A37YH667", loop.getLoop("2300", 1).getSegment("CLM").getElementValue("CLM01"));
+        assertEquals("1987", loop.getLoop("2300", 1).getSegment("HI").getElementValue("HI02"));
+        assertEquals("A37YH668", loop.getLoop("2300", 2).getSegment("CLM").getElementValue("CLM01"));
+        assertEquals(i == 0 ? "1988" : "1989", loop.getLoop("2300", 2).getSegment("HI").getElementValue("HI02"));
+    }
+
+    private void assert2310A(Loop loop) {
+        assertEquals("WELBY", loop.getLoop("2310A", 0).getSegment("NM1").getElementValue("NM103"));
+        assertEquals("12345", loop.getLoop("2310A", 0).getSegment("REF").getElementValue("REF02"));
+
+        assertEquals("QELBY", loop.getLoop("2310A", 1).getSegment("NM1").getElementValue("NM103"));
+        assertEquals("12348", loop.getLoop("2310A", 1).getSegment("REF").getElementValue("REF02"));
+
+        assertEquals("RELBY", loop.getLoop("2310A", 2).getSegment("NM1").getElementValue("NM103"));
+        assertEquals("12347", loop.getLoop("2310A", 2).getSegment("REF").getElementValue("REF02"));
+
+        assertEquals("TELBY", loop.getLoop("2310A", 3).getSegment("NM1").getElementValue("NM103"));
+        assertEquals("12346", loop.getLoop("2310A", 3).getSegment("REF").getElementValue("REF02"));
+    }
+
+    private void assert2310B(Loop loop) {
+        assertEquals("2310B1", loop.getLoop("2310B", 0).getSegment("NM1").getElementValue("NM103"));
+        assertEquals("2310B2", loop.getLoop("2310B", 1).getSegment("NM1").getElementValue("NM103"));
+    }
+
+    private void assert2310C(Loop loop) {
+        assertEquals("2310C1", loop.getLoop("2310C", 0).getSegment("NM1").getElementValue("NM103"));
+        assertEquals("2310C STREET 1", loop.getLoop("2310C", 0).getSegment("N3").getElementValue("N301"));
+        assertEquals("2310C CITY 1", loop.getLoop("2310C", 0).getSegment("N4").getElementValue("N401"));
+
+        assertEquals("2310C2", loop.getLoop("2310C", 1).getSegment("NM1").getElementValue("NM103"));
+        assertEquals("2310C STREET 2", loop.getLoop("2310C", 1).getSegment("N3").getElementValue("N301"));
+        assertEquals("2310C CITY 2", loop.getLoop("2310C", 1).getSegment("N4").getElementValue("N401"));
+
+        assertEquals("2310C3", loop.getLoop("2310C", 2).getSegment("NM1").getElementValue("NM103"));
+        assertEquals("2310C STREET 3", loop.getLoop("2310C", 2).getSegment("N3").getElementValue("N301"));
+        assertEquals("2310C CITY 3", loop.getLoop("2310C", 2).getSegment("N4").getElementValue("N401"));
+    }
+
+    private void assert2320(Loop loop) {
+        assertEquals("GR00786", loop.getLoop("2320", 0).getSegment("SBR").getElementValue("SBR03"));
+        assertEquals("A", loop.getLoop("2320", 0).getSegment("OI").getElementValue("OI04"));
+
+        assertEquals("GR00788", loop.getLoop("2320", 1).getSegment("SBR").getElementValue("SBR03"));
+        assertEquals("C", loop.getLoop("2320", 1).getSegment("OI").getElementValue("OI04"));
+
+        assertEquals("GR00789", loop.getLoop("2320", 2).getSegment("SBR").getElementValue("SBR03"));
+        assertEquals("D", loop.getLoop("2320", 2).getSegment("OI").getElementValue("OI04"));
+
+        assertEquals("GR00787", loop.getLoop("2320", 3).getSegment("SBR").getElementValue("SBR03"));
+        assertEquals("B", loop.getLoop("2320", 3).getSegment("OI").getElementValue("OI04"));
+    }
+
+    private void assert2330C(Loop loop) {
+        assertEquals("DN", loop.getLoop("2330C", 0).getSegment("NM1").getElementValue("NM101"));
+        assertEquals("DN", loop.getLoop("2330C", 1).getSegment("NM1").getElementValue("NM101"));
+    }
+
+    private void assert2330E(Loop loop) {
+        assertEquals("77", loop.getLoop("2330E", 0).getSegment("NM1").getElementValue("NM101"));
+        assertEquals("2330E1", loop.getLoop("2330E", 0).getSegment("REF").getElementValue("REF02"));
+    }
+
+    private void assert2330G(Loop loop) {
+        assertEquals("85", loop.getLoop("2330G", 0).getSegment("NM1").getElementValue("NM101"));
+        assertEquals("2330G1", loop.getLoop("2330G", 0).getSegment("REF").getElementValue("REF02"));
+    }
+
+    private void assert2400(Loop loop, int i) {
+        assertEquals("1", loop.getLoop("2400", 0).getSegment("LX").getElementValue("LX01"));
+        assertEquals("12.25", loop.getLoop("2400", 0).getSegment("SV1").getElementValue("SV102"));
+        assertEquals("20150330", loop.getLoop("2400", 0).getSegment("DTP").getElementValue("DTP03"));
+
+        assertEquals("2", loop.getLoop("2400", 1).getSegment("LX").getElementValue("LX01"));
+        assertEquals("13.26", loop.getLoop("2400", 1).getSegment("SV1").getElementValue("SV102"));
+        assertEquals("20150331", loop.getLoop("2400", 1).getSegment("DTP").getElementValue("DTP03"));
+
+        assertEquals("3", loop.getLoop("2400", 2).getSegment("LX").getElementValue("LX01"));
+        assertEquals(i == 0 ? "12.26" : "9.98", loop.getLoop("2400", 2).getSegment("SV1").getElementValue("SV102"));
+        assertEquals("20160324", loop.getLoop("2400", 2).getSegment("DTP").getElementValue("DTP03"));
+
+        assertEquals("4", loop.getLoop("2400", 3).getSegment("LX").getElementValue("LX01"));
+        assertEquals("12.30", loop.getLoop("2400", 3).getSegment("SV1").getElementValue("SV102"));
+        assertEquals("20170623", loop.getLoop("2400", 3).getSegment("DTP").getElementValue("DTP03"));
+
+        assertEquals("5", loop.getLoop("2400", 4).getSegment("LX").getElementValue("LX01"));
+        assertEquals("12.31", loop.getLoop("2400", 4).getSegment("SV1").getElementValue("SV102"));
+        assertEquals("20170624", loop.getLoop("2400", 4).getSegment("DTP").getElementValue("DTP03"));
+    }
+
+    private void assert2410(Loop loop) {
+        assertEquals("3920293", loop.getLoop("2410", 0).getSegment("LIN").getElementValue("LIN03"));
+        assertEquals("2", loop.getLoop("2410", 0).getSegment("CTP").getElementValue("CTP04"));
+    }
+
+    private void assert2420E(Loop loop, int i) {
+        assertEquals(i == 0 ? "2420E" : "2420E-1", loop.getLoop("2420E", 0).getSegment("NM1").getElementValue("NM103"));
+    }
+
+    private void assert2420F(Loop loop) {
+        assertEquals("PELBY", loop.getLoop("2420F", 0).getSegment("NM1").getElementValue("NM103"));
+        assertEquals("VELBY", loop.getLoop("2420F", 1).getSegment("NM1").getElementValue("NM103"));
+    }
+
+    private void assert2440(Loop loop) {
+        assertEquals("01.02", loop.getLoop("2440", 0).getSegment("LQ").getElementValue("LQ02"));
+        assertEquals("12N", loop.getLoop("2440", 0).getSegment("FRM").getElementValue("FRM01"));
+
+        assertEquals("01.03", loop.getLoop("2440", 1).getSegment("LQ").getElementValue("LQ02"));
+        assertEquals("12M", loop.getLoop("2440", 1).getSegment("FRM").getElementValue("FRM01"));
+
+        assertEquals("01.04", loop.getLoop("2440", 2).getSegment("LQ").getElementValue("LQ02"));
+        assertEquals("12Q", loop.getLoop("2440", 2).getSegment("FRM").getElementValue("FRM01"));
     }
 }

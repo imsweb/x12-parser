@@ -449,7 +449,7 @@ public class X12Reader {
                     getCurrentTransaction().getInterchangeLoop().addSegment(segment);
             }
 
-            if(_fatalErrors.isEmpty())
+            if (_fatalErrors.isEmpty())
                 checkLoopErrors();
         }
         else
@@ -594,37 +594,15 @@ public class X12Reader {
         }
         String parentName = getParentLoop(currentLoopId, previousLoopId);
         Loop currentLoop = getCurrentLoop(dataType);
-        int primaryIndex = 0;
-        int secondaryIndex = 0;
-        if (currentLoop.getLoops().size() > 0)
-            primaryIndex = currentLoop.getLoops().size() - 1;
-        if (currentLoop.getLoops().size() > 0 && currentLoop.getLoop(primaryIndex).getLoops().size() > 0)
-            secondaryIndex = currentLoop.getLoop(primaryIndex).getLoops().size() - 1;
 
         if (currentLoop.getLoops().size() == 0)// if no child loops have been stored yet.
             currentLoop.addLoop(0, newLoop);
         else if (currentLoop.getId().equals(parentName)) // top loop is the parent loop, just add this to the top loop's list of loops
             currentLoop.addLoop(currentLoop.getLoops().size(), newLoop);
         else {
-            int parentIndex;
-            int index;
-
-            //the primary loop path has no loops in it
-            if (currentLoop.getLoop(primaryIndex).getLoops().size() == 0 || currentLoop.getLoop(primaryIndex).getLoop(secondaryIndex).findLoop(parentName).size() == 0) {
-                parentIndex = currentLoop.findLoop(parentName).size() - 1;
-                index = currentLoop.getLoop(parentName, parentIndex).getLoops().size();
-            }
-            else {
-                parentIndex = currentLoop.getLoop(primaryIndex).getLoop(secondaryIndex).findLoop(parentName).size() - 1;
-                index = currentLoop.getLoop(primaryIndex).getLoop(secondaryIndex).getLoop(parentName, parentIndex).getLoops().size();
-            }
-
-            //if the primary loop path has child loops and the first loop is NOT the parent loop
-            if (currentLoop.getLoop(primaryIndex).getLoops().size() != 0 && currentLoop.getLoop(primaryIndex).getLoop(secondaryIndex).getLoops().size() != 0
-                    && !currentLoop.getLoop(primaryIndex).getId().equals(parentName))
-                currentLoop.getLoop(primaryIndex).getLoop(secondaryIndex).getLoop(parentName, parentIndex).addLoop(index, newLoop);
-            else
-                currentLoop.getLoop(parentName, parentIndex).addLoop(index, newLoop);
+            int parentIndex = currentLoop.findLoop(parentName).size() - 1;
+            int index = currentLoop.getLoop(parentName, parentIndex).getLoops().size(); // the index that the current loop will have
+            currentLoop.getLoop(parentName, parentIndex).addLoop(index, newLoop);
         }
         return currentLoopId;
     }
