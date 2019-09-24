@@ -22,13 +22,6 @@ public class Segment implements Iterable<Element> {
     @XStreamAlias("elements")
     private List<Element> _elements = new ArrayList<>();
 
-    public Segment(Segment segment) {
-        _separators = new Separators(segment.getSeparators().getSegment(), segment.getSeparators().getElement(), segment.getSeparators().getCompositeElement());
-        _id = segment.getId();
-        for (Element element : segment.getElements())
-            _elements.add(new Element(element));
-    }
-
     /**
      * Construct with the default separators
      */

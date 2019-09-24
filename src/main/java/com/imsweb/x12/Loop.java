@@ -46,14 +46,14 @@ public class Loop implements Iterable<Segment> {
         _parent = null;
     }
 
-    public Loop(Loop loop) {
-        _separators = new Separators(loop.getSeparators().getSegment(), loop.getSeparators().getElement(), loop.getSeparators().getCompositeElement());
-        _id = loop.getId();
-        for (Segment segment : loop.getSegments())
-            _segments.add(new Segment(segment));
-        for (Loop loop1 : loop.getLoops())
-            _loops.add(new Loop(loop1));
-    }
+//    public Loop(Loop loop) {
+//        _separators = new Separators(loop.getSeparators().getSegment(), loop.getSeparators().getElement(), loop.getSeparators().getCompositeElement());
+//        _id = loop.getId();
+//        for (Segment segment : loop.getSegments())
+//            _segments.add(new Segment(segment));
+//        for (Loop loop1 : loop.getLoops())
+//            _loops.add(new Loop(loop1));
+//    }
 
     /**
      * The constructor uses the default set of separators
@@ -560,6 +560,19 @@ public class Loop implements Iterable<Segment> {
 
         return requestedSegment.getElementValue(elementId);
 
+    }
+
+    public Loop getParent(String parentId) {
+        Loop result = null;
+        if (parentId != null) {
+            Loop parentLoop = _parent;
+            while (parentLoop != null && !parentId.equals(parentLoop.getId()))
+                parentLoop = parentLoop.getParent();
+
+            if (parentLoop != null && parentId.equals(parentLoop.getId()))
+                result = parentLoop;
+        }
+        return result;
     }
 
     /**

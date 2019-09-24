@@ -24,13 +24,6 @@ public class Element {
     @XStreamAlias("subValue")
     private List<String> _subValues = new ArrayList<>();
 
-    public Element(Element element) {
-        _separators = new Separators(element.getSeparators().getSegment(), element.getSeparators().getElement(), element.getSeparators().getCompositeElement());
-        _id = element.getId();
-        _value = element.getValue();
-        _subValues.addAll(element.getSubValues());
-    }
-
     /**
      * Constructor
      * @param id an element identifier
