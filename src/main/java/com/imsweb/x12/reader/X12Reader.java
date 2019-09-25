@@ -559,15 +559,12 @@ public class X12Reader {
 
                     if (loop.getSegment().size() > 1)
                         loopConfig.setLastSegmentXid(loop.getSegment().get(loop.getSegment().size() - 1));
-
                 }
 
                 parentID = loop.getXid();
                 _config.add(loopConfig);
-                for (LoopDefinition loops : loop.getLoop()) {
+                for (LoopDefinition loops : loop.getLoop())
                     getLoopConfiguration(loops, parentID);
-                }
-
             }
             else {
                 LoopConfig loopConfig = new LoopConfig(loop.getXid(), parentID, null, loop.getRepeat(), loop.getUsage(), loop.getSegment() != null);
@@ -578,7 +575,6 @@ public class X12Reader {
                     loopConfig.setLastSegmentXid(loop.getSegment().get(loop.getSegment().size() - 1));
 
                 _config.add(loopConfig);
-
             }
         }
     }
@@ -824,19 +820,15 @@ public class X12Reader {
 
         for (int i = 0; i < format.size(); i++) {
             SegmentDefinition segmentConf = format.get(i);
-            if (!checkUsage(segmentConf.getUsage(), segmentCounter[i]) && !(segmentConf.getXid().equals("IEA") || segmentConf.getXid().equals("GE") || segmentConf
-                    .getXid().equals("SE"))) {
+            if (!checkUsage(segmentConf.getUsage(), segmentCounter[i]) && !(segmentConf.getXid().equals("IEA") || segmentConf.getXid().equals("GE") || segmentConf.getXid().equals("SE")))
                 _errors.add(segmentConf.getXid() + " in loop " + loopId + " is required but not found");
-            }
-            if (!checkRepeats(segmentConf.getMaxUse(), segmentCounter[i])) {
+            if (!checkRepeats(segmentConf.getMaxUse(), segmentCounter[i]))
                 _errors.add(segmentConf.getXid() + " in loop " + loopId + " appears too many times");
-            }
             for (String s : segments) {
                 String[] tokens = s.split(Pattern.quote(separators.getElement().toString()));
                 if (segmentCounter[i] > 0 && tokens[0].equals(segmentConf.getXid())) {
                     checkRequiredElements(tokens, segmentConf, loopId);
                     checkRequiredComposites(tokens, segmentConf, loopId);
-
                 }
             }
         }
