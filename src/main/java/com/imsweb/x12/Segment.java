@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
-import java.util.regex.Pattern;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
@@ -133,7 +132,7 @@ public class Segment implements Iterable<Element> {
      * @return boolean indicating success
      */
     public boolean addElements(String elementText) {
-        String[] elementsStr = elementText.split(Pattern.quote(_separators.getElement().toString()));
+        String[] elementsStr = _separators.splitElement(elementText);
         Element[] elements = new Element[elementsStr.length - 1];
 
         _id = elementsStr[0];

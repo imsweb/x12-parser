@@ -1,6 +1,7 @@
 package com.imsweb.x12;
 
 import java.util.Objects;
+import java.util.regex.Pattern;
 
 /**
  * The class represents an X12 separator definition. A separators object consists of a segment separator, element separator and a composite element separator.
@@ -10,6 +11,9 @@ public class Separators {
     private Character _segment;
     private Character _element;
     private Character _composite;
+    private Pattern _segmentPattern;
+    private Pattern _elementPattern;
+    private Pattern _compositePattern;
 
     /**
      * Default constructor.
@@ -18,6 +22,7 @@ public class Separators {
         _segment = '~';
         _element = '*';
         _composite = ':';
+        setSeparatorPatterns(_segment, _element, _composite);
     }
 
     /**
@@ -30,6 +35,7 @@ public class Separators {
         _segment = segment;
         _element = element;
         _composite = composite;
+        setSeparatorPatterns(_segment, _element, _composite);
     }
 
     /**
@@ -86,6 +92,24 @@ public class Separators {
      */
     public String toString() {
         return "[" + _segment + "," + _element + "," + _composite + "]";
+    }
+
+    private void setSeparatorPatterns(Character segment, Character element, Character composite) {
+        _segmentPattern = Pattern.compile(Pattern.quote(segment.toString()));
+        _elementPattern = Pattern.compile(Pattern.quote(element.toString()));
+        _compositePattern = Pattern.compile(Pattern.quote(composite.toString()));
+    }
+
+    public String[] splitElement(String line) {
+        return (line != null && _elementPattern != null) ? _elementPattern.split(line) : null;
+    }
+
+    public String[] splitSegment(String line) {
+        return (line != null && _segmentPattern != null) ? _segmentPattern.split(line) : null;
+    }
+
+    public String[] splitComposite(String line) {
+        return (line != null && _compositePattern != null) ?  _compositePattern.split(line) : null;
     }
 
     @Override

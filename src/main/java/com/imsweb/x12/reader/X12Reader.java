@@ -217,7 +217,7 @@ public class X12Reader {
             String line = scanner.next().trim();
             while (scanner.hasNext()) {
                 // Determine if we have started a new loop
-                loopConfig = getMatchedLoop(line.split(Pattern.quote(separators.getElement().toString())), currentLoopConfig == null ? null : currentLoopConfig.getLoopId());
+                loopConfig = getMatchedLoop(separators.splitElement(line), currentLoopConfig == null ? null : currentLoopConfig.getLoopId());
                 if (loopConfig == null)
                     loopLines.add(line); // didn't start a new loop, just add the lines for the current loop
                 else {
@@ -276,7 +276,7 @@ public class X12Reader {
             // store the final segment if the last line of the file has data.
             if (!line.isEmpty() && _fatalErrors.isEmpty()) {
                 if (currentLoopConfig != null) {
-                    loopConfig = getMatchedLoop(line.split(Pattern.quote(separators.getElement().toString())), currentLoopConfig.getLoopId());
+                    loopConfig = getMatchedLoop(separators.splitElement(line), currentLoopConfig.getLoopId());
                     lastLoopStored = appendEndingSegment(lastLoopStored, currentLoopConfig, loopConfig, separators, line, loopLines);
                     if (lastLoopStored == null || !_definition.getLoop().getXid().equals(lastLoopStored.getId()))
                         _fatalErrors.add("Unable to find end of transaction");
@@ -305,7 +305,7 @@ public class X12Reader {
         if (lastLoopStored != null) {
             Segment segment = new Segment(separators);
             segment.addElements(currentLine);
-            lastLoopUpdated = lastLoopStored.getParent(currentLoopConfig.getLoopId());
+            lastLoopUpdated = lastLoopStored.findTopParentById(currentLoopConfig.getLoopId());
             if (lastLoopUpdated != null)
                 lastLoopUpdated.addSegment(segment);
             else {
@@ -465,7 +465,7 @@ public class X12Reader {
                 else if (parentLoopInfo.hasDataSegments())
                     _fatalErrors.add("Parent loop " + parentLoopId + " is missing and should already exist");
                 else {
-                    parentLoop = lastLoopStored.getParent(parentLoopInfo.getParentLoop());
+                    parentLoop = lastLoopStored.findTopParentById(parentLoopInfo.getParentLoop());
                     if (parentLoop == null)
                         _fatalErrors.add("Parent loop of " + parentLoopId + " is not found!");
                     else {
@@ -529,7 +529,7 @@ public class X12Reader {
         if (parentLoopIds.isEmpty())
             result = lastLoopStored;
         else if (parentLoopIds.size() == 1)
-            result = lastLoopStored.getId().equals(currentLoopConfig.getParentLoop()) ? lastLoopStored : lastLoopStored.getParent(currentLoopConfig.getParentLoop());
+            result = lastLoopStored.getId().equals(currentLoopConfig.getParentLoop()) ? lastLoopStored : lastLoopStored.findTopParentById(currentLoopConfig.getParentLoop());
         else {
             // dealing with ambiguous parent loop
             result = lastLoopStored;
@@ -657,6 +657,7 @@ public class X12Reader {
      * @return the matched loop
      */
     private LoopConfig getMatchedLoop(String[] tokens, String previousLoopID) {
+        Pattern pattern;
         LoopConfig result = null;
         List<LoopConfig> matchedLoops = new ArrayList<>();
         for (LoopConfig config : _config) {
@@ -743,7 +744,7 @@ public class X12Reader {
         for (String segment : segments) {
             int i = 0;
             for (SegmentDefinition segmentConf : format) {
-                String[] tokens = segment.split(Pattern.quote(separators.getElement().toString()));
+                String[] tokens = separators.splitElement(segment);
                 if (tokens[0].equals(segmentConf.getXid()) && codesValidated(tokens, segmentConf)) {
                     String currentPos = segmentConf.getPos();
                     if (previousPos != null && Integer.parseInt(previousPos) > Integer.parseInt(currentPos))
@@ -825,7 +826,7 @@ public class X12Reader {
             if (!checkRepeats(segmentConf.getMaxUse(), segmentCounter[i]))
                 _errors.add(segmentConf.getXid() + " in loop " + loopId + " appears too many times");
             for (String s : segments) {
-                String[] tokens = s.split(Pattern.quote(separators.getElement().toString()));
+                String[] tokens = separators.splitElement(s);
                 if (segmentCounter[i] > 0 && tokens[0].equals(segmentConf.getXid())) {
                     checkRequiredElements(tokens, segmentConf, loopId);
                     checkRequiredComposites(tokens, segmentConf, loopId);
