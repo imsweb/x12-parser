@@ -68,6 +68,7 @@ public class Separators {
      */
     public void setCompositeElement(Character c) {
         _composite = c;
+        _compositePattern = Pattern.compile(Pattern.quote(c.toString()));
     }
 
     /**
@@ -76,6 +77,7 @@ public class Separators {
      */
     public void setElement(Character e) {
         _element = e;
+        _elementPattern = Pattern.compile(Pattern.quote(e.toString()));
     }
 
     /**
@@ -84,6 +86,7 @@ public class Separators {
      */
     public void setSegment(Character s) {
         _segment = s;
+        _segmentPattern = Pattern.compile(Pattern.quote(s.toString()));
     }
 
     /**
