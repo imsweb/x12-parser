@@ -85,6 +85,9 @@ public class SeparatorsTest {
         Assert.assertEquals("Test1", split[0]);
         Assert.assertEquals("Test2", split[1]);
         Assert.assertEquals("Test3", split[2]);
+
+        separators.setSegment(null);
+        Assert.assertNull(separators.splitSegment(segments));
     }
 
     @Test
@@ -107,6 +110,8 @@ public class SeparatorsTest {
         Assert.assertEquals("Test2", split[1]);
         Assert.assertEquals("Test3", split[2]);
 
+        separators.setElement(null);
+        Assert.assertNull(separators.splitElement(segments));
     }
 
     @Test
@@ -128,5 +133,8 @@ public class SeparatorsTest {
         Assert.assertEquals("Test1", split[0]);
         Assert.assertEquals("Test2", split[1]);
         Assert.assertEquals("Test3", split[2]);
+
+        separators.setCompositeElement(null);
+        Assert.assertNull(separators.splitComposite(segments));
     }
 }

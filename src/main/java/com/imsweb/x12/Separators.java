@@ -68,7 +68,7 @@ public class Separators {
      */
     public void setCompositeElement(Character c) {
         _composite = c;
-        _compositePattern = Pattern.compile(Pattern.quote(c.toString()));
+        _compositePattern = c == null ? null : Pattern.compile(Pattern.quote(c.toString()));
     }
 
     /**
@@ -77,7 +77,7 @@ public class Separators {
      */
     public void setElement(Character e) {
         _element = e;
-        _elementPattern = Pattern.compile(Pattern.quote(e.toString()));
+        _elementPattern = e == null ? null : Pattern.compile(Pattern.quote(e.toString()));
     }
 
     /**
@@ -86,7 +86,7 @@ public class Separators {
      */
     public void setSegment(Character s) {
         _segment = s;
-        _segmentPattern = Pattern.compile(Pattern.quote(s.toString()));
+        _segmentPattern = s == null ? null : Pattern.compile(Pattern.quote(s.toString()));
     }
 
     /**
@@ -98,22 +98,26 @@ public class Separators {
     }
 
     private void setSeparatorPatterns(Character segment, Character element, Character composite) {
-        _segmentPattern = Pattern.compile(Pattern.quote(segment.toString()));
-        _elementPattern = Pattern.compile(Pattern.quote(element.toString()));
-        _compositePattern = Pattern.compile(Pattern.quote(composite.toString()));
+        if (segment != null)
+            _segmentPattern = Pattern.compile(Pattern.quote(segment.toString()));
+
+        if (element != null)
+            _elementPattern = Pattern.compile(Pattern.quote(element.toString()));
+
+        if (composite != null)
+            _compositePattern = Pattern.compile(Pattern.quote(composite.toString()));
     }
 
-    // separators are annotated as @NotNull so it's not possible for the patterns to be null either.
     public String[] splitElement(String line) {
-        return line != null ? _elementPattern.split(line) : null;
+        return (line != null && _elementPattern != null) ? _elementPattern.split(line) : null;
     }
 
     public String[] splitSegment(String line) {
-        return line != null ? _segmentPattern.split(line) : null;
+        return (line != null && _segmentPattern != null) ? _segmentPattern.split(line) : null;
     }
 
     public String[] splitComposite(String line) {
-        return line != null ?  _compositePattern.split(line) : null;
+        return (line != null && _compositePattern != null) ? _compositePattern.split(line) : null;
     }
 
     @Override
