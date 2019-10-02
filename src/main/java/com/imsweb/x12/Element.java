@@ -74,7 +74,7 @@ public class Element {
 
     public void setValue(String value) {
         String[] values = _separators.splitComposite(value);
-        if (values.length >= 1)
+        if (values != null && values.length >= 1)
             _subValues.addAll(Arrays.asList(values));
 
         _value = value;

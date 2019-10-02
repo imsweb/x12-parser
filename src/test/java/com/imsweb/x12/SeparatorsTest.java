@@ -68,8 +68,10 @@ public class SeparatorsTest {
 
     @Test
     public void testSplitSegment() {
-        String segments = "Test1~Test2~Test3~";
         Separators separators = new Separators();
+        Assert.assertNull(separators.splitSegment(null));
+
+        String segments = "Test1~Test2~Test3~";
         String[] split = separators.splitSegment(segments);
         Assert.assertEquals(3, split.length);
         Assert.assertEquals("Test1", split[0]);
@@ -87,8 +89,10 @@ public class SeparatorsTest {
 
     @Test
     public void testSplitElement() {
-        String segments = "Test1*Test2*Test3*";
         Separators separators = new Separators();
+        Assert.assertNull(separators.splitElement(null));
+
+        String segments = "Test1*Test2*Test3*";
         String[] split = separators.splitElement(segments);
         Assert.assertEquals(3, split.length);
         Assert.assertEquals("Test1", split[0]);
@@ -102,12 +106,16 @@ public class SeparatorsTest {
         Assert.assertEquals("Test1", split[0]);
         Assert.assertEquals("Test2", split[1]);
         Assert.assertEquals("Test3", split[2]);
+
+        Assert.assertNull(separators.splitElement(null));
     }
 
     @Test
     public void testSplitComposite() {
-        String segments = "Test1:Test2:Test3:";
         Separators separators = new Separators();
+        Assert.assertNull(separators.splitComposite(null));
+
+        String segments = "Test1:Test2:Test3:";
         String[] split = separators.splitComposite(segments);
         Assert.assertEquals(3, split.length);
         Assert.assertEquals("Test1", split[0]);

@@ -657,30 +657,33 @@ public class X12Reader {
      * @return the matched loop
      */
     private LoopConfig getMatchedLoop(String[] tokens, String previousLoopID) {
-        Pattern pattern;
         LoopConfig result = null;
-        List<LoopConfig> matchedLoops = new ArrayList<>();
-        for (LoopConfig config : _config) {
-            SegmentDefinition firstId = config.getFirstSegmentXid();
-            boolean firstIdCheck = firstId != null && tokens[0].equals(firstId.getXid()) && codesValidatedForLoopId(tokens, firstId);
-            SegmentDefinition lastId = config.getLastSegmentXid();
-            boolean lastIdCheck = lastId != null && tokens[0].equals(lastId.getXid()) && !config.getLoopId().equals(previousLoopID) && codesValidatedForLoopId(tokens, lastId);
-            if (firstIdCheck || lastIdCheck) {
+        if (tokens != null) {
+            List<LoopConfig> matchedLoops = new ArrayList<>();
+            for (LoopConfig config : _config) {
+                SegmentDefinition firstId = config.getFirstSegmentXid();
+                boolean firstIdCheck = firstId != null && tokens[0].equals(firstId.getXid()) && codesValidatedForLoopId(tokens, firstId);
+                SegmentDefinition lastId = config.getLastSegmentXid();
+                boolean lastIdCheck = lastId != null && tokens[0].equals(lastId.getXid()) && !config.getLoopId().equals(previousLoopID) && codesValidatedForLoopId(tokens, lastId);
+                if (firstIdCheck || lastIdCheck) {
 
-                if (isChildSegment(previousLoopID, tokens)) {
-                    matchedLoops.clear();
-                    break;
+                    if (isChildSegment(previousLoopID, tokens)) {
+                        matchedLoops.clear();
+                        break;
+                    }
+
+                    if (!matchedLoops.stream().map(LoopConfig::getLoopId).collect(Collectors.toList()).contains(config.getLoopId()))
+                        matchedLoops.add(config);
                 }
-
-                if (!matchedLoops.stream().map(LoopConfig::getLoopId).collect(Collectors.toList()).contains(config.getLoopId()))
-                    matchedLoops.add(config);
             }
-        }
 
-        if (matchedLoops.size() > 1)
-            result = getFinalizedMatch(previousLoopID, matchedLoops);
-        else if (matchedLoops.size() == 1)
-            result = matchedLoops.get(0);
+            if (matchedLoops.size() > 1)
+                result = getFinalizedMatch(previousLoopID, matchedLoops);
+            else if (matchedLoops.size() == 1)
+                result = matchedLoops.get(0);
+        }
+        else
+            _errors.add("Unable to split elements for loop matching!");
 
         return result;
     }
@@ -745,7 +748,7 @@ public class X12Reader {
             int i = 0;
             for (SegmentDefinition segmentConf : format) {
                 String[] tokens = separators.splitElement(segment);
-                if (tokens[0].equals(segmentConf.getXid()) && codesValidated(tokens, segmentConf)) {
+                if (tokens != null && tokens[0].equals(segmentConf.getXid()) && codesValidated(tokens, segmentConf)) {
                     String currentPos = segmentConf.getPos();
                     if (previousPos != null && Integer.parseInt(previousPos) > Integer.parseInt(currentPos))
                         _errors.add("Segment " + segmentConf.getXid() + " in loop " + loopId + " is not in the correct position.");
@@ -755,6 +758,8 @@ public class X12Reader {
                     previousPos = currentPos;
                     break;
                 }
+                else if (tokens == null)
+                    _errors.add("Unable to split elements to validate segment ID!");
                 i++;
             }
 
@@ -827,10 +832,12 @@ public class X12Reader {
                 _errors.add(segmentConf.getXid() + " in loop " + loopId + " appears too many times");
             for (String s : segments) {
                 String[] tokens = separators.splitElement(s);
-                if (segmentCounter[i] > 0 && tokens[0].equals(segmentConf.getXid())) {
+                if (tokens != null && segmentCounter[i] > 0 && tokens[0].equals(segmentConf.getXid())) {
                     checkRequiredElements(tokens, segmentConf, loopId);
                     checkRequiredComposites(tokens, segmentConf, loopId);
                 }
+                else if (tokens == null)
+                    _errors.add("Unable to split elements for validation!");
             }
         }
 

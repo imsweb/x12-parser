@@ -133,6 +133,9 @@ public class Segment implements Iterable<Element> {
      */
     public boolean addElements(String elementText) {
         String[] elementsStr = _separators.splitElement(elementText);
+        if (elementsStr == null)
+            return false;
+
         Element[] elements = new Element[elementsStr.length - 1];
 
         _id = elementsStr[0];
