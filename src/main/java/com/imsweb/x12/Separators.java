@@ -103,16 +103,17 @@ public class Separators {
         _compositePattern = Pattern.compile(Pattern.quote(composite.toString()));
     }
 
+    // separators are annotated as @NotNull so it's not possible for the patterns to be null either.
     public String[] splitElement(String line) {
-        return (line != null && _elementPattern != null) ? _elementPattern.split(line) : null;
+        return line != null ? _elementPattern.split(line) : null;
     }
 
     public String[] splitSegment(String line) {
-        return (line != null && _segmentPattern != null) ? _segmentPattern.split(line) : null;
+        return line != null ? _segmentPattern.split(line) : null;
     }
 
     public String[] splitComposite(String line) {
-        return (line != null && _compositePattern != null) ?  _compositePattern.split(line) : null;
+        return line != null ?  _compositePattern.split(line) : null;
     }
 
     @Override

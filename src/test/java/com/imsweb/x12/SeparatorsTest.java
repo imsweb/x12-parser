@@ -107,7 +107,6 @@ public class SeparatorsTest {
         Assert.assertEquals("Test2", split[1]);
         Assert.assertEquals("Test3", split[2]);
 
-        Assert.assertNull(separators.splitElement(null));
     }
 
     @Test
