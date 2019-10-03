@@ -19,10 +19,9 @@ public class Separators {
      * Default constructor.
      */
     public Separators() {
-        _segment = '~';
-        _element = '*';
-        _composite = ':';
-        setSeparatorPatterns(_segment, _element, _composite);
+        setSegment('~');
+        setElement('*');
+        setCompositeElement(':');
     }
 
     /**
@@ -32,10 +31,9 @@ public class Separators {
      * @param composite composite element separator
      */
     public Separators(Character segment, Character element, Character composite) {
-        _segment = segment;
-        _element = element;
-        _composite = composite;
-        setSeparatorPatterns(_segment, _element, _composite);
+        setSegment(segment);
+        setElement(element);
+        setCompositeElement(composite);
     }
 
     /**
@@ -95,17 +93,6 @@ public class Separators {
      */
     public String toString() {
         return "[" + _segment + "," + _element + "," + _composite + "]";
-    }
-
-    private void setSeparatorPatterns(Character segment, Character element, Character composite) {
-        if (segment != null)
-            _segmentPattern = Pattern.compile(Pattern.quote(segment.toString()));
-
-        if (element != null)
-            _elementPattern = Pattern.compile(Pattern.quote(element.toString()));
-
-        if (composite != null)
-            _compositePattern = Pattern.compile(Pattern.quote(composite.toString()));
     }
 
     public String[] splitElement(String line) {
