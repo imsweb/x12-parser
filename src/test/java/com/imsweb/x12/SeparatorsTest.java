@@ -1,5 +1,6 @@
 package com.imsweb.x12;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -65,4 +66,75 @@ public class SeparatorsTest {
         assertEquals("[a,b,c]", separators.toString());
     }
 
+    @Test
+    public void testSplitSegment() {
+        Separators separators = new Separators();
+        Assert.assertNull(separators.splitSegment(null));
+
+        String segments = "Test1~Test2~Test3~";
+        String[] split = separators.splitSegment(segments);
+        Assert.assertEquals(3, split.length);
+        Assert.assertEquals("Test1", split[0]);
+        Assert.assertEquals("Test2", split[1]);
+        Assert.assertEquals("Test3", split[2]);
+
+        segments = "Test1|Test2|Test3|";
+        separators.setSegment('|');
+        split = separators.splitSegment(segments);
+        Assert.assertEquals(3, split.length);
+        Assert.assertEquals("Test1", split[0]);
+        Assert.assertEquals("Test2", split[1]);
+        Assert.assertEquals("Test3", split[2]);
+
+        separators.setSegment(null);
+        Assert.assertNull(separators.splitSegment(segments));
+    }
+
+    @Test
+    public void testSplitElement() {
+        Separators separators = new Separators();
+        Assert.assertNull(separators.splitElement(null));
+
+        String segments = "Test1*Test2*Test3*";
+        String[] split = separators.splitElement(segments);
+        Assert.assertEquals(3, split.length);
+        Assert.assertEquals("Test1", split[0]);
+        Assert.assertEquals("Test2", split[1]);
+        Assert.assertEquals("Test3", split[2]);
+
+        segments = "Test1|Test2|Test3|";
+        separators.setElement('|');
+        split = separators.splitElement(segments);
+        Assert.assertEquals(3, split.length);
+        Assert.assertEquals("Test1", split[0]);
+        Assert.assertEquals("Test2", split[1]);
+        Assert.assertEquals("Test3", split[2]);
+
+        separators.setElement(null);
+        Assert.assertNull(separators.splitElement(segments));
+    }
+
+    @Test
+    public void testSplitComposite() {
+        Separators separators = new Separators();
+        Assert.assertNull(separators.splitComposite(null));
+
+        String segments = "Test1:Test2:Test3:";
+        String[] split = separators.splitComposite(segments);
+        Assert.assertEquals(3, split.length);
+        Assert.assertEquals("Test1", split[0]);
+        Assert.assertEquals("Test2", split[1]);
+        Assert.assertEquals("Test3", split[2]);
+
+        segments = "Test1|Test2|Test3|";
+        separators.setCompositeElement('|');
+        split = separators.splitComposite(segments);
+        Assert.assertEquals(3, split.length);
+        Assert.assertEquals("Test1", split[0]);
+        Assert.assertEquals("Test2", split[1]);
+        Assert.assertEquals("Test3", split[2]);
+
+        separators.setCompositeElement(null);
+        Assert.assertNull(separators.splitComposite(segments));
+    }
 }

@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.regex.Pattern;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
@@ -53,6 +52,14 @@ public class Element {
         setValue(value == null ? "" : value);
     }
 
+    public Separators getSeparators() {
+        return _separators;
+    }
+
+    public List<String> getSubValues() {
+        return _subValues;
+    }
+
     public String getId() {
         return _id;
     }
@@ -66,8 +73,8 @@ public class Element {
     }
 
     public void setValue(String value) {
-        String[] values = value.split(Pattern.quote(_separators.getCompositeElement().toString()));
-        if (values.length >= 1)
+        String[] values = _separators.splitComposite(value);
+        if (values != null && values.length >= 1)
             _subValues.addAll(Arrays.asList(values));
 
         _value = value;

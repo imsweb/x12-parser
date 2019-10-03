@@ -48,12 +48,13 @@ public class X12Reader {
     private static final String _X098_ANSI_VERSION = "004010X098A1";
     private static final String _X222_ANSI_VERSION = "005010X222A1";
     private static final String _X223_ANSI_VERSION = "005010X223A2";
-
     private static final Map<FileType, String> _TYPES = new HashMap<>();
 
-    private List<Loop> _dataLoops = new ArrayList<>();
     private List<String> _errors = new ArrayList<>();
+    private List<String> _fatalErrors = new ArrayList<>(); // structure issues so bad we should stop processing.
     private List<LoopConfig> _config = new ArrayList<>();
+    private List<Loop> _dataLoops = new ArrayList<>();
+    private Map<String, List<Set<String>>> _childLoopTracker = new HashMap<>();
     TransactionDefinition _definition;
 
     /**
@@ -165,14 +166,6 @@ public class X12Reader {
     }
 
     /**
-     * Return the current loop
-     * @return the loop
-     */
-    private Loop getCurrentLoop() {
-        return (_dataLoops.isEmpty() ? null : _dataLoops.get(_dataLoops.size() - 1));
-    }
-
-    /**
      * Return the resulting loops, this would possible if multiple ISA segments were included in one single file
      * @return the loop list
      */
@@ -186,6 +179,10 @@ public class X12Reader {
      */
     public List<String> getErrors() {
         return _errors;
+    }
+
+    public List<String> getFatalErrors() {
+        return _fatalErrors;
     }
 
     /**
@@ -205,9 +202,9 @@ public class X12Reader {
             scanner.useDelimiter(quotedSegmentSeparator + "\r\n|" + quotedSegmentSeparator + "\n|" + quotedSegmentSeparator);
 
             List<String> loopLines = new ArrayList<>(); // holds the lines from the claims files that all belong to the same loop
-            String loopId;
-            String previousLoopId = null;
-            String currentLoopId = null;
+            LoopConfig loopConfig;
+            LoopConfig currentLoopConfig = null;
+            Loop lastLoopStored = null;
 
             // parse _definition file
             _definition = type.getDefinition();
@@ -220,43 +217,52 @@ public class X12Reader {
             String line = scanner.next().trim();
             while (scanner.hasNext()) {
                 // Determine if we have started a new loop
-                loopId = getMatchedLoop(line.split(Pattern.quote(separators.getElement().toString())), previousLoopId);
-                if (loopId != null) {
-                    if (loopId.equals(_definition.getLoop().getXid())) {
-                        if (currentLoopId != null) {
-                            storeData(previousLoopId, loopLines, currentLoopId, getCurrentLoop().getSeparators());
+                loopConfig = getMatchedLoop(separators.splitElement(line), currentLoopConfig == null ? null : currentLoopConfig.getLoopId());
+                if (loopConfig == null)
+                    loopLines.add(line); // didn't start a new loop, just add the lines for the current loop
+                else {
+                    if (loopConfig.getLastSegmentXid() != null && line.startsWith(loopConfig.getLastSegmentXid().getXid()) && !loopConfig.equals(currentLoopConfig)) {
+                        lastLoopStored = appendEndingSegment(lastLoopStored, currentLoopConfig, loopConfig, separators, line, loopLines);
+                        if (lastLoopStored != null) {
+                            loopLines = new ArrayList<>();
+                            currentLoopConfig = loopConfig;
+                        }
+                        else
+                            break; // fatal error found when appending the segment
+                    }
+                    else if (loopConfig.getLoopId().equals(_definition.getLoop().getXid())) {
+                        // we are processing a new transaction - store any old data if necessary
+                        if (lastLoopStored != null && !loopLines.isEmpty()) {
+                            if (storeData(currentLoopConfig, loopLines, lastLoopStored, separators) == null)
+                                break;
                             loopLines = new ArrayList<>();
                         }
-                        previousLoopId = null;
-                        currentLoopId = null;
-                        _dataLoops.add(new Loop(null));
-                        getCurrentLoop().setSeparators(separators);
+                        currentLoopConfig = loopConfig;
+                        lastLoopStored = null;
+                        Loop loop = new Loop(null);
+                        loop.setSeparators(separators);
+                        _dataLoops.add(loop);
+                        loopLines.add(line);
                     }
-                    updateLoopCounts(loopId);
-
-                    // validate the lines and add to list of errors if there are any
-                    validateLines(loopLines, previousLoopId, separators);
-
-                    if (getCurrentLoop().getId() == null && loopLines.size() > 0) {
-                        getCurrentLoop().setId(previousLoopId);
-                        for (String s : loopLines) {
-                            Segment seg = new Segment(getCurrentLoop().getSeparators());
-                            seg.addElements(s);
-                            getCurrentLoop().addSegment(seg);
+                    else {
+                        if (currentLoopConfig == null) {
+                            _fatalErrors.add("Current loop is unknown. Bad structure detected");
+                            break;
                         }
-                    }
-                    else if (getCurrentLoop().getId() != null) {
-                        if (currentLoopId == null)
-                            currentLoopId = previousLoopId;
-                        currentLoopId = storeData(previousLoopId, loopLines, currentLoopId, getCurrentLoop().getSeparators());
-                    }
+                        updateLoopCounts(loopConfig.getLoopId());
+                        // store the data from processing the last loop
+                        if (!loopLines.isEmpty())
+                            lastLoopStored = storeData(currentLoopConfig, loopLines, lastLoopStored, separators);
 
-                    loopLines = new ArrayList<>();
-                    loopLines.add(line);
-                    previousLoopId = loopId;
+                        if (lastLoopStored == null)
+                            break; // fatal error recorded during storing the loop
+
+                        // start processing the new loop we found
+                        loopLines = new ArrayList<>();
+                        loopLines.add(line);
+                        currentLoopConfig = loopConfig;
+                    }
                 }
-                else
-                    loopLines.add(line);
 
                 try {
                     line = scanner.next().trim();
@@ -266,39 +272,76 @@ public class X12Reader {
                     break;
                 }
             }
-            if (!line.isEmpty() && !loopLines.contains(line))
-                loopLines.add(line);
-            storeData(previousLoopId, loopLines, currentLoopId, separators);
 
-            //checking the loop data to see if there any requirements violations
-            for (LoopConfig lc : _config) {
-                if (Usage.REQUIRED.equals(lc.getLoopUsage()) && lc.getParentLoop() != null && lc.getLoopRepeatCount() != 0 && !compareRepeats(lc.getLoopRepeatCount(), lc.getLoopRepeats(),
-                        lc.getParentLoop())) { //checks to see if a loop appears too many times
-                    //(takes into account that the parent loop may appear more than once)
+            // store the final segment if the last line of the file has data.
+            if (!line.isEmpty() && _fatalErrors.isEmpty()) {
+                if (currentLoopConfig != null) {
+                    loopConfig = getMatchedLoop(separators.splitElement(line), currentLoopConfig.getLoopId());
+                    lastLoopStored = appendEndingSegment(lastLoopStored, currentLoopConfig, loopConfig, separators, line, loopLines);
+                    if (lastLoopStored == null || !_definition.getLoop().getXid().equals(lastLoopStored.getId()))
+                        _fatalErrors.add("Unable to find end of transaction");
+                }
+                else
+                    _fatalErrors.add("Last line of data and we don't know the current loop.");
+            }
+            if (_fatalErrors.isEmpty())
+                checkLoopErrors();
+        }
+        else
+            _fatalErrors.add("Unable to process transaction!");
+    }
+
+    /**
+     * This is method is used for loops that don't have their segments grouped together in the transaction.
+     * For example the ISA segment starts the ISA_LOOP, the IEA segment ends the ISA_LOOP.
+     * The ISA segment is the first line in a transaction while the IEA is the last line the transaction
+     */
+    private Loop appendEndingSegment(Loop lastLoopStored, LoopConfig previousLoopConfig, LoopConfig currentLoopConfig, Separators separators, String currentLine, List<String> loopLines) {
+        Loop lastLoopUpdated = null;
+        // store any previous data
+        if (!loopLines.isEmpty())
+            lastLoopStored = storeData(previousLoopConfig, loopLines, lastLoopStored, separators);
+
+        if (lastLoopStored != null) {
+            Segment segment = new Segment(separators);
+            segment.addElements(currentLine);
+            lastLoopUpdated = lastLoopStored.findTopParentById(currentLoopConfig.getLoopId());
+            if (lastLoopUpdated != null)
+                lastLoopUpdated.addSegment(segment);
+            else {
+                _fatalErrors.add("We found an ending segment but we never stored the first part of the loop!");
+            }
+        }
+        return lastLoopUpdated;
+    }
+
+    private void checkLoopErrors() {
+        // check overall loop structure
+        for (LoopConfig lc : _config) {
+            if (Usage.REQUIRED.equals(lc.getLoopUsage()) && lc.getParentLoop() != null && lc.getLoopRepeatCount() != 0 && !compareRepeats(lc.getLoopRepeatCount(), lc.getLoopRepeats(),
+                    lc.getParentLoop())) { //checks to see if a loop appears too many times
+                //(takes into account that the parent loop may appear more than once)
+                _errors.add(lc.getLoopId() + " appears too many times");
+            }
+
+            else if (Usage.SITUATIONAL.equals(lc.getLoopUsage()) && lc.getLoopRepeatCount() > 0) {  //For situational loops that appear!
+                if (lc.getParentLoop() != null && !compareRepeats(lc.getLoopRepeatCount(), lc.getLoopRepeats(), lc.getParentLoop())) {    //checks to see if a loop appears too many times
                     _errors.add(lc.getLoopId() + " appears too many times");
                 }
+            }
 
-                else if (Usage.SITUATIONAL.equals(lc.getLoopUsage()) && lc.getLoopRepeatCount() > 0) {  //For situational loops that appear!
-                    if (lc.getParentLoop() != null && !compareRepeats(lc.getLoopRepeatCount(), lc.getLoopRepeats(), lc.getParentLoop())) {    //checks to see if a loop appears too many times
-                        _errors.add(lc.getLoopId() + " appears too many times");
-                    }
-                }
-
-                Set<String> requiredChildLoops = new HashSet<>();
-                requiredChildLoops = getRequiredChildLoops(_definition.getLoop(), lc.getLoopId(), requiredChildLoops);
-                for (int i = 0; i < getCurrentLoop().findLoop(lc.getLoopId()).size(); i++) {
-                    List<String> childLoops = getChildLoopsFromData(getCurrentLoop().findLoop(lc.getLoopId()).get(i).getLoops());
+            // check internal loop data
+            Set<String> requiredChildLoops = new HashSet<>();
+            requiredChildLoops = getRequiredChildLoops(_definition.getLoop(), lc.getLoopId(), requiredChildLoops);
+            if (_childLoopTracker.get(lc.getLoopId()) != null) {
+                for (int i = 0; i < _childLoopTracker.get(lc.getLoopId()).size(); i++) {
+                    Set<String> childLoops = _childLoopTracker.get(lc.getLoopId()).get(i);
                     for (String ids : requiredChildLoops)
                         if (!childLoops.contains(ids))
                             _errors.add(ids + " is required but not found in " + lc.getLoopId() + " iteration #" + (i + 1));
-
                 }
             }
         }
-    }
-
-    private List<String> getChildLoopsFromData(List<Loop> loops) {
-        return loops.stream().map(Loop::getId).collect(Collectors.toList());
     }
 
     private Set<String> getRequiredChildLoops(LoopDefinition loop, String id, Set<String> requiredChildList) {
@@ -373,78 +416,133 @@ public class X12Reader {
 
     /**
      * Stores data, one loop at a time, into the _dataLoop structure.
-     * @param currentLoopId---the loopID of the current loop
+     * @param currentLoopConfig---the loopID of the current loop
      * @param loopLines---the data file segments that belong to this loop
-     * @param prevousLoopId---the previous loop id that was stored
+     * @param lastLoopStored---the previous loop id that was stored
      * @return loopID----the id of the loop that was just stored
      */
-    private String storeData(String currentLoopId, List<String> loopLines, String prevousLoopId, Separators separators) {
-        Loop newLoop = new Loop(separators, currentLoopId);
+    private Loop storeData(LoopConfig currentLoopConfig, List<String> loopLines, Loop lastLoopStored, Separators separators) {
+        // validate the individual segments
+        validateLines(loopLines, currentLoopConfig.getLoopId(), separators);
+
+        // create the segments that will be stored
+        List<Segment> segments = new ArrayList<>();
         for (String s : loopLines) {
             Segment seg = new Segment(separators);
             seg.addElements(s);
-            newLoop.addSegment(seg);
-        }
-        String parentName = getParentLoop(currentLoopId, prevousLoopId);
-        int primaryIndex = 0;
-        int secondaryIndex = 0;
-
-        if (getCurrentLoop().getLoops().size() > 0)
-            primaryIndex = getCurrentLoop().getLoops().size() - 1;
-        if (getCurrentLoop().getLoops().size() > 0 && getCurrentLoop().getLoop(primaryIndex).getLoops().size() > 0)
-            secondaryIndex = getCurrentLoop().getLoop(primaryIndex).getLoops().size() - 1;
-
-        if (getCurrentLoop().getLoops().size() == 0) // if no child loops have been stored yet.
-            getCurrentLoop().addLoop(0, newLoop);
-        else if (getCurrentLoop().getId().equals(parentName)) {
-            int index = getCurrentLoop().getLoops().size();
-            getCurrentLoop().addLoop(index, newLoop);
-        }
-        else if (getCurrentLoop().getLoop(primaryIndex).getLoops().size() != 0 && !getCurrentLoop().getLoop(primaryIndex).getLoop(secondaryIndex).hasLoop(parentName) && !getCurrentLoop().getLoop(
-                primaryIndex).getId()
-                .equals(
-                        parentName)) { //if the parent loop for the current loop has not been stored---we need to create it. (Happens for loops with no segements!!!)
-            String oldParentName = parentName;
-            parentName = getParentLoop(parentName, prevousLoopId);
-
-            if (!getCurrentLoop().getLoop(primaryIndex).getLoop(secondaryIndex).getId().equals(parentName)) { //if the parent loop of the loop we want to create is NOT the second loop in the path
-                int index = getCurrentLoop().getLoop(primaryIndex).getLoop(secondaryIndex).getLoop(parentName).getLoops().size();
-                getCurrentLoop().getLoop(primaryIndex).getLoop(secondaryIndex).getLoop(parentName).addLoop(index, new Loop(separators, oldParentName));
-
-            }
-            else { //parent loop of the loop we want to create is the second loop in the path
-                int index = getCurrentLoop().getLoop(primaryIndex).getLoop(parentName, secondaryIndex).getLoops().size();
-                getCurrentLoop().getLoop(primaryIndex).getLoop(parentName, secondaryIndex).addLoop(index, new Loop(separators, oldParentName));
-
-            }
-            getCurrentLoop().getLoop(primaryIndex).getLoop(secondaryIndex).getLoop(oldParentName).addLoop(0, newLoop);
-
+            segments.add(seg);
         }
 
+        Loop newLoop = null;
+        if (lastLoopStored == null) {
+            // we haven't stored any loops so this is the start of the transaction
+            Loop topLoop = _dataLoops.get(_dataLoops.size() - 1);
+            topLoop.setId(currentLoopConfig.getLoopId());
+            topLoop.setSeparators(separators);
+            segments.forEach(topLoop::addSegment);
+            newLoop = topLoop;
+            _childLoopTracker.put(newLoop.getId(), new ArrayList<>());
+            _childLoopTracker.get(newLoop.getId()).add(new HashSet<>());
+        }
         else {
-            int parentIndex;
-            int index;
+            // find the parent loop and add the new loop we are storing to that.
+            Loop parentLoop = findParentLoop(currentLoopConfig, lastLoopStored);
 
-            //the primary loop path has no loops in it
-            if (getCurrentLoop().getLoop(primaryIndex).getLoops().size() == 0 || getCurrentLoop().getLoop(primaryIndex).getLoop(secondaryIndex).findLoop(parentName).size() == 0) {
-                parentIndex = getCurrentLoop().findLoop(parentName).size() - 1;
-                index = getCurrentLoop().getLoop(parentName, parentIndex).getLoops().size();
+            // if the parent loop was not found above - it could be that the parent loop is a segmentless loop
+            // need to confirm that and add the segmentless loop and then add the current loop to that
+            if (parentLoop == null) {
+                LoopConfig parentLoopInfo = null;
+
+                String parentLoopId = currentLoopConfig.getParentLoop();
+                for (LoopConfig lc : _config) {
+                    if (lc.getLoopId() != null && lc.getLoopId().equals(parentLoopId)) {
+                        parentLoopInfo = lc;
+                        break;
+                    }
+                }
+                if (parentLoopInfo == null)
+                    _fatalErrors.add("Parent loop " + parentLoopId + " does not exist in loop configuration!");
+                else if (parentLoopInfo.hasDataSegments())
+                    _fatalErrors.add("Parent loop " + parentLoopId + " is missing and should already exist");
+                else {
+                    parentLoop = lastLoopStored.findTopParentById(parentLoopInfo.getParentLoop());
+                    if (parentLoop == null)
+                        _fatalErrors.add("Parent loop of " + parentLoopId + " is not found!");
+                    else {
+                        newLoop = new Loop(separators, parentLoopInfo.getLoopId());
+
+                        Loop currentLoop = new Loop(separators, currentLoopConfig.getLoopId());
+                        segments.forEach(currentLoop::addSegment);
+
+                        newLoop.addLoop(0, currentLoop);
+                    }
+                }
             }
             else {
-                parentIndex = getCurrentLoop().getLoop(primaryIndex).getLoop(secondaryIndex).findLoop(parentName).size() - 1;
-                index = getCurrentLoop().getLoop(primaryIndex).getLoop(secondaryIndex).getLoop(parentName, parentIndex).getLoops().size();
+                newLoop = new Loop(separators, currentLoopConfig.getLoopId());
+                segments.forEach(newLoop::addSegment);
             }
-            //if the primary loop path has child loops and the first loop is NOT the parent loop
-            if (getCurrentLoop().getLoop(primaryIndex).getLoops().size() != 0 && getCurrentLoop().getLoop(primaryIndex).getLoop(secondaryIndex).getLoops().size() != 0 && !getCurrentLoop().getLoop(
-                    primaryIndex).getId()
-                    .equals(
-                            parentName))
-                getCurrentLoop().getLoop(primaryIndex).getLoop(secondaryIndex).getLoop(parentName, parentIndex).addLoop(index, newLoop);
 
-            else
-                getCurrentLoop().getLoop(parentName, parentIndex).addLoop(index, newLoop);
+            if (parentLoop != null) {
+                parentLoop.addLoop(parentLoop.getLoops().size(), newLoop);
+
+                // if we had to add the segment less parent make sure we return the current child loop as the last loop added.
+                if (!newLoop.getId().equals(currentLoopConfig.getLoopId())) {
+                    // add segmentless loop to its parent list and create new lists for that loop
+                    updateChildLoopTracker(parentLoop.getId(), newLoop.getId());
+                    // add loop with segments that is a child of the segmentless loop to the segmentless loop's list, create lists for this child loop
+                    updateChildLoopTracker(newLoop.getId(), newLoop.getLoop(0).getId());
+                    newLoop = newLoop.getLoop(0);
+                }
+                else
+                    updateChildLoopTracker(parentLoop.getId(), newLoop.getId());
+
+            }
+
+            // final safety check
+            if (parentLoop == null && _fatalErrors.isEmpty())
+                _fatalErrors.add("Something is wrong. Check loop structure.");
         }
-        return currentLoopId;
+
+        if (newLoop == null)
+            _fatalErrors.add("Failed to store loop data for " + currentLoopConfig.getLoopId());
+
+        return newLoop;
+    }
+
+    private void updateChildLoopTracker(String parentLoopId, String newLoopId) {
+        _childLoopTracker.get(parentLoopId).get(_childLoopTracker.get(parentLoopId).isEmpty() ? 0 : _childLoopTracker.get(parentLoopId).size() - 1).add(newLoopId);
+
+        if (!_childLoopTracker.containsKey(newLoopId)) {
+            _childLoopTracker.put(newLoopId, new ArrayList<>());
+            _childLoopTracker.get(newLoopId).add(new HashSet<>());
+        }
+        else
+            _childLoopTracker.get(newLoopId).add(new HashSet<>());
+    }
+
+    private Loop findParentLoop(LoopConfig currentLoopConfig, Loop lastLoopStored) {
+        Loop result;
+
+        Set<String> parentLoopIds = new HashSet<>(getParentLoopsFromDefinition(_definition.getLoop(), currentLoopConfig.getLoopId(), new ArrayList<>()));
+
+        if (parentLoopIds.isEmpty())
+            result = lastLoopStored;
+        else if (parentLoopIds.size() == 1)
+            result = lastLoopStored.getId().equals(currentLoopConfig.getParentLoop()) ? lastLoopStored : lastLoopStored.findTopParentById(currentLoopConfig.getParentLoop());
+        else {
+            // dealing with ambiguous parent loop
+            result = lastLoopStored;
+            while (!parentLoopIds.contains(result.getId())) {
+                if (result.getParent() == null) {
+                    result = null;
+                    break;
+                }
+                result = result.getParent();
+            }
+        }
+
+        return result;
     }
 
     /**
@@ -455,23 +553,28 @@ public class X12Reader {
     private void getLoopConfiguration(LoopDefinition loop, String parentID) {
         if (!containsLoop(loop.getXid())) {
             if (loop.getLoop() != null) {
-                LoopConfig loopConfig = new LoopConfig(loop.getXid(), parentID, getChildLoops(loop), loop.getRepeat(), loop.getUsage());
-                if (loop.getSegment() != null)
+                LoopConfig loopConfig = new LoopConfig(loop.getXid(), parentID, getChildLoops(loop), loop.getRepeat(), loop.getUsage(), loop.getSegment() != null);
+                if (loop.getSegment() != null) {
                     loopConfig.setFirstSegmentXid(loop.getSegment().get(0));
+
+                    if (loop.getSegment().size() > 1)
+                        loopConfig.setLastSegmentXid(loop.getSegment().get(loop.getSegment().size() - 1));
+                }
 
                 parentID = loop.getXid();
                 _config.add(loopConfig);
-                for (LoopDefinition loops : loop.getLoop()) {
+                for (LoopDefinition loops : loop.getLoop())
                     getLoopConfiguration(loops, parentID);
-                }
-
             }
             else {
-                LoopConfig loopConfig = new LoopConfig(loop.getXid(), parentID, null, loop.getRepeat(), loop.getUsage());
+                LoopConfig loopConfig = new LoopConfig(loop.getXid(), parentID, null, loop.getRepeat(), loop.getUsage(), loop.getSegment() != null);
                 if (loop.getSegment() != null)
                     loopConfig.setFirstSegmentXid(loop.getSegment().get(0));
-                _config.add(loopConfig);
 
+                if (loop.getSegment() != null && loop.getSegment().size() > 1)
+                    loopConfig.setLastSegmentXid(loop.getSegment().get(loop.getSegment().size() - 1));
+
+                _config.add(loopConfig);
             }
         }
     }
@@ -507,14 +610,13 @@ public class X12Reader {
         List<String> parentLoops = new ArrayList<>();
         List<String> previousParentLoops = new ArrayList<>();
 
-        parentLoops = getParentLoopsFromDefintion(_definition.getLoop(), loopId, parentLoops);
-        previousParentLoops = getParentLoopsFromDefintion(_definition.getLoop(), previousLoopId, previousParentLoops);
+        parentLoops = getParentLoopsFromDefinition(_definition.getLoop(), loopId, parentLoops);
+        previousParentLoops = getParentLoopsFromDefinition(_definition.getLoop(), previousLoopId, previousParentLoops);
 
         if (previousLoopId != null)
             for (String parentLoop : parentLoops)
                 if (previousParentLoops.contains(parentLoop))
                     return parentLoop;
-
         if (parentLoops.size() != 0)
             return parentLoops.get(0);
         else
@@ -528,13 +630,13 @@ public class X12Reader {
      * @param parentLoop --- list of parent loops.
      * @return list of parent loops
      */
-    private List<String> getParentLoopsFromDefintion(LoopDefinition loop, String id, List<String> parentLoop) {
+    private List<String> getParentLoopsFromDefinition(LoopDefinition loop, String id, List<String> parentLoop) {
         if (loop.getLoop() != null)
             for (LoopDefinition subloop : loop.getLoop()) {
                 if (subloop.getXid().equals(id)) {
                     parentLoop.add(loop.getXid());
                 }
-                parentLoop = getParentLoopsFromDefintion(subloop, id, parentLoop);
+                parentLoop = getParentLoopsFromDefinition(subloop, id, parentLoop);
             }
 
         return parentLoop;
@@ -554,26 +656,36 @@ public class X12Reader {
      * @param previousLoopID the id of the previous loop that was matched
      * @return the matched loop
      */
-    private String getMatchedLoop(String[] tokens, String previousLoopID) {
-        List<String> matchedLoops = new ArrayList<>();
-        for (LoopConfig config : _config) {
-            SegmentDefinition id = config.getFirstSegmentXid();
-            if (id != null && tokens[0].equals(id.getXid()) && codesValidatedForLoopId(tokens, id)) {
+    private LoopConfig getMatchedLoop(String[] tokens, String previousLoopID) {
+        LoopConfig result = null;
+        if (tokens != null) {
+            List<LoopConfig> matchedLoops = new ArrayList<>();
+            for (LoopConfig config : _config) {
+                SegmentDefinition firstId = config.getFirstSegmentXid();
+                boolean firstIdCheck = firstId != null && tokens[0].equals(firstId.getXid()) && codesValidatedForLoopId(tokens, firstId);
+                SegmentDefinition lastId = config.getLastSegmentXid();
+                boolean lastIdCheck = lastId != null && tokens[0].equals(lastId.getXid()) && !config.getLoopId().equals(previousLoopID) && codesValidatedForLoopId(tokens, lastId);
+                if (firstIdCheck || lastIdCheck) {
 
-                if (isChildSegment(previousLoopID, tokens))
-                    return null;
+                    if (isChildSegment(previousLoopID, tokens)) {
+                        matchedLoops.clear();
+                        break;
+                    }
 
-                if (!matchedLoops.contains(config.getLoopId()))
-                    matchedLoops.add(config.getLoopId());
+                    if (!matchedLoops.stream().map(LoopConfig::getLoopId).collect(Collectors.toList()).contains(config.getLoopId()))
+                        matchedLoops.add(config);
+                }
             }
+
+            if (matchedLoops.size() > 1)
+                result = getFinalizedMatch(previousLoopID, matchedLoops);
+            else if (matchedLoops.size() == 1)
+                result = matchedLoops.get(0);
         }
+        else
+            _errors.add("Unable to split elements for loop matching!");
 
-        if (matchedLoops.size() > 1)
-            return getFinalizedMatch(previousLoopID, matchedLoops);
-        else if (matchedLoops.size() == 1)
-            return matchedLoops.get(0);
-
-        return null;
+        return result;
     }
 
     /**
@@ -601,23 +713,23 @@ public class X12Reader {
      * matched loop. If either of those conditions are met, we return that loop as the finalized match. If not, we return the first match
      * found
      * @param previousLoopId the id of the previous loop that was matched
-     * @param matchedLoopsId list of loop ids that match
+     * @param matchedLoops list of loop ids that match
      * @return the finalized loop match
      */
-    private String getFinalizedMatch(String previousLoopId, List<String> matchedLoopsId) {
+    private LoopConfig getFinalizedMatch(String previousLoopId, List<LoopConfig> matchedLoops) {
         for (LoopConfig lc : _config) {
             if (lc.getLoopId().equals(previousLoopId)) {
-                for (String s1 : matchedLoopsId)
-                    if (lc.getChildList() != null && lc.getChildList().contains(s1))
+                for (LoopConfig s1 : matchedLoops)
+                    if (lc.getChildList() != null && lc.getChildList().contains(s1.getLoopId()))
                         return s1;
-                for (String s2 : matchedLoopsId) {
+                for (LoopConfig s2 : matchedLoops) {
                     String parentLoop = getParentLoop(previousLoopId, null);
-                    if (parentLoop != null && parentLoop.equals(getParentLoop(s2, null)))
+                    if (parentLoop != null && parentLoop.equals(getParentLoop(s2.getLoopId(), null)))
                         return s2;
                 }
             }
         }
-        return matchedLoopsId.get(0);
+        return matchedLoops.get(0);
     }
 
     /**
@@ -635,8 +747,8 @@ public class X12Reader {
         for (String segment : segments) {
             int i = 0;
             for (SegmentDefinition segmentConf : format) {
-                String[] tokens = segment.split(Pattern.quote(separators.getElement().toString()));
-                if (tokens[0].equals(segmentConf.getXid()) && codesValidated(tokens, segmentConf)) {
+                String[] tokens = separators.splitElement(segment);
+                if (tokens != null && tokens[0].equals(segmentConf.getXid()) && codesValidated(tokens, segmentConf)) {
                     String currentPos = segmentConf.getPos();
                     if (previousPos != null && Integer.parseInt(previousPos) > Integer.parseInt(currentPos))
                         _errors.add("Segment " + segmentConf.getXid() + " in loop " + loopId + " is not in the correct position.");
@@ -646,6 +758,8 @@ public class X12Reader {
                     previousPos = currentPos;
                     break;
                 }
+                else if (tokens == null)
+                    _errors.add("Unable to split elements to validate segment ID!");
                 i++;
             }
 
@@ -712,20 +826,18 @@ public class X12Reader {
 
         for (int i = 0; i < format.size(); i++) {
             SegmentDefinition segmentConf = format.get(i);
-            if (!checkUsage(segmentConf.getUsage(), segmentCounter[i]) && !(segmentConf.getXid().equals("IEA") || segmentConf.getXid().equals("GE") || segmentConf
-                    .getXid().equals("SE"))) {
+            if (!checkUsage(segmentConf.getUsage(), segmentCounter[i]) && !(segmentConf.getXid().equals("IEA") || segmentConf.getXid().equals("GE") || segmentConf.getXid().equals("SE")))
                 _errors.add(segmentConf.getXid() + " in loop " + loopId + " is required but not found");
-            }
-            if (!checkRepeats(segmentConf.getMaxUse(), segmentCounter[i])) {
+            if (!checkRepeats(segmentConf.getMaxUse(), segmentCounter[i]))
                 _errors.add(segmentConf.getXid() + " in loop " + loopId + " appears too many times");
-            }
             for (String s : segments) {
-                String[] tokens = s.split(Pattern.quote(separators.getElement().toString()));
-                if (segmentCounter[i] > 0 && tokens[0].equals(segmentConf.getXid())) {
+                String[] tokens = separators.splitElement(s);
+                if (tokens != null && segmentCounter[i] > 0 && tokens[0].equals(segmentConf.getXid())) {
                     checkRequiredElements(tokens, segmentConf, loopId);
                     checkRequiredComposites(tokens, segmentConf, loopId);
-
                 }
+                else if (tokens == null)
+                    _errors.add("Unable to split elements for validation!");
             }
         }
 

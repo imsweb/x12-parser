@@ -40,6 +40,12 @@ public class Loop implements Iterable<Segment> {
     @XStreamOmitField
     private Loop _parent;
 
+    public Loop() {
+        _separators = new Separators();
+        _id = null;
+        _parent = null;
+    }
+
     /**
      * The constructor uses the default set of separators
      * @param id loop identifier
@@ -307,6 +313,17 @@ public class Loop implements Iterable<Segment> {
         return foundLoops;
     }
 
+    public List<Loop> findAllLoops(String id) {
+        List<Loop> foundLoops = new ArrayList<>();
+
+        if (_id != null && _id.equals(id))
+            foundLoops.add(this);
+
+        foundLoops.addAll(findLoop(id));
+
+        return foundLoops;
+    }
+
     /**
      * Get the segment in the X12 transaction It will check the current loop.
      * @param id id of a segment
@@ -534,6 +551,19 @@ public class Loop implements Iterable<Segment> {
 
         return requestedSegment.getElementValue(elementId);
 
+    }
+
+    public Loop findTopParentById(String parentId) {
+        Loop result = null;
+        if (parentId != null) {
+            Loop parentLoop = _parent;
+            while (parentLoop != null && !parentId.equals(parentLoop.getId()))
+                parentLoop = parentLoop.getParent();
+
+            if (parentLoop != null && parentId.equals(parentLoop.getId()))
+                result = parentLoop;
+        }
+        return result;
     }
 
     /**

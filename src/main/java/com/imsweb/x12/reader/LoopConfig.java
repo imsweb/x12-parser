@@ -13,15 +13,18 @@ public class LoopConfig {
     private Usage _loopUsage;
     private List<String> _childList;
     private String _parentLoop;
+    private boolean _hasDataSegments = true;
 
     private SegmentDefinition _firstSegmentXid;
+    private SegmentDefinition _lastSegmentXid; // used for ISA_LOOP, GS_LOOP, ST_LOOP since the segments for these loops appear only at the beginning and end of a transaction
 
-    public LoopConfig(String loopName, String parentLoop, List<String> childList, String loopRepeats, Usage loopUsage) {
+    public LoopConfig(String loopName, String parentLoop, List<String> childList, String loopRepeats, Usage loopUsage, boolean hasDataSegments) {
         _loopId = loopName;
         _parentLoop = parentLoop;
         _childList = childList;
         _loopRepeats = loopRepeats;
         _loopUsage = loopUsage;
+        _hasDataSegments = hasDataSegments;
     }
 
     public String getLoopId() {
@@ -60,4 +63,19 @@ public class LoopConfig {
         _firstSegmentXid = firstSegmentXid;
     }
 
+    public SegmentDefinition getLastSegmentXid() {
+        return _lastSegmentXid;
+    }
+
+    public void setLastSegmentXid(SegmentDefinition lastSegmentXid) {
+        _lastSegmentXid = lastSegmentXid;
+    }
+
+    public boolean hasDataSegments() {
+        return _hasDataSegments;
+    }
+
+    public void setHasDataSegments(boolean hasDataSegments) {
+        _hasDataSegments = hasDataSegments;
+    }
 }
