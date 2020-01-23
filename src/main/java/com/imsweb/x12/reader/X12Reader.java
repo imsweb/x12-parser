@@ -657,6 +657,7 @@ public class X12Reader {
      * @return the matched loop
      */
     private LoopConfig getMatchedLoop(String[] tokens, String previousLoopID) {
+        // i need a fix that takes into a account that the last segment of one loop can be the same as the first segment of another loop
         LoopConfig result = null;
         if (tokens != null) {
             List<LoopConfig> matchedLoops = new ArrayList<>();
@@ -667,6 +668,7 @@ public class X12Reader {
                 boolean lastIdCheck = lastId != null && tokens[0].equals(lastId.getXid()) && !config.getLoopId().equals(previousLoopID) && codesValidatedForLoopId(tokens, lastId);
                 if (firstIdCheck || lastIdCheck) {
 
+                    // clear the potential loop matches if the current segment is a child loop of the loop currently being processed
                     if (isChildSegment(previousLoopID, tokens)) {
                         matchedLoops.clear();
                         break;
@@ -677,8 +679,12 @@ public class X12Reader {
                 }
             }
 
-            if (matchedLoops.size() > 1)
-                result = getFinalizedMatch(previousLoopID, matchedLoops);
+            if (matchedLoops.size() > 1) {
+                // starting a new loop but we aren't quite sure which one yet. Remove loops where the segment is known to be the last segment of that loop - clearly we aren't in a new loop then
+                matchedLoops = matchedLoops.stream().filter(lc -> !(lc.getLastSegmentXid().getXid().equals(tokens[0]) && codesValidatedForLoopId(tokens, lc.getLastSegmentXid()))).collect(
+                        Collectors.toList());
+                result = matchedLoops.isEmpty() ? null : getFinalizedMatch(previousLoopID, matchedLoops);
+            }
             else if (matchedLoops.size() == 1)
                 result = matchedLoops.get(0);
         }
@@ -717,19 +723,20 @@ public class X12Reader {
      * @return the finalized loop match
      */
     private LoopConfig getFinalizedMatch(String previousLoopId, List<LoopConfig> matchedLoops) {
+        LoopConfig result = matchedLoops.get(0);
         for (LoopConfig lc : _config) {
             if (lc.getLoopId().equals(previousLoopId)) {
-                for (LoopConfig s1 : matchedLoops)
-                    if (lc.getChildList() != null && lc.getChildList().contains(s1.getLoopId()))
-                        return s1;
-                for (LoopConfig s2 : matchedLoops) {
+                for (LoopConfig s1 : matchedLoops) {
                     String parentLoop = getParentLoop(previousLoopId, null);
-                    if (parentLoop != null && parentLoop.equals(getParentLoop(s2.getLoopId(), null)))
-                        return s2;
+                    if ((lc.getChildList() != null && lc.getChildList().contains(s1.getLoopId()))
+                            || (parentLoop != null && parentLoop.equals(getParentLoop(s1.getLoopId(), null)))) {
+                        result = s1;
+                        break;
+                    }
                 }
             }
         }
-        return matchedLoops.get(0);
+        return result;
     }
 
     /**

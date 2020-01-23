@@ -139,7 +139,7 @@ public class X12ReaderTest {
 
         validate837Valid(reader.getLoops().get(0));
     }
-
+    
     @Test
     public void testBadValidCode() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_bad_valid_code.txt");
@@ -147,7 +147,7 @@ public class X12ReaderTest {
 
         List<String> errors = reader.getErrors();
 
-        assertEquals(2, errors.size());
+        assertEquals(3, errors.size());
         assertTrue(errors.contains("Unable to find a matching segment format in loop 2000A"));
 
         Assert.assertFalse(reader.getFatalErrors().isEmpty());
@@ -1267,5 +1267,32 @@ public class X12ReaderTest {
 
         assertEquals("01.04", loop.getLoop("2440", 2).getSegment("LQ").getElementValue("LQ02"));
         assertEquals("12Q", loop.getLoop("2440", 2).getSegment("FRM").getElementValue("FRM01"));
+    }
+
+    @Test
+    public void testX223Repeated2320() throws Exception {
+        URL url = this.getClass().getResource("/837_5010/x223-test.txt");
+        X12Reader reader = new X12Reader(FileType.ANSI837_5010_X223, new FileInputStream(new File(url.getFile())));
+
+        Assert.assertEquals(1, reader.getLoops().size());
+        Loop loop = reader.getLoops().get(0);
+        assertEquals(1, loop.getLoops().size());
+        Assert.assertEquals(1, loop.findLoop("2000B").size());
+        Assert.assertEquals(2, loop.getLoop("2000B").getSegments().size());
+        Assert.assertEquals("HL", loop.getLoop("2000B").getSegment(0).getId());
+        Assert.assertEquals("SBR", loop.getLoop("2000B").getSegment(1).getId());
+        Assert.assertEquals("SUBSCRIBER GROUP", loop.getLoop("2000B").getSegment(1).getElement("SBR03").getValue());
+        Assert.assertEquals(2, loop.findLoop("2320").size());
+        Assert.assertEquals(2, loop.getLoop("2000B").findLoop("2320").size());
+        Assert.assertEquals(1, loop.getLoop("2000B").getLoop("2320", 0).findLoop("2330A").size());
+        Assert.assertEquals(1, loop.getLoop("2000B").getLoop("2320", 0).findLoop("2330B").size());
+        Assert.assertEquals(1, loop.getLoop("2000B").getLoop("2320", 1).findLoop("2330A").size());
+        Assert.assertEquals(1, loop.getLoop("2000B").getLoop("2320", 1).findLoop("2330B").size());
+        Assert.assertEquals("S", loop.getLoop("2320",0).getSegment(0).getElement("SBR01").getValue());
+        Assert.assertEquals("T", loop.getLoop("2320",1).getSegment(0).getElement("SBR01").getValue());
+        Assert.assertEquals("JOHN", loop.getLoop("2320",0).getLoop("2330A").getSegment(0).getElement("NM104").getValue());
+        Assert.assertEquals("JANE", loop.getLoop("2320",1).getLoop("2330A").getSegment(0).getElement("NM104").getValue());
+        Assert.assertEquals("AETNA", loop.getLoop("2320",0).getLoop("2330B").getSegment(0).getElement("NM103").getValue());
+        Assert.assertEquals("ANOTHER NAME", loop.getLoop("2320",1).getLoop("2330B").getSegment(0).getElement("NM103").getValue());
     }
 }
