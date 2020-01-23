@@ -657,7 +657,6 @@ public class X12Reader {
      * @return the matched loop
      */
     private LoopConfig getMatchedLoop(String[] tokens, String previousLoopID) {
-        // i need a fix that takes into a account that the last segment of one loop can be the same as the first segment of another loop
         LoopConfig result = null;
         if (tokens != null) {
             List<LoopConfig> matchedLoops = new ArrayList<>();
