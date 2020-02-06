@@ -546,7 +546,7 @@ public class X12Reader {
     }
 
     /**
-     * Stores some data from the XML defintion into a loop configuration object
+     * Stores some data from the XML definition into a loop configuration object
      * @param loop loop to be proceesed
      * @param parentID parent loop id of the loop being processed
      */
@@ -624,7 +624,7 @@ public class X12Reader {
     }
 
     /**
-     * Gets all possible parent loops from the defintion object. Need a list since it is possible for one loop to have two different parents.
+     * Gets all possible parent loops from the definition object. Need a list since it is possible for one loop to have two different parents.
      * @param loop ---- object to loop over
      * @param id --- the id of the loop we want to find parents for
      * @param parentLoop --- list of parent loops.
@@ -701,7 +701,7 @@ public class X12Reader {
      */
     private boolean isChildSegment(String previousLoopId, String[] tokens) {
 
-        List<SegmentDefinition> loopSegs = getSegmentDefintions(_definition.getLoop(), previousLoopId);
+        List<SegmentDefinition> loopSegs = getSegmentDefinitions(_definition.getLoop(), previousLoopId);
         if (loopSegs != null) {
             for (int i = 1; i < loopSegs.size(); i++) { // we want to skip the first segment
                 SegmentDefinition seg = loopSegs.get(i);
@@ -745,7 +745,7 @@ public class X12Reader {
      * @return boolean indicating validation success
      */
     private boolean validateLines(List<String> segments, String loopId, Separators separators) {
-        List<SegmentDefinition> format = getSegmentDefintions(_definition.getLoop(), loopId);
+        List<SegmentDefinition> format = getSegmentDefinitions(_definition.getLoop(), loopId);
         int[] segmentCounter = new int[format.size()];
         boolean lineMatchesFormat = false;
 
@@ -941,13 +941,13 @@ public class X12Reader {
      * @param id id of the loop we want to get segment information for
      * @return the list of segment format information
      */
-    private List<SegmentDefinition> getSegmentDefintions(LoopDefinition loop, String id) {
+    private List<SegmentDefinition> getSegmentDefinitions(LoopDefinition loop, String id) {
         List<SegmentDefinition> segs = new ArrayList<>();
 
         if (!loop.getXid().equals(id)) {
             if (loop.getLoop() != null)
                 for (LoopDefinition subloop : loop.getLoop()) {
-                    segs = getSegmentDefintions(subloop, id);
+                    segs = getSegmentDefinitions(subloop, id);
                     if (segs == null || segs.size() != 0)
                         break;
                 }
