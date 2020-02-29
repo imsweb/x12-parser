@@ -571,6 +571,26 @@ public class Loop implements Iterable<Segment> {
     }
 
     /**
+     * Returns an X12 String for this loop, but it will not be
+     * properly ordered. For properly ordered X12 string use toX12String.
+     *
+     * @return String representation
+     */
+    @Override
+    public String toString() {
+        StringBuilder dump = new StringBuilder();
+
+        for (Segment segment : getSegments()) {
+            dump.append(segment.toString());
+            dump.append(_separators.getSegment());
+        }
+        for (Loop loop : getLoops())
+            dump.append(loop.toString());
+
+        return dump.toString();
+    }
+
+    /**
      * Returns the Loop in X12 String format. This method is used to convert the X12 object into a X12 transaction.
      * @return String representation
      */

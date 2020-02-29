@@ -402,7 +402,7 @@ public class X12Reader {
     /**
      * Determines the characters for each separator used in an x12 file
      * @param reader that is used to read the x12 file
-     * @return Separator object instantiated with the appropriate _separators.
+     * @return Separator object instantiated with the appropriate separators.
      * @throws IOException exception with Reader
      */
     private Separators getSeparators(Reader reader) throws IOException {
@@ -420,7 +420,7 @@ public class X12Reader {
             Character.isWhitespace(firstLine[_ELEMENT_SEPARATOR_POS]) ||
             Character.isWhitespace(firstLine[_COMPOSITE_SEPARATOR_POS]);
         if (ret != _ISA_LENGTH || (isAlphaNumeric || isWhiteSpace)) {
-            _errors.add("Error getting _separators");
+            _errors.add("Error getting separators");
             return null;
         }
         // don't need to reset the reader---we need to check the version on the next line
@@ -667,7 +667,7 @@ public class X12Reader {
 
     /**
      * Determines if a segment data line is the start of a new loop
-     * @param tokens array of the data split on element _separators
+     * @param tokens array of the data split on element separators
      * @param previousLoopID the id of the previous loop that was matched
      * @return the matched loop
      */
@@ -711,7 +711,7 @@ public class X12Reader {
     /**
      * Check if the current line is a child segment of the current loop. if it is then we should assume we are not starting new loop.
      * @param previousLoopId the previous loop that was matched
-     * @param tokens array of the data split on element _separators
+     * @param tokens array of the data split on element separators
      * @return true if it is a child segment, false if it is not.
      */
     private boolean isChildSegment(String previousLoopId, String[] tokens) {
@@ -795,7 +795,7 @@ public class X12Reader {
 
     /**
      * Checks that the valid codes for eah required element are there----loop ID purposes only
-     * @param tokens array of the data split on element _separators
+     * @param tokens array of the data split on element separators
      * @param segmentConf information on the current segment being processed.
      * @return false if the codes are found to be valid, false otherwise
      */
@@ -816,7 +816,7 @@ public class X12Reader {
 
     /**
      * Checks that the valid codes for each element are there
-     * @param tokens array of the data split on element _separators
+     * @param tokens array of the data split on element separators
      * @param segmentConf information on the current segment being processed.
      * @return false if the codes are found to be valid, false otherwise
      */
@@ -891,7 +891,7 @@ public class X12Reader {
 
     /**
      * Checks that all required elements are present in each data segment
-     * @param tokens array of the data split on element _separators
+     * @param tokens array of the data split on element separators
      * @param seg segment format information
      * @param loopId the loop we are testing segments from
      * @return true if all required elements are present, false otherwise
@@ -912,7 +912,7 @@ public class X12Reader {
 
     /**
      * Checks that all required composite elements are present in each data segment
-     * @param tokens array of the data split on element _separators
+     * @param tokens array of the data split on element separators
      * @param seg segment format information
      * @param loopId the loop we are testing segments from
      * @return true if all required composites are present, false otherwise
