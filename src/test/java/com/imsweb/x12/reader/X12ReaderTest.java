@@ -1,5 +1,13 @@
 package com.imsweb.x12.reader;
 
+import com.imsweb.x12.LineBreak;
+import com.imsweb.x12.Loop;
+import com.imsweb.x12.mapping.TransactionDefinition;
+import com.imsweb.x12.reader.X12Reader.FileType;
+import org.apache.commons.io.IOUtils;
+import org.junit.Assert;
+import org.junit.Test;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -8,13 +16,6 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-
-import org.junit.Assert;
-import org.junit.Test;
-
-import com.imsweb.x12.Loop;
-import com.imsweb.x12.mapping.TransactionDefinition;
-import com.imsweb.x12.reader.X12Reader.FileType;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -46,12 +47,26 @@ public class X12ReaderTest {
         assertEquals(fromFileUtf8.getLoops().get(0).toString(), fromReaderUtf8.getLoops().get(0).toString());
     }
 
+    /**
+     * Here we will test that you can go from x12, make changes, then serialize the x12 once again.
+     */
+    @Test
+    public void testSerialize() throws IOException {
+        URL url = this.getClass().getResource("/837_5010/x12_valid.txt");
+
+        X12Reader fromFileUtf8 = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()), StandardCharsets.UTF_8);
+
+        fromFileUtf8.getSeparators().setLineBreak(LineBreak.LF);
+        String expected = IOUtils.toString(this.getClass().getResourceAsStream("/837_5010/x12_valid.txt"),
+            StandardCharsets.UTF_8).trim();
+        Assert.assertEquals(expected, fromFileUtf8.toX12String().trim());
+    }
+
     @Test
     public void testMultipleGSLoops() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_multiple_gs.txt");
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
         validateMultipleGSLoops(reader.getLoops().get(0));
-
     }
 
     @Test

@@ -1,13 +1,9 @@
 package com.imsweb.x12;
 
-import java.io.StringWriter;
-import java.io.Writer;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
+import com.imsweb.x12.converters.ElementConverter;
+import com.imsweb.x12.mapping.LoopDefinition;
+import com.imsweb.x12.mapping.Positioned;
+import com.imsweb.x12.mapping.SegmentDefinition;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
@@ -19,7 +15,15 @@ import com.thoughtworks.xstream.io.xml.StaxDriver;
 import com.thoughtworks.xstream.security.NoTypePermission;
 import com.thoughtworks.xstream.security.WildcardTypePermission;
 
-import com.imsweb.x12.converters.ElementConverter;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 /**
  * The Loop class is the representation of an Loop in a ANSI X12 transaction. The building block of an X12 transaction is an element. Some
@@ -570,17 +574,35 @@ public class Loop implements Iterable<Segment> {
      * Returns the Loop in X12 String format. This method is used to convert the X12 object into a X12 transaction.
      * @return String representation
      */
-    @Override
-    public String toString() {
+    public String toX12String(LoopDefinition loopDefinition) {
         StringBuilder dump = new StringBuilder();
 
-        for (Segment segment : getSegments()) {
-            dump.append(segment.toString());
-            dump.append(_separators.getSegment());
+        Set<Positioned> segmentsAndLoops = new TreeSet<>();
+        if (loopDefinition.getLoop() != null) {
+            segmentsAndLoops.addAll(loopDefinition.getLoop());
         }
-        for (Loop loop : getLoops())
-            dump.append(loop.toString());
-
+        if (loopDefinition.getSegment() != null) {
+            segmentsAndLoops.addAll(loopDefinition.getSegment());
+        }
+        for (Positioned positioned : segmentsAndLoops) {
+            if (positioned instanceof SegmentDefinition) {
+                SegmentDefinition segmentDefinition = (SegmentDefinition)positioned;
+                int idx = 0;
+                Segment segment;
+                while ((segment = getSegment(segmentDefinition.getXid(), idx++)) != null) {
+                    dump.append(segment);
+                    dump.append(_separators.getSegment());
+                    dump.append(_separators.getLineBreak().getLineBreakString());
+                }
+            } else if (positioned instanceof LoopDefinition) {
+                LoopDefinition innerLoopDefinition = (LoopDefinition)positioned;
+                int idx = 0;
+                Loop innerLoop;
+                while ((innerLoop = getLoop(innerLoopDefinition.getXid(), idx++)) != null) {
+                    dump.append(innerLoop.toX12String(innerLoopDefinition));
+                }
+            }
+        }
         return dump.toString();
     }
 

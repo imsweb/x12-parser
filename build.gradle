@@ -30,6 +30,7 @@ dependencies {
     compile 'com.thoughtworks.xstream:xstream:1.4.11.1'
 
     testCompile 'junit:junit:4.13'
+    testCompile 'commons-io:commons-io:2.6'
 }
 
 jar {
