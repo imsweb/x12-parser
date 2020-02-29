@@ -614,7 +614,8 @@ public class Loop implements Iterable<Segment> {
                     dump.append(_separators.getSegment());
                     dump.append(_separators.getLineBreak().getLineBreakString());
                 }
-            } else if (positioned instanceof LoopDefinition) {
+            }
+            else if (positioned instanceof LoopDefinition) {
                 LoopDefinition innerLoopDefinition = (LoopDefinition)positioned;
                 int idx = 0;
                 Loop innerLoop;

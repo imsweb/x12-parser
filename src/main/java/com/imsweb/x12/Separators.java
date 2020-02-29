@@ -25,7 +25,8 @@ public class Separators {
         setCompositeElement(':');
         if (System.getProperty("os.name").toLowerCase().contains("win")) {
             _lineBreak = LineBreak.CRLF;
-        } else {
+        }
+        else {
             _lineBreak = LineBreak.LF;
         }
     }

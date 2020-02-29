@@ -18,13 +18,13 @@ public enum LineBreak {
    */
   NONE("");
 
-  private String lineBreakString;
+  private String _lineBreakString;
 
   LineBreak(String lineBreakString) {
-    this.lineBreakString = lineBreakString;
+    this._lineBreakString = lineBreakString;
   }
 
   public String getLineBreakString() {
-    return lineBreakString;
+    return _lineBreakString;
   }
 }

@@ -99,7 +99,7 @@ public class X12Reader {
         }
     }
 
-    private FileType type;
+    private FileType _type;
 
     static {
         _TYPES.put(FileType.ANSI835_4010_X091, _X091_ANSI_VERSION);
@@ -118,7 +118,7 @@ public class X12Reader {
      * @throws IOException if there was an error reading the input file
      */
     public X12Reader(FileType type, File file) throws IOException {
-        this.type = type;
+        this._type = type;
         parse(new BufferedReader(new InputStreamReader(new FileInputStream(file), Charset.defaultCharset())));
     }
 
@@ -130,7 +130,7 @@ public class X12Reader {
      * @throws IOException if there was an error reading the input file
      */
     public X12Reader(FileType type, File file, Charset charset) throws IOException {
-        this.type = type;
+        this._type = type;
         parse(new BufferedReader(new InputStreamReader(new FileInputStream(file), charset)));
     }
 
@@ -141,7 +141,7 @@ public class X12Reader {
      * @throws IOException if there was an error reading the input file
      */
     public X12Reader(FileType type, InputStream input) throws IOException {
-        this.type = type;
+        this._type = type;
         parse(new BufferedReader(new InputStreamReader(input, Charset.defaultCharset())));
     }
 
@@ -153,7 +153,7 @@ public class X12Reader {
      * @throws IOException if there was an error reading the input file
      */
     public X12Reader(FileType type, InputStream input, Charset charset) throws IOException {
-        this.type = type;
+        this._type = type;
         parse(new BufferedReader(new InputStreamReader(input, charset)));
     }
 
@@ -164,7 +164,7 @@ public class X12Reader {
      * @throws IOException if there was an error reading the input file
      */
     public X12Reader(FileType type, Reader reader) throws IOException {
-        this.type = type;
+        this._type = type;
         // the Reader must support mark; if it does not, wrap the reader in a BufferedReader
         if (!reader.markSupported())
             parse(new BufferedReader(reader));
@@ -216,7 +216,7 @@ public class X12Reader {
             Loop lastLoopStored = null;
 
             // parse _definition file
-            _definition = type.getDefinition();
+            _definition = _type.getDefinition();
 
             // cache definitions of loop starting segments
             getLoopConfiguration(_definition.getLoop(), null);
@@ -369,7 +369,7 @@ public class X12Reader {
     }
 
     private boolean checkVersionsAreConsistent(Separators separators, Reader reader) throws IOException {
-        if (reader == null || separators == null || type == null)
+        if (reader == null || separators == null || _type == null)
             return false;
 
         char segmentSeparator = separators.getSegment();
@@ -391,10 +391,10 @@ public class X12Reader {
         }
         reader.reset();
 
-        boolean result = _TYPES.get(type).equals(version);
+        boolean result = _TYPES.get(_type).equals(version);
 
         if (!result)
-            _errors.add("ANSI version " + version + " not consistent with version specified " + type);
+            _errors.add("ANSI version " + version + " not consistent with version specified " + _type);
 
         return result;
     }
