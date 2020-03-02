@@ -1,12 +1,10 @@
 package com.imsweb.x12.reader;
 
-import com.imsweb.x12.LineBreak;
-import com.imsweb.x12.Loop;
-import com.imsweb.x12.mapping.TransactionDefinition;
-import com.imsweb.x12.reader.X12Reader.FileType;
-import org.apache.commons.io.IOUtils;
-import org.junit.Assert;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -17,11 +15,14 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import org.apache.commons.io.IOUtils;
+import org.junit.Assert;
+import org.junit.Test;
+
+import com.imsweb.x12.LineBreak;
+import com.imsweb.x12.Loop;
+import com.imsweb.x12.mapping.TransactionDefinition;
+import com.imsweb.x12.reader.X12Reader.FileType;
 
 public class X12ReaderTest {
 

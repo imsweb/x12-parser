@@ -1,5 +1,15 @@
 package com.imsweb.x12;
 
+import java.io.StringWriter;
+import java.io.Writer;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
+
 import com.imsweb.x12.converters.ElementConverter;
 import com.imsweb.x12.mapping.LoopDefinition;
 import com.imsweb.x12.mapping.Positioned;
@@ -14,16 +24,6 @@ import com.thoughtworks.xstream.io.xml.PrettyPrintWriter;
 import com.thoughtworks.xstream.io.xml.StaxDriver;
 import com.thoughtworks.xstream.security.NoTypePermission;
 import com.thoughtworks.xstream.security.WildcardTypePermission;
-
-import java.io.StringWriter;
-import java.io.Writer;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.stream.Collectors;
 
 /**
  * The Loop class is the representation of an Loop in a ANSI X12 transaction. The building block of an X12 transaction is an element. Some

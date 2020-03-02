@@ -1,19 +1,5 @@
 package com.imsweb.x12.reader;
 
-import com.imsweb.x12.Loop;
-import com.imsweb.x12.Segment;
-import com.imsweb.x12.Separators;
-import com.imsweb.x12.mapping.CompositeDefinition;
-import com.imsweb.x12.mapping.ElementDefinition;
-import com.imsweb.x12.mapping.LoopDefinition;
-import com.imsweb.x12.mapping.SegmentDefinition;
-import com.imsweb.x12.mapping.TransactionDefinition;
-import com.imsweb.x12.mapping.TransactionDefinition.Usage;
-import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.io.xml.StaxDriver;
-import com.thoughtworks.xstream.security.NoTypePermission;
-import com.thoughtworks.xstream.security.WildcardTypePermission;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -32,6 +18,20 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import com.imsweb.x12.Loop;
+import com.imsweb.x12.Segment;
+import com.imsweb.x12.Separators;
+import com.imsweb.x12.mapping.CompositeDefinition;
+import com.imsweb.x12.mapping.ElementDefinition;
+import com.imsweb.x12.mapping.LoopDefinition;
+import com.imsweb.x12.mapping.SegmentDefinition;
+import com.imsweb.x12.mapping.TransactionDefinition;
+import com.imsweb.x12.mapping.TransactionDefinition.Usage;
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.io.xml.StaxDriver;
+import com.thoughtworks.xstream.security.NoTypePermission;
+import com.thoughtworks.xstream.security.WildcardTypePermission;
 
 public class X12Reader {
 

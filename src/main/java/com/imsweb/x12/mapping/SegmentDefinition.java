@@ -3,14 +3,14 @@
  */
 package com.imsweb.x12.mapping;
 
+import java.util.List;
+import java.util.Objects;
+
 import com.imsweb.x12.mapping.TransactionDefinition.Usage;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 import com.thoughtworks.xstream.annotations.XStreamConverter;
 import com.thoughtworks.xstream.annotations.XStreamImplicit;
-
-import java.util.List;
-import java.util.Objects;
 
 @XStreamAlias("segment")
 public class SegmentDefinition implements Positioned {
