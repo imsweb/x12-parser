@@ -23,12 +23,7 @@ public class Separators {
         setSegment('~');
         setElement('*');
         setCompositeElement(':');
-        if (System.getProperty("os.name").toLowerCase().contains("win")) {
-            _lineBreak = LineBreak.CRLF;
-        }
-        else {
-            _lineBreak = LineBreak.LF;
-        }
+        setLineBreak(LineBreak.NONE);
     }
 
     /**

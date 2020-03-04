@@ -19,6 +19,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import com.imsweb.x12.LineBreak;
 import com.imsweb.x12.Loop;
 import com.imsweb.x12.Segment;
 import com.imsweb.x12.Separators;
@@ -171,6 +172,25 @@ public class X12Reader {
         else
             parse(reader);
     }
+    
+    /**
+     * Gets an X12 formatted string representing this X12 reader. Will use no line breaks after separators.
+     * @return X12 formatted string representing this X12 reader.
+     */
+    public String toX12String() {
+    	_separators.setLineBreak(LineBreak.NONE);
+        return toX12StringImpl();
+    }
+
+    /**
+     * Gets an X12 formatted string representing this X12 reader. 
+     * @param lineBreak Line break to use for separators. 
+     * @return X12 formatted string representing this X12 reader.
+     */
+	public String toX12String(LineBreak lineBreak) {
+    	_separators.setLineBreak(LineBreak.LF);
+        return toX12StringImpl();
+    }
 
     /**
      * Return the resulting loops, this would possible if multiple ISA segments were included in one single file
@@ -190,6 +210,10 @@ public class X12Reader {
 
     public List<String> getFatalErrors() {
         return _fatalErrors;
+    }
+    
+    public Separators getSeparators() {
+        return _separators;
     }
 
     /**
@@ -1026,17 +1050,13 @@ public class X12Reader {
 
         return requiredPositions;
     }
-
-    public Separators getSeparators() {
-        return _separators;
-    }
-
-    public String toX12String() {
-        StringBuilder builder = new StringBuilder();
+	
+	private String toX12StringImpl() {
+		StringBuilder builder = new StringBuilder();
         for (Loop loop : _dataLoops) {
             builder.append(loop.toX12String(_definition.getLoop()));
             builder.append(_separators.getLineBreak().getLineBreakString());
         }
         return builder.toString();
-    }
+	}
 }
