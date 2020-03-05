@@ -188,7 +188,7 @@ public class X12Reader {
      * @return X12 formatted string representing this X12 reader.
      */
 	public String toX12String(LineBreak lineBreak) {
-    	_separators.setLineBreak(LineBreak.LF);
+    	_separators.setLineBreak(lineBreak);
         return toX12StringImpl();
     }
 
