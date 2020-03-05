@@ -615,7 +615,7 @@ public class Loop implements Iterable<Segment> {
                 SegmentDefinition segmentDefinition = (SegmentDefinition)positioned;
                 int idx = 0;
                 Segment segment;
-                while ((segment = getSegment(segmentDefinition.getXid(), idx++)) != null) {                	
+                while ((segment = getSegment(segmentDefinition.getXid(), idx++)) != null) {
                     dump.append(segment);
                     dump.append(_separators.getSegment());
                     dump.append(_separators.getLineBreak().getLineBreakString());
@@ -632,19 +632,26 @@ public class Loop implements Iterable<Segment> {
         }
         return dump.toString();
     }
-    
+
+    /**
+     * Send a LoopDefinition and the index of an loop, fetch the loop from the 
+     * child loops that matches, given that the parentLoop has this loop as a child.
+     * @param loopDefinition Loop definition for this spot in the x12 document.
+     * @param idx The index of the loops returned thus far.
+     * @return The child loop from the loops, or null otherwise.
+     */
     private Loop getLoopForPrinting(LoopDefinition loopDefinition, int idx) {
-    	Loop loop = getLoop(loopDefinition.getXid(), idx);
-    	
-    	// We need to check that the loop we have gotten from getLoop 
-    	// is actually a direct child of the current loop we are processing from the 
-    	// loop definition.
-    	
-    	if (loop != null && _loops.stream().noneMatch(parentLoop -> parentLoop.getId().equals(loop.getId()))) {
-    		return null;
-    	}
-    	
-    	return loop;
+        Loop loop = getLoop(loopDefinition.getXid(), idx);
+
+        // We need to check that the loop we have gotten from getLoop
+        // is actually a direct child of the current loop we are processing from the
+        // loop definition.
+
+        if (loop != null && _loops.stream().noneMatch(parentLoop -> parentLoop.getId().equals(loop.getId()))) {
+            return null;
+        }
+
+        return loop;
     }
 
     /**

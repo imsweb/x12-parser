@@ -49,31 +49,36 @@ public class X12ReaderTest {
     }
 
     /**
-     * Here we will test that you can go from x12, make changes, then serialize the x12 once again.
+     * Here we will test that you can go from x12, make changes, then serialize the
+     * x12 once again.
      */
     @Test
     public void testSerializeBasic() throws IOException {
-		URL url = this.getClass().getResource("/837_5010/x12_valid.txt");
+        URL url = this.getClass().getResource("/837_5010/x12_valid.txt");
 
-        X12Reader fromFileUtf8 = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()), StandardCharsets.UTF_8);
+        X12Reader fromFileUtf8 = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()),
+                StandardCharsets.UTF_8);
 
-        String expected = IOUtils.toString(this.getClass().getResourceAsStream("/837_5010/x12_valid.txt"),
-            StandardCharsets.UTF_8).trim();
-        Assert.assertEquals(expected, fromFileUtf8.toX12String(LineBreak.LF).trim());           
+        String expected = IOUtils
+                .toString(this.getClass().getResourceAsStream("/837_5010/x12_valid.txt"), StandardCharsets.UTF_8)
+                .trim();
+        Assert.assertEquals(expected, fromFileUtf8.toX12String(LineBreak.LF).trim());
     }
-    
+
     /**
-     * Test a more complex x12 doc and see if we can serialize it. 
+     * Test a more complex x12 doc and see if we can serialize it.
      */
     @Test
     public void testSerializeComplex() throws IOException {
-    	URL url = this.getClass().getResource("/837_5010/x12_complex.txt");
+        URL url = this.getClass().getResource("/837_5010/x12_complex.txt");
 
-        X12Reader fromFileUtf8 = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()), StandardCharsets.UTF_8);
+        X12Reader fromFileUtf8 = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()),
+                StandardCharsets.UTF_8);
 
-        String expected = IOUtils.toString(this.getClass().getResourceAsStream("/837_5010/x12_complex.txt"),
-            StandardCharsets.UTF_8).trim();
-                
+        String expected = IOUtils
+                .toString(this.getClass().getResourceAsStream("/837_5010/x12_complex.txt"), StandardCharsets.UTF_8)
+                .trim();
+
         Assert.assertEquals(expected, fromFileUtf8.toX12String(LineBreak.CRLF).trim());
     }
 

@@ -174,21 +174,24 @@ public class X12Reader {
     }
     
     /**
-     * Gets an X12 formatted string representing this X12 reader. Will use no line breaks after separators.
+     * Gets an X12 formatted string representing this X12 reader. Will use no line
+     * breaks after separators.
+     * 
      * @return X12 formatted string representing this X12 reader.
      */
     public String toX12String() {
-    	_separators.setLineBreak(LineBreak.NONE);
+        _separators.setLineBreak(LineBreak.NONE);
         return toX12StringImpl();
     }
 
     /**
-     * Gets an X12 formatted string representing this X12 reader. 
-     * @param lineBreak Line break to use for separators. 
+     * Gets an X12 formatted string representing this X12 reader.
+     * 
+     * @param lineBreak Line break to use for separators.
      * @return X12 formatted string representing this X12 reader.
      */
-	public String toX12String(LineBreak lineBreak) {
-    	_separators.setLineBreak(lineBreak);
+    public String toX12String(LineBreak lineBreak) {
+        _separators.setLineBreak(lineBreak);
         return toX12StringImpl();
     }
 
@@ -1050,13 +1053,13 @@ public class X12Reader {
 
         return requiredPositions;
     }
-	
-	private String toX12StringImpl() {
-		StringBuilder builder = new StringBuilder();
+
+    private String toX12StringImpl() {
+        StringBuilder builder = new StringBuilder();
         for (Loop loop : _dataLoops) {
             builder.append(loop.toX12String(_definition.getLoop()));
             builder.append(_separators.getLineBreak().getLineBreakString());
         }
         return builder.toString();
-	}
+    }
 }
