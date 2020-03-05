@@ -79,7 +79,14 @@ public class X12ReaderTest {
                 .toString(this.getClass().getResourceAsStream("/837_5010/x12_complex.txt"), StandardCharsets.UTF_8)
                 .trim();
 
-        Assert.assertEquals(expected, fromFileUtf8.toX12String(LineBreak.CRLF).trim());
+        LineBreak lineBreak;
+        if (System.getProperty("os.name").toLowerCase().contains("win")) {
+            lineBreak = LineBreak.CRLF;
+        }
+        else {
+            lineBreak = LineBreak.LF;
+        }
+        Assert.assertEquals(expected, fromFileUtf8.toX12String(lineBreak).trim());
     }
 
     @Test
