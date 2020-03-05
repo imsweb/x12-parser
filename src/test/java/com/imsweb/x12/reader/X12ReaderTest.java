@@ -80,7 +80,7 @@ public class X12ReaderTest {
                 .trim();
 
         LineBreak lineBreak;
-        if (System.getProperty("os.name").toLowerCase().contains("win")) {
+        if (expected.contains(LineBreak.CRLF.getLineBreakString())) {
             lineBreak = LineBreak.CRLF;
         }
         else {
