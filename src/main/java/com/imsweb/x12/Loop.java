@@ -592,7 +592,13 @@ public class Loop implements Iterable<Segment> {
 
     /**
      * Returns the Loop in X12 String format. This method is used to convert the X12 object into a X12 transaction.
-     * @return String representation
+     * 
+     * This will first go through each segment and will return the properly separated string for the segment.
+     * 
+     * After the segments are seriaized to X12 strings, it will then go through the Loops (in the correct order) and
+     * recursively call this function for the child loops.
+     * 
+     * @return String representation The segments from this loop, including child loops.
      */
     public String toX12String(LoopDefinition loopDefinition) {
         StringBuilder dump = new StringBuilder();
@@ -609,7 +615,7 @@ public class Loop implements Iterable<Segment> {
                 SegmentDefinition segmentDefinition = (SegmentDefinition)positioned;
                 int idx = 0;
                 Segment segment;
-                while ((segment = getSegment(segmentDefinition.getXid(), idx++)) != null) {
+                while ((segment = getSegment(segmentDefinition.getXid(), idx++)) != null) {                	
                     dump.append(segment);
                     dump.append(_separators.getSegment());
                     dump.append(_separators.getLineBreak().getLineBreakString());
@@ -619,12 +625,26 @@ public class Loop implements Iterable<Segment> {
                 LoopDefinition innerLoopDefinition = (LoopDefinition)positioned;
                 int idx = 0;
                 Loop innerLoop;
-                while ((innerLoop = getLoop(innerLoopDefinition.getXid(), idx++)) != null) {
+                while ((innerLoop = getLoopForPrinting(innerLoopDefinition, idx++)) != null) {
                     dump.append(innerLoop.toX12String(innerLoopDefinition));
                 }
             }
         }
         return dump.toString();
+    }
+    
+    private Loop getLoopForPrinting(LoopDefinition loopDefinition, int idx) {
+    	Loop loop = getLoop(loopDefinition.getXid(), idx);
+    	
+    	// We need to check that the loop we have gotten from getLoop 
+    	// is actually a direct child of the current loop we are processing from the 
+    	// loop definition.
+    	
+    	if (loop != null && _loops.stream().noneMatch(parentLoop -> parentLoop.getId().equals(loop.getId()))) {
+    		return null;
+    	}
+    	
+    	return loop;
     }
 
     /**

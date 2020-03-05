@@ -1035,7 +1035,7 @@ public class X12Reader {
 
     /**
      * Returns the positions that must have composite data in them in a segment
-     * @param seg segmetn format we want to to know the required element composites for
+     * @param seg segment format we want to to know the required element composites for
      * @return list of positions that have required composites
      */
     private List<Integer> getRequiredCompositePositions(SegmentDefinition seg) {

@@ -15,7 +15,6 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
 import org.junit.Test;
@@ -74,38 +73,8 @@ public class X12ReaderTest {
 
         String expected = IOUtils.toString(this.getClass().getResourceAsStream("/837_5010/x12_complex.txt"),
             StandardCharsets.UTF_8).trim();
-        Assert.assertEquals(expected, fromFileUtf8.toX12String(LineBreak.LF).trim());
-    }
-    
-    /**
-     * Here we will test that you can go from x12, make changes, then serialize the x12 once again.
-     */
-    @Test
-    public void testSerializeManyFiles() throws IOException {
-        File dir = new File("C:\\Users\\0023533\\Documents\\x12 document examples\\some other ones");
-        for (File subFile : dir.listFiles()) {
-        	X12Reader fromFileUtf8 = new X12Reader(FileType.ANSI837_5010_X222, subFile, StandardCharsets.UTF_8);
-        	fromFileUtf8.getSeparators().setLineBreak(LineBreak.NONE);
-        	String x12Actual = FileUtils.readFileToString(subFile, StandardCharsets.UTF_8);
-        	String x12Reserialized = fromFileUtf8.toX12String();
-        	Assert.assertEquals(x12Actual.trim(), x12Reserialized.trim());        	
-        }
-        dir = new File("C:\\Users\\0023533\\Documents\\x12 document examples\\j5n");
-        for (File subFile : dir.listFiles()) {
-        	X12Reader fromFileUtf8 = new X12Reader(FileType.ANSI837_5010_X223, subFile, StandardCharsets.UTF_8);
-        	fromFileUtf8.getSeparators().setLineBreak(LineBreak.NONE);
-        	String x12Actual = FileUtils.readFileToString(subFile, StandardCharsets.UTF_8);
-        	String x12Reserialized = fromFileUtf8.toX12String();
-        	Assert.assertEquals(x12Actual.trim(), x12Reserialized.trim());        	
-        }
-        dir = new File("C:\\Users\\0023533\\Documents\\x12 document examples\\from portal");
-        for (File subFile : dir.listFiles()) {
-        	X12Reader fromFileUtf8 = new X12Reader(FileType.ANSI837_5010_X222, subFile, StandardCharsets.UTF_8);
-        	fromFileUtf8.getSeparators().setLineBreak(LineBreak.NONE);
-        	String x12Actual = FileUtils.readFileToString(subFile, StandardCharsets.UTF_8);
-        	String x12Reserialized = fromFileUtf8.toX12String();
-        	Assert.assertEquals(x12Actual.trim(), x12Reserialized.trim());        	
-        }
+                
+        Assert.assertEquals(expected, fromFileUtf8.toX12String(LineBreak.CRLF).trim());
     }
 
     @Test
