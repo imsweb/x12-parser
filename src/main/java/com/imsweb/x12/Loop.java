@@ -598,6 +598,7 @@ public class Loop implements Iterable<Segment> {
      * After the segments are seriaized to X12 strings, it will then go through the Loops (in the correct order) and
      * recursively call this function for the child loops.
      * 
+     * @param loopDefinition The definition of the loop that we are currently on.
      * @return String representation The segments from this loop, including child loops.
      */
     public String toX12String(LoopDefinition loopDefinition) {
