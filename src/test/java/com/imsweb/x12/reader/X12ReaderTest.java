@@ -62,7 +62,14 @@ public class X12ReaderTest {
         String expected = IOUtils
                 .toString(this.getClass().getResourceAsStream("/837_5010/x12_valid.txt"), StandardCharsets.UTF_8)
                 .trim();
-        Assert.assertEquals(expected, fromFileUtf8.toX12String(LineBreak.LF).trim());
+        LineBreak lineBreak;
+        if (expected.contains(LineBreak.CRLF.getLineBreakString())) {
+            lineBreak = LineBreak.CRLF;
+        }
+        else {
+            lineBreak = LineBreak.LF;
+        }
+        Assert.assertEquals(expected, fromFileUtf8.toX12String(lineBreak).trim());
     }
 
     /**
