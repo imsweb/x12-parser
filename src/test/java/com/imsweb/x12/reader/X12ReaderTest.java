@@ -7,6 +7,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -334,6 +335,10 @@ public class X12ReaderTest {
         String xml = reader.getLoops().get(0).toXML();
         assertTrue(xml.length() > 0);
         assertTrue(xml.startsWith("<loop id=\"ISA_LOOP\">"));
+        
+        X12Reader fromJsonReader = X12Reader.fromXML(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)), reader.getSeparators(), reader.getType());
+        
+        assertEquals(reader.toX12String(), fromJsonReader.toX12String());
     }
 
     @Test

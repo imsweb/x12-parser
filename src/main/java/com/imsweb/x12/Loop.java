@@ -1,5 +1,6 @@
 package com.imsweb.x12;
 
+import java.io.InputStream;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -716,4 +717,16 @@ public class Loop implements Iterable<Segment> {
         return Objects.hash(_separators, _id, _segments, _loops, _parent);
     }
 
+    public Loop fromXML(InputStream inputStream) {
+        XStream xstream = new XStream();
+        xstream.processAnnotations(Loop.class);
+        xstream.processAnnotations(Segment.class);
+        xstream.processAnnotations(Element.class);
+        
+        // setup proper security by limiting what classes can be loaded by XStream
+        xstream.addPermission(NoTypePermission.NONE);
+        xstream.addPermission(new WildcardTypePermission(new String[] {"com.imsweb.x12.**"}));
+
+        return (Loop)xstream.fromXML(inputStream);
+    }
 }

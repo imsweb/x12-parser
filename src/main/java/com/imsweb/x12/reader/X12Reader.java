@@ -173,6 +173,10 @@ public class X12Reader {
             parse(reader);
     }
     
+    private X12Reader() {
+
+    }
+    
     /**
      * Gets an X12 formatted string representing this X12 reader. Will use no line
      * breaks after separators.
@@ -217,6 +221,10 @@ public class X12Reader {
     
     public Separators getSeparators() {
         return _separators;
+    }
+    
+    public FileType getType() {
+        return _type;
     }
 
     /**
@@ -1061,5 +1069,17 @@ public class X12Reader {
             builder.append(_separators.getLineBreak().getLineBreakString());
         }
         return builder.toString();
+    }
+
+    public static X12Reader fromXML(InputStream inputStream, Separators separators, FileType fileType) {
+        X12Reader x12Reader = new X12Reader();
+        x12Reader._separators = separators;
+        x12Reader._type = fileType;
+        x12Reader._definition = fileType.getDefinition();
+        x12Reader._dataLoops = new ArrayList<>();
+        x12Reader._dataLoops.add(new Loop());
+        Loop loop = x12Reader._dataLoops.get(0).fromXML(inputStream);
+        x12Reader._dataLoops.set(0, loop);
+        return x12Reader;
     }
 }
