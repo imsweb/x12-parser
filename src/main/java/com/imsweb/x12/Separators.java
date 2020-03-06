@@ -14,6 +14,7 @@ public class Separators {
     private Pattern _segmentPattern;
     private Pattern _elementPattern;
     private Pattern _compositePattern;
+    private LineBreak _lineBreak;
 
     /**
      * Default constructor.
@@ -22,6 +23,7 @@ public class Separators {
         setSegment('~');
         setElement('*');
         setCompositeElement(':');
+        setLineBreak(LineBreak.NONE);
     }
 
     /**
@@ -105,6 +107,14 @@ public class Separators {
 
     public String[] splitComposite(String line) {
         return (line != null && _compositePattern != null) ? _compositePattern.split(line) : null;
+    }
+
+    public LineBreak getLineBreak() {
+        return _lineBreak;
+    }
+
+    public void setLineBreak(LineBreak lineBreak) {
+        this._lineBreak = lineBreak;
     }
 
     @Override

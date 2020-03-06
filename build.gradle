@@ -30,6 +30,7 @@ dependencies {
     api 'com.thoughtworks.xstream:xstream:1.4.11.1'
 
     testImplementation 'junit:junit:4.13'
+    testImplementation 'commons-io:commons-io:2.6'
 }
 
 jar {

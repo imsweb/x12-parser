@@ -19,11 +19,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.io.xml.StaxDriver;
-import com.thoughtworks.xstream.security.NoTypePermission;
-import com.thoughtworks.xstream.security.WildcardTypePermission;
-
+import com.imsweb.x12.LineBreak;
 import com.imsweb.x12.Loop;
 import com.imsweb.x12.Segment;
 import com.imsweb.x12.Separators;
@@ -33,6 +29,10 @@ import com.imsweb.x12.mapping.LoopDefinition;
 import com.imsweb.x12.mapping.SegmentDefinition;
 import com.imsweb.x12.mapping.TransactionDefinition;
 import com.imsweb.x12.mapping.TransactionDefinition.Usage;
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.io.xml.StaxDriver;
+import com.thoughtworks.xstream.security.NoTypePermission;
+import com.thoughtworks.xstream.security.WildcardTypePermission;
 
 public class X12Reader {
 
@@ -55,6 +55,7 @@ public class X12Reader {
     private List<LoopConfig> _config = new ArrayList<>();
     private List<Loop> _dataLoops = new ArrayList<>();
     private Map<String, List<Set<String>>> _childLoopTracker = new HashMap<>();
+    private Separators _separators;
     TransactionDefinition _definition;
 
     /**
@@ -99,6 +100,8 @@ public class X12Reader {
         }
     }
 
+    private FileType _type;
+
     static {
         _TYPES.put(FileType.ANSI835_4010_X091, _X091_ANSI_VERSION);
         _TYPES.put(FileType.ANSI837_4010_X096, _X096_ANSI_VERSION);
@@ -116,7 +119,8 @@ public class X12Reader {
      * @throws IOException if there was an error reading the input file
      */
     public X12Reader(FileType type, File file) throws IOException {
-        parse(type, new BufferedReader(new InputStreamReader(new FileInputStream(file), Charset.defaultCharset())));
+        this._type = type;
+        parse(new BufferedReader(new InputStreamReader(new FileInputStream(file), Charset.defaultCharset())));
     }
 
     /**
@@ -127,7 +131,8 @@ public class X12Reader {
      * @throws IOException if there was an error reading the input file
      */
     public X12Reader(FileType type, File file, Charset charset) throws IOException {
-        parse(type, new BufferedReader(new InputStreamReader(new FileInputStream(file), charset)));
+        this._type = type;
+        parse(new BufferedReader(new InputStreamReader(new FileInputStream(file), charset)));
     }
 
     /**
@@ -137,7 +142,8 @@ public class X12Reader {
      * @throws IOException if there was an error reading the input file
      */
     public X12Reader(FileType type, InputStream input) throws IOException {
-        parse(type, new BufferedReader(new InputStreamReader(input, Charset.defaultCharset())));
+        this._type = type;
+        parse(new BufferedReader(new InputStreamReader(input, Charset.defaultCharset())));
     }
 
     /**
@@ -148,7 +154,8 @@ public class X12Reader {
      * @throws IOException if there was an error reading the input file
      */
     public X12Reader(FileType type, InputStream input, Charset charset) throws IOException {
-        parse(type, new BufferedReader(new InputStreamReader(input, charset)));
+        this._type = type;
+        parse(new BufferedReader(new InputStreamReader(input, charset)));
     }
 
     /**
@@ -158,11 +165,34 @@ public class X12Reader {
      * @throws IOException if there was an error reading the input file
      */
     public X12Reader(FileType type, Reader reader) throws IOException {
+        this._type = type;
         // the Reader must support mark; if it does not, wrap the reader in a BufferedReader
         if (!reader.markSupported())
-            parse(type, new BufferedReader(reader));
+            parse(new BufferedReader(reader));
         else
-            parse(type, reader);
+            parse(reader);
+    }
+    
+    /**
+     * Gets an X12 formatted string representing this X12 reader. Will use no line
+     * breaks after separators.
+     * 
+     * @return X12 formatted string representing this X12 reader.
+     */
+    public String toX12String() {
+        _separators.setLineBreak(LineBreak.NONE);
+        return toX12StringImpl();
+    }
+
+    /**
+     * Gets an X12 formatted string representing this X12 reader.
+     * 
+     * @param lineBreak Line break to use for separators.
+     * @return X12 formatted string representing this X12 reader.
+     */
+    public String toX12String(LineBreak lineBreak) {
+        _separators.setLineBreak(lineBreak);
+        return toX12StringImpl();
     }
 
     /**
@@ -184,21 +214,27 @@ public class X12Reader {
     public List<String> getFatalErrors() {
         return _fatalErrors;
     }
+    
+    public Separators getSeparators() {
+        return _separators;
+    }
 
     /**
      * Parse a Readable into a Loop
-     * @param type file type definition
      * @param reader reader
      */
-    private void parse(FileType type, Reader reader) throws IOException {
+    private void parse(Reader reader) throws IOException {
         Scanner scanner = new Scanner(reader);
 
         // set up delimiters
-        Separators separators = getSeparators(reader);
+        _separators = getSeparators(reader);
 
-        if (separators != null && checkVersionsAreConsistent(type, separators, reader)) {
-            Character segmentSeparator = separators.getSegment();
+        if (_separators != null && checkVersionsAreConsistent(_separators, reader)) {
+            Character segmentSeparator = _separators.getSegment();
             String quotedSegmentSeparator = Pattern.quote(segmentSeparator.toString());
+
+            // The following delimiter patterns will accept the segment delimiter with
+            // optional line breaks.
             scanner.useDelimiter(quotedSegmentSeparator + "\r\n|" + quotedSegmentSeparator + "\n|" + quotedSegmentSeparator);
 
             List<String> loopLines = new ArrayList<>(); // holds the lines from the claims files that all belong to the same loop
@@ -207,7 +243,7 @@ public class X12Reader {
             Loop lastLoopStored = null;
 
             // parse _definition file
-            _definition = type.getDefinition();
+            _definition = _type.getDefinition();
 
             // cache definitions of loop starting segments
             getLoopConfiguration(_definition.getLoop(), null);
@@ -217,12 +253,12 @@ public class X12Reader {
             String line = scanner.next().trim();
             while (scanner.hasNext()) {
                 // Determine if we have started a new loop
-                loopConfig = getMatchedLoop(separators.splitElement(line), currentLoopConfig == null ? null : currentLoopConfig.getLoopId());
+                loopConfig = getMatchedLoop(_separators.splitElement(line), currentLoopConfig == null ? null : currentLoopConfig.getLoopId());
                 if (loopConfig == null)
                     loopLines.add(line); // didn't start a new loop, just add the lines for the current loop
                 else {
                     if (loopConfig.getLastSegmentXid() != null && line.startsWith(loopConfig.getLastSegmentXid().getXid()) && !loopConfig.equals(currentLoopConfig)) {
-                        lastLoopStored = appendEndingSegment(lastLoopStored, currentLoopConfig, loopConfig, separators, line, loopLines);
+                        lastLoopStored = appendEndingSegment(lastLoopStored, currentLoopConfig, loopConfig, _separators, line, loopLines);
                         if (lastLoopStored != null) {
                             loopLines = new ArrayList<>();
                             currentLoopConfig = loopConfig;
@@ -233,14 +269,14 @@ public class X12Reader {
                     else if (loopConfig.getLoopId().equals(_definition.getLoop().getXid())) {
                         // we are processing a new transaction - store any old data if necessary
                         if (lastLoopStored != null && !loopLines.isEmpty()) {
-                            if (storeData(currentLoopConfig, loopLines, lastLoopStored, separators) == null)
+                            if (storeData(currentLoopConfig, loopLines, lastLoopStored, _separators) == null)
                                 break;
                             loopLines = new ArrayList<>();
                         }
                         currentLoopConfig = loopConfig;
                         lastLoopStored = null;
                         Loop loop = new Loop(null);
-                        loop.setSeparators(separators);
+                        loop.setSeparators(_separators);
                         _dataLoops.add(loop);
                         loopLines.add(line);
                     }
@@ -252,7 +288,7 @@ public class X12Reader {
                         updateLoopCounts(loopConfig.getLoopId());
                         // store the data from processing the last loop
                         if (!loopLines.isEmpty())
-                            lastLoopStored = storeData(currentLoopConfig, loopLines, lastLoopStored, separators);
+                            lastLoopStored = storeData(currentLoopConfig, loopLines, lastLoopStored, _separators);
 
                         if (lastLoopStored == null)
                             break; // fatal error recorded during storing the loop
@@ -276,8 +312,8 @@ public class X12Reader {
             // store the final segment if the last line of the file has data.
             if (!line.isEmpty() && _fatalErrors.isEmpty()) {
                 if (currentLoopConfig != null) {
-                    loopConfig = getMatchedLoop(separators.splitElement(line), currentLoopConfig.getLoopId());
-                    lastLoopStored = appendEndingSegment(lastLoopStored, currentLoopConfig, loopConfig, separators, line, loopLines);
+                    loopConfig = getMatchedLoop(_separators.splitElement(line), currentLoopConfig.getLoopId());
+                    lastLoopStored = appendEndingSegment(lastLoopStored, currentLoopConfig, loopConfig, _separators, line, loopLines);
                     if (lastLoopStored == null || !_definition.getLoop().getXid().equals(lastLoopStored.getId()))
                         _fatalErrors.add("Unable to find end of transaction");
                 }
@@ -359,8 +395,8 @@ public class X12Reader {
         return requiredChildList;
     }
 
-    private boolean checkVersionsAreConsistent(FileType type, Separators separators, Reader reader) throws IOException {
-        if (reader == null || separators == null || type == null)
+    private boolean checkVersionsAreConsistent(Separators separators, Reader reader) throws IOException {
+        if (reader == null || separators == null || _type == null)
             return false;
 
         char segmentSeparator = separators.getSegment();
@@ -382,10 +418,10 @@ public class X12Reader {
         }
         reader.reset();
 
-        boolean result = _TYPES.get(type).equals(version);
+        boolean result = _TYPES.get(_type).equals(version);
 
         if (!result)
-            _errors.add("ANSI version " + version + " not consistent with version specified " + type);
+            _errors.add("ANSI version " + version + " not consistent with version specified " + _type);
 
         return result;
     }
@@ -400,18 +436,24 @@ public class X12Reader {
         reader.mark(1);
         char[] firstLine = new char[_ISA_LENGTH];
         int ret = reader.read(firstLine);
-        boolean isAlphaNumeric = Character.isDigit(firstLine[_SEGMENT_SEPARATOR_POS]) || Character.isDigit(firstLine[_ELEMENT_SEPARATOR_POS]) || Character.isDigit(firstLine[_COMPOSITE_SEPARATOR_POS])
-                ||
-                Character.isLetter(firstLine[_SEGMENT_SEPARATOR_POS]) || Character.isLetter(firstLine[_ELEMENT_SEPARATOR_POS]) || Character.isLetter(firstLine[_COMPOSITE_SEPARATOR_POS]);
+        boolean isAlphaNumeric = Character.isDigit(firstLine[_SEGMENT_SEPARATOR_POS]) ||
+            Character.isDigit(firstLine[_ELEMENT_SEPARATOR_POS]) ||
+            Character.isDigit(firstLine[_COMPOSITE_SEPARATOR_POS]) ||
+            Character.isLetter(firstLine[_SEGMENT_SEPARATOR_POS]) ||
+            Character.isLetter(firstLine[_ELEMENT_SEPARATOR_POS]) ||
+            Character.isLetter(firstLine[_COMPOSITE_SEPARATOR_POS]);
 
-        boolean isWhiteSpace = Character.isWhitespace(firstLine[_SEGMENT_SEPARATOR_POS]) || Character.isWhitespace(firstLine[_ELEMENT_SEPARATOR_POS]) || Character.isWhitespace(
-                firstLine[_COMPOSITE_SEPARATOR_POS]);
+        boolean isWhiteSpace = Character.isWhitespace(firstLine[_SEGMENT_SEPARATOR_POS]) ||
+            Character.isWhitespace(firstLine[_ELEMENT_SEPARATOR_POS]) ||
+            Character.isWhitespace(firstLine[_COMPOSITE_SEPARATOR_POS]);
         if (ret != _ISA_LENGTH || (isAlphaNumeric || isWhiteSpace)) {
             _errors.add("Error getting separators");
             return null;
         }
         // don't need to reset the reader---we need to check the version on the next line
-        return new Separators(firstLine[_SEGMENT_SEPARATOR_POS], firstLine[_ELEMENT_SEPARATOR_POS], firstLine[_COMPOSITE_SEPARATOR_POS]);
+        return new Separators(firstLine[_SEGMENT_SEPARATOR_POS],
+            firstLine[_ELEMENT_SEPARATOR_POS],
+            firstLine[_COMPOSITE_SEPARATOR_POS]);
     }
 
     /**
@@ -996,7 +1038,7 @@ public class X12Reader {
 
     /**
      * Returns the positions that must have composite data in them in a segment
-     * @param seg segmetn format we want to to know the required element composites for
+     * @param seg segment format we want to to know the required element composites for
      * @return list of positions that have required composites
      */
     private List<Integer> getRequiredCompositePositions(SegmentDefinition seg) {
@@ -1010,5 +1052,14 @@ public class X12Reader {
         }
 
         return requiredPositions;
+    }
+
+    private String toX12StringImpl() {
+        StringBuilder builder = new StringBuilder();
+        for (Loop loop : _dataLoops) {
+            builder.append(loop.toX12String(_definition.getLoop()));
+            builder.append(_separators.getLineBreak().getLineBreakString());
+        }
+        return builder.toString();
     }
 }
