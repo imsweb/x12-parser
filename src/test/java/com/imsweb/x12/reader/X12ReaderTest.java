@@ -100,6 +100,9 @@ public class X12ReaderTest {
         Elements elements = doc.select(".x12-element");
         Assert.assertEquals(216, elements.size());
 
+        // Below is a useful snippet that will create a fully formatted HTML file from x12.
+        // In the tests/resources/css directory you will see a "css" directory that contains some css that will format
+        // the X12-html output nicely.
 //        File testDir = new File("build", UUID.randomUUID().toString());
 //        FileUtils.forceMkdir(testDir);
 //        FileUtils.copyDirectory(new File("test\\resources\\css"), new File(testDir, "css"));
