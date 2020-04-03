@@ -111,7 +111,7 @@ public class Element {
         newParentIds.add(getId());
 
         StringBuilder dump = new StringBuilder()
-            .append("<div class=\"x12-element\"><p><b>");
+            .append("<div class=\"x12-element\"><p><span class=\"x12-element-name\">");
 
         if (elementDefinition.isPresent()) {
             dump.append(elementDefinition.get().getName())
@@ -124,7 +124,7 @@ public class Element {
                 .append(": ");
         }
         return dump
-            .append("</b> <input type=\"text\" name=\"")
+            .append("</span> <input type=\"text\" name=\"")
             .append(Separators.getIdString(newParentIds))
             .append("\" value=\"")
             .append(_value)

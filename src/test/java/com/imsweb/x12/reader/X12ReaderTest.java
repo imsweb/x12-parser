@@ -4,6 +4,7 @@ import com.imsweb.x12.LineBreak;
 import com.imsweb.x12.Loop;
 import com.imsweb.x12.mapping.TransactionDefinition;
 import com.imsweb.x12.reader.X12Reader.FileType;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -18,7 +19,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -101,14 +104,15 @@ public class X12ReaderTest {
         Assert.assertEquals(216, elements.size());
 
         // Below is a useful snippet that will create a fully formatted HTML file from x12.
-        // In the tests/resources/css directory you will see a "css" directory that contains some css that will format
+        // In the src/tests/css directory you will see a "css" directory that contains some css that will format
         // the X12-html output nicely.
-//        File testDir = new File("build", UUID.randomUUID().toString());
-//        FileUtils.forceMkdir(testDir);
-//        FileUtils.copyDirectory(new File("test\\resources\\css"), new File(testDir, "css"));
-//        File htmlFileOutput = new File(testDir, "render-x12.html");
-//        FileUtils.writeStringToFile(htmlFileOutput, fullX12Html, StandardCharsets.UTF_8);
-//        new ProcessBuilder().command("C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe", htmlFileOutput.getAbsolutePath()).start();
+        File testDir = new File("build", UUID.randomUUID().toString());
+        FileUtils.forceMkdir(testDir);
+        FileUtils.copyDirectory(new File(Paths.get("src", "test", "css").toAbsolutePath().toString()), new File(testDir, "css"));
+        File htmlFileOutput = new File(testDir, "render-x12.html");
+        FileUtils.writeStringToFile(htmlFileOutput, fullX12Html, StandardCharsets.UTF_8);
+        // To view a full HTML document, open the file at htmlFileOutput.getAbsolutePath()
+        // new ProcessBuilder().command("C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe", htmlFileOutput.getAbsolutePath()).start();
     }
 
     /**
