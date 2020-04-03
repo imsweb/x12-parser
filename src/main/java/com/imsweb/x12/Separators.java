@@ -120,6 +120,12 @@ public class Separators {
         this._lineBreak = lineBreak;
     }
 
+    /**
+     * This method produces an ID string from a list of IDs that is used when creating
+     * HTML contents from the x12 file.
+     * @param idList List of IDs of all parents and current id.
+     * @return An ID string with all the parent ids separated by HTML_ID_SEPARATOR.
+     */
     public static String getIdString(List<String> idList) {
         StringBuilder sb = new StringBuilder();
         for (String id : idList) {
