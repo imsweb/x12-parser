@@ -303,8 +303,8 @@ public class Segment implements Iterable<Element> {
     }
 
     /**
-     * Returns the X12 representation of the segment.
-     * @return X12 representation as a String
+     * Returns an HTML fragment representing this segment.
+     * @return HTML string fragment.
      * @param segmentDefinition The segment definition that defines this segment.
      * @param parentIds The parent ids up until this point.
      */
