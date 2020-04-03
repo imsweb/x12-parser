@@ -31,6 +31,7 @@ dependencies {
 
     testImplementation 'junit:junit:4.13'
     testImplementation 'commons-io:commons-io:2.6'
+    testImplementation 'org.jsoup:jsoup:1.13.1'
 }
 
 jar {

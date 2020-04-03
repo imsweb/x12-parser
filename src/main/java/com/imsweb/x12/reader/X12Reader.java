@@ -196,6 +196,19 @@ public class X12Reader {
     }
 
     /**
+     * To HTML string will create an HTML segment from this X12 file.
+     *
+     * @return Human readable html segment representation of the X12 file.
+     */
+    public String toHtml() {
+        StringBuilder builder = new StringBuilder();
+        for (Loop loop : _dataLoops) {
+            builder.append(loop.toHtml(_definition.getLoop(), new ArrayList<>()));
+        }
+        return builder.toString();
+    }
+
+    /**
      * Return the resulting loops, this would possible if multiple ISA segments were included in one single file
      * @return the loop list
      */

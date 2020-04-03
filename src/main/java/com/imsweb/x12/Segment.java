@@ -4,7 +4,10 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
+import com.imsweb.x12.mapping.ElementDefinition;
+import com.imsweb.x12.mapping.SegmentDefinition;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 
@@ -297,6 +300,40 @@ public class Segment implements Iterable<Element> {
     @Override
     public Iterator<Element> iterator() {
         return _elements.iterator();
+    }
+
+    /**
+     * Returns the X12 representation of the segment.
+     * @return X12 representation as a String
+     * @param segmentDefinition The segment definition that defines this segment.
+     * @param parentIds The parent ids up until this point.
+     */
+    public String toHtml(SegmentDefinition segmentDefinition, List<String> parentIds) {
+        ArrayList<String> newParentIds = new ArrayList<>();
+        newParentIds.addAll(parentIds);
+        newParentIds.add(getId());
+
+        StringBuilder output = new StringBuilder();
+        output.append("<div id=\"")
+            .append(Separators.getIdString(parentIds))
+            .append("\" class=\"x12-segment\">");
+        output.append("<p>").append(segmentDefinition.getName()).append(" (").append(_id).append(")</p>");
+        for (Element e : _elements) {
+            if (segmentDefinition.getElements() != null) {
+                Optional<ElementDefinition> elementDef = segmentDefinition
+                        .getElements()
+                        .stream()
+                        .filter(ed -> ed.getXid().equals(e.getId()))
+                        .findFirst();
+                output.append(e.toHtml(elementDef, newParentIds));
+            }
+            else {
+                output.append(e.toHtml(Optional.empty(), newParentIds));
+            }
+        }
+
+        output.append("</div>");
+        return output.toString();
     }
 
     /**

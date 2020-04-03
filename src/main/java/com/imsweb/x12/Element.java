@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
+import com.imsweb.x12.mapping.ElementDefinition;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 
@@ -96,6 +98,40 @@ public class Element {
         return _value;
     }
 
+    /**
+     * Converts this element to HTML segment.
+     * @param elementDefinition The element definition that defines this element.
+     * @param parentIds The parent IDs thus far.
+     * @return Html segment representing this element.
+     */
+    public String toHtml(Optional<ElementDefinition> elementDefinition, List<String> parentIds) {
+
+        ArrayList<String> newParentIds = new ArrayList<>();
+        newParentIds.addAll(parentIds);
+        newParentIds.add(getId());
+
+        StringBuilder dump = new StringBuilder()
+            .append("<div class=\"x12-element\"><p><b>");
+
+        if (elementDefinition.isPresent()) {
+            dump.append(elementDefinition.get().getName())
+                .append(" (")
+                .append(_id)
+                .append("): ");
+        }
+        else {
+            dump.append(_id)
+                .append(": ");
+        }
+        return dump
+            .append("</b> <input type=\"text\" name=\"")
+            .append(Separators.getIdString(newParentIds))
+            .append("\" value=\"")
+            .append(_value)
+            .append("\" /> </p></div>")
+            .toString();
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o)
@@ -111,5 +147,4 @@ public class Element {
     public int hashCode() {
         return Objects.hash(_id, _value);
     }
-
 }

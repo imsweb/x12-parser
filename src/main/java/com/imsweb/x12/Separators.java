@@ -1,5 +1,6 @@
 package com.imsweb.x12;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
@@ -7,6 +8,8 @@ import java.util.regex.Pattern;
  * The class represents an X12 separator definition. A separators object consists of a segment separator, element separator and a composite element separator.
  */
 public class Separators {
+
+    public static final String HTML_ID_SEPARATOR = "__";
 
     private Character _segment;
     private Character _element;
@@ -115,6 +118,17 @@ public class Separators {
 
     public void setLineBreak(LineBreak lineBreak) {
         this._lineBreak = lineBreak;
+    }
+
+    public static String getIdString(List<String> idList) {
+        StringBuilder sb = new StringBuilder();
+        for (String id : idList) {
+            if (sb.length() != 0) {
+                sb.append(HTML_ID_SEPARATOR);
+            }
+            sb.append(id);
+        }
+        return sb.toString();
     }
 
     @Override
