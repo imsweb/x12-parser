@@ -111,7 +111,7 @@ public class X12ReaderTest {
         FileUtils.copyDirectory(new File(Paths.get("src", "test", "css").toAbsolutePath().toString()), new File(testDir, "css"));
         File htmlFileOutput = new File(testDir, "render-x12.html");
         FileUtils.writeStringToFile(htmlFileOutput, fullX12Html, StandardCharsets.UTF_8);
-        // To view a full HTML document, open the file at htmlFileOutput.getAbsolutePath()
+        // To view the full HTML document, open the file at htmlFileOutput.getAbsolutePath().
         // new ProcessBuilder().command("C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe", htmlFileOutput.getAbsolutePath()).start();
     }
 
