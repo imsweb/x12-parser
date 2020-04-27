@@ -1,7 +1,7 @@
 plugins {
     id 'java-library'
     id 'checkstyle'
-    id "com.github.spotbugs" version "3.0.0"
+    id "com.github.spotbugs" version "4.0.7"
     id 'com.bmuschko.nexus' version '2.3.1'          // prepares and copies artifacts to Sonotype OSS
     id "io.codearte.nexus-staging" version "0.21.2"  // logs into Sonotype OSS and does a "Close" and "Release"
     id 'com.adarshr.test-logger' version '2.0.0'
@@ -9,7 +9,7 @@ plugins {
 }
 
 group = 'com.imsweb'
-version = '1.7'
+version = '1.8'
 description = 'Java client library for parsing x12 files'
 
 tasks.withType(JavaCompile) {
@@ -27,7 +27,7 @@ repositories {
 }
 
 dependencies {
-    api 'com.thoughtworks.xstream:xstream:1.4.11.1'
+    api 'com.thoughtworks.xstream:xstream:1.4.12'
 
     testImplementation 'junit:junit:4.13'
     testImplementation 'commons-io:commons-io:2.6'
@@ -106,6 +106,6 @@ nexusStaging {
 }
 
 wrapper {
-    gradleVersion = '6.2.1'
+    gradleVersion = '6.3'
     distributionType = Wrapper.DistributionType.ALL
 }
