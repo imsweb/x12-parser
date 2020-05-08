@@ -25,14 +25,14 @@ public class X12ToHtmlLab {
         x12ToHtmlLab.generateHtmlFromX12();
     }
 
-    private File x12File;
+    private File _x12File;
 
     public X12ToHtmlLab(File x12File) {
-        this.x12File = x12File;
+        this._x12File = x12File;
     }
 
     public void generateHtmlFromX12() throws Exception {
-        X12Reader fromFileUtf8 = new X12Reader(X12Reader.FileType.ANSI837_5010_X222, x12File,
+        X12Reader fromFileUtf8 = new X12Reader(X12Reader.FileType.ANSI837_5010_X222, _x12File,
             StandardCharsets.UTF_8);
 
         String x12Template = IOUtils.toString(getClass().getResourceAsStream("/html/x12-template.html"), StandardCharsets.UTF_8);

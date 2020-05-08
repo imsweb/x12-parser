@@ -4,7 +4,6 @@ import com.imsweb.x12.LineBreak;
 import com.imsweb.x12.Loop;
 import com.imsweb.x12.mapping.TransactionDefinition;
 import com.imsweb.x12.reader.X12Reader.FileType;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -19,9 +18,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Paths;
 import java.util.List;
-import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
