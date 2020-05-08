@@ -102,17 +102,6 @@ public class X12ReaderTest {
 
         Elements elements = doc.select(".x12-element");
         Assert.assertEquals(216, elements.size());
-
-        // Below is a useful snippet that will create a fully formatted HTML file from x12.
-        // In the src/tests/css directory you will see a "css" directory that contains some css that will format
-        // the X12-html output nicely.
-        File testDir = new File("build", UUID.randomUUID().toString());
-        FileUtils.forceMkdir(testDir);
-        FileUtils.copyDirectory(new File(Paths.get("src", "test", "css").toAbsolutePath().toString()), new File(testDir, "css"));
-        File htmlFileOutput = new File(testDir, "render-x12.html");
-        FileUtils.writeStringToFile(htmlFileOutput, fullX12Html, StandardCharsets.UTF_8);
-        // To view the full HTML document, open the file at htmlFileOutput.getAbsolutePath().
-        // new ProcessBuilder().command("C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe", htmlFileOutput.getAbsolutePath()).start();
     }
 
     /**
