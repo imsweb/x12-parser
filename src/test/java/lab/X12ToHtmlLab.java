@@ -6,8 +6,8 @@ import org.apache.commons.io.IOUtils;
 
 import java.awt.Desktop;
 import java.io.File;
-import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystems;
 import java.nio.file.Paths;
 import java.util.UUID;
 
@@ -52,7 +52,7 @@ public class X12ToHtmlLab {
 
         // To view the full HTML document, open the file at htmlFileOutput.getAbsolutePath().
         if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-            Desktop.getDesktop().browse(new URI("file://" + htmlFileOutput.getAbsolutePath()));
+            Desktop.getDesktop().browse(FileSystems.getDefault().getPath(htmlFileOutput.getAbsolutePath()).toAbsolutePath().toUri());
         }
     }
 }
