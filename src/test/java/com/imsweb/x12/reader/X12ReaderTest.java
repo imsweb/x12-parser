@@ -1,10 +1,15 @@
 package com.imsweb.x12.reader;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import com.imsweb.x12.LineBreak;
+import com.imsweb.x12.Loop;
+import com.imsweb.x12.mapping.TransactionDefinition;
+import com.imsweb.x12.reader.X12Reader.FileType;
+import org.apache.commons.io.IOUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
+import org.junit.Assert;
+import org.junit.Test;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -15,14 +20,11 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import org.apache.commons.io.IOUtils;
-import org.junit.Assert;
-import org.junit.Test;
-
-import com.imsweb.x12.LineBreak;
-import com.imsweb.x12.Loop;
-import com.imsweb.x12.mapping.TransactionDefinition;
-import com.imsweb.x12.reader.X12Reader.FileType;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class X12ReaderTest {
 
@@ -70,6 +72,33 @@ public class X12ReaderTest {
             lineBreak = LineBreak.LF;
         }
         Assert.assertEquals(expected, fromFileUtf8.toX12String(lineBreak).trim());
+    }
+
+    /**
+     * Tests the toHtml method that
+     */
+    @Test
+    public void testToHtmlBasic() throws IOException {
+        URL url = this.getClass().getResource("/837_5010/x12_valid.txt");
+
+        X12Reader fromFileUtf8 = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()),
+            StandardCharsets.UTF_8);
+
+        String x12Template = IOUtils.toString(getClass().getResourceAsStream("/html/x12-template.html"), StandardCharsets.UTF_8);
+
+        String x12HtmlSegment = fromFileUtf8.toHtml();
+
+        String fullX12Html = String.format(x12Template, x12HtmlSegment);
+
+        Document doc = Jsoup.parse(fullX12Html);
+        Elements loops = doc.select(".x12-loop");
+        Assert.assertEquals(20, loops.size());
+
+        Elements segments = doc.select(".x12-segment");
+        Assert.assertEquals(38, segments.size());
+
+        Elements elements = doc.select(".x12-element");
+        Assert.assertEquals(216, elements.size());
     }
 
     /**

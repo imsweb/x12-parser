@@ -634,6 +634,49 @@ public class Loop implements Iterable<Segment> {
         return dump.toString();
     }
 
+    public String toHtml(LoopDefinition loopDefinition, List<String> parentIds) {
+        StringBuilder dump = new StringBuilder();
+        dump.append("<div id=\"")
+            .append(Separators.getIdString(parentIds))
+            .append("\" class=\"x12-loop\"><p>");
+        dump.append(loopDefinition.getName())
+            .append(" (")
+            .append(loopDefinition.getXid())
+            .append(")</p>");
+
+        ArrayList<String> newParentIds = new ArrayList<>();
+        newParentIds.addAll(parentIds);
+        newParentIds.add(getId());
+
+        Set<Positioned> segmentsAndLoops = new TreeSet<>();
+        if (loopDefinition.getLoop() != null) {
+            segmentsAndLoops.addAll(loopDefinition.getLoop());
+        }
+        if (loopDefinition.getSegment() != null) {
+            segmentsAndLoops.addAll(loopDefinition.getSegment());
+        }
+        for (Positioned positioned : segmentsAndLoops) {
+            if (positioned instanceof SegmentDefinition) {
+                SegmentDefinition segmentDefinition = (SegmentDefinition)positioned;
+                int idx = 0;
+                Segment segment;
+                while ((segment = getSegment(segmentDefinition.getXid(), idx++)) != null) {
+                    dump.append(segment.toHtml(segmentDefinition, newParentIds));
+                }
+            }
+            else if (positioned instanceof LoopDefinition) {
+                LoopDefinition innerLoopDefinition = (LoopDefinition)positioned;
+                int idx = 0;
+                Loop innerLoop;
+                while ((innerLoop = getLoopForPrinting(innerLoopDefinition, idx++)) != null) {
+                    dump.append(innerLoop.toHtml(innerLoopDefinition, newParentIds));
+                }
+            }
+        }
+        dump.append("</div>");
+        return dump.toString();
+    }
+
     /**
      * Send a LoopDefinition and the index of an loop, fetch the loop from the 
      * child loops that matches, given that the parentLoop has this loop as a child.
@@ -715,5 +758,4 @@ public class Loop implements Iterable<Segment> {
     public int hashCode() {
         return Objects.hash(_separators, _id, _segments, _loops, _parent);
     }
-
 }
