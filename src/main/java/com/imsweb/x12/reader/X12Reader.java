@@ -48,6 +48,8 @@ public class X12Reader {
     private static final String _X098_ANSI_VERSION = "004010X098A1";
     private static final String _X222_ANSI_VERSION = "005010X222A1";
     private static final String _X223_ANSI_VERSION = "005010X223A2";
+    private static final String _X231_ANSI_VERSION = "005010X231A1";
+    private static final String _X214_ANSI_VERSION = "005010X214";
     private static final Map<FileType, String> _TYPES = new HashMap<>();
 
     private List<String> _errors = new ArrayList<>();
@@ -67,7 +69,9 @@ public class X12Reader {
         ANSI837_4010_X097("mapping/837.4010.X097.A1.xml"),
         ANSI837_4010_X098("mapping/837.4010.X098.A1.xml"),
         ANSI837_5010_X222("mapping/837.5010.X222.A1.xml"),
-        ANSI837_5010_X223("mapping/837Q3.I.5010.X223.A1.xml");
+        ANSI837_5010_X223("mapping/837Q3.I.5010.X223.A1.xml"),
+        ANSI837_5010_X231("mapping/999.5010.xml"),
+        ANSI837_5010_X214("mapping/277.5010.X214.xml");
 
         private String _mapping;
 
@@ -107,6 +111,8 @@ public class X12Reader {
         _TYPES.put(FileType.ANSI835_5010_X221, _X221_ANSI_VERSION);
         _TYPES.put(FileType.ANSI837_5010_X222, _X222_ANSI_VERSION);
         _TYPES.put(FileType.ANSI837_5010_X223, _X223_ANSI_VERSION);
+        _TYPES.put(FileType.ANSI837_5010_X214, _X214_ANSI_VERSION);
+        _TYPES.put(FileType.ANSI837_5010_X231, _X231_ANSI_VERSION);
     }
 
     /**

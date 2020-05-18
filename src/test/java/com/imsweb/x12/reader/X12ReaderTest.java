@@ -1295,4 +1295,37 @@ public class X12ReaderTest {
         Assert.assertEquals("AETNA", loop.getLoop("2320",0).getLoop("2330B").getSegment(0).getElement("NM103").getValue());
         Assert.assertEquals("ANOTHER NAME", loop.getLoop("2320",1).getLoop("2330B").getSegment(0).getElement("NM103").getValue());
     }
+    
+    @Test
+    public void testX214() throws Exception {
+        URL url = this.getClass().getResource("/837_5010/x12_x214_test.txt");
+        X12Reader reader = new X12Reader(FileType.ANSI837_5010_X214, new File(url.getFile()));
+
+        List<Loop> loops = reader.getLoops();
+        Assert.assertEquals(1, loops.size());
+        Loop loop = reader.getLoops().get(0);
+        assertEquals(1, loop.getLoops().size());
+        Assert.assertEquals("1107000000014420", loop.getLoop("GS_LOOP").getLoop("ST_LOOP").getLoop("DETAIL")
+                .getLoop("2000A")
+                .getLoop("2000B")
+                .getLoop("2000C")
+                .getLoop("2000D")
+                .getLoop("2200D")
+                .getSegment("REF")
+                .getElement("REF02").getValue());
+        
+    }
+    
+    @Test
+    public void testX231() throws Exception {
+        URL url = this.getClass().getResource("/837_5010/x12_x231_test.txt");
+        X12Reader reader = new X12Reader(FileType.ANSI837_5010_X231, new File(url.getFile()));
+
+        List<Loop> loops = reader.getLoops();
+        Assert.assertEquals(1, loops.size());
+        Loop loop = reader.getLoops().get(0);
+        assertEquals(1, loop.getLoops().size());
+        Assert.assertEquals("A", loop.getLoop("GS_LOOP").getLoop("ST_LOOP").getLoop("HEADER").getLoop("2000").getSegment("IK5").getElement("IK501").getValue());
+        
+    }
 }
