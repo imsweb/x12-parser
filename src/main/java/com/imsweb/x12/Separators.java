@@ -1,5 +1,6 @@
 package com.imsweb.x12;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
@@ -8,12 +9,15 @@ import java.util.regex.Pattern;
  */
 public class Separators {
 
+    public static final String HTML_ID_SEPARATOR = "__";
+
     private Character _segment;
     private Character _element;
     private Character _composite;
     private Pattern _segmentPattern;
     private Pattern _elementPattern;
     private Pattern _compositePattern;
+    private LineBreak _lineBreak;
 
     /**
      * Default constructor.
@@ -22,6 +26,7 @@ public class Separators {
         setSegment('~');
         setElement('*');
         setCompositeElement(':');
+        setLineBreak(LineBreak.NONE);
     }
 
     /**
@@ -105,6 +110,31 @@ public class Separators {
 
     public String[] splitComposite(String line) {
         return (line != null && _compositePattern != null) ? _compositePattern.split(line) : null;
+    }
+
+    public LineBreak getLineBreak() {
+        return _lineBreak;
+    }
+
+    public void setLineBreak(LineBreak lineBreak) {
+        this._lineBreak = lineBreak;
+    }
+
+    /**
+     * This method produces an ID string from a list of IDs that is used when creating
+     * HTML contents from the x12 file.
+     * @param idList List of IDs of all parents and current id.
+     * @return An ID string with all the parent ids separated by HTML_ID_SEPARATOR.
+     */
+    public static String getIdString(List<String> idList) {
+        StringBuilder sb = new StringBuilder();
+        for (String id : idList) {
+            if (sb.length() != 0) {
+                sb.append(HTML_ID_SEPARATOR);
+            }
+            sb.append(id);
+        }
+        return sb.toString();
     }
 
     @Override

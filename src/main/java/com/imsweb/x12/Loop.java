@@ -6,8 +6,14 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
+import com.imsweb.x12.converters.ElementConverter;
+import com.imsweb.x12.mapping.LoopDefinition;
+import com.imsweb.x12.mapping.Positioned;
+import com.imsweb.x12.mapping.SegmentDefinition;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
@@ -18,8 +24,6 @@ import com.thoughtworks.xstream.io.xml.PrettyPrintWriter;
 import com.thoughtworks.xstream.io.xml.StaxDriver;
 import com.thoughtworks.xstream.security.NoTypePermission;
 import com.thoughtworks.xstream.security.WildcardTypePermission;
-
-import com.imsweb.x12.converters.ElementConverter;
 
 /**
  * The Loop class is the representation of an Loop in a ANSI X12 transaction. The building block of an X12 transaction is an element. Some
@@ -567,7 +571,9 @@ public class Loop implements Iterable<Segment> {
     }
 
     /**
-     * Returns the Loop in X12 String format. This method is used to convert the X12 object into a X12 transaction.
+     * Returns an X12 String for this loop, but it will not be
+     * properly ordered. For properly ordered X12 string use toX12String.
+     *
      * @return String representation
      */
     @Override
@@ -582,6 +588,114 @@ public class Loop implements Iterable<Segment> {
             dump.append(loop.toString());
 
         return dump.toString();
+    }
+
+    /**
+     * Returns the Loop in X12 String format. This method is used to convert the X12 object into a X12 transaction.
+     * 
+     * This will first go through each segment and will return the properly separated string for the segment.
+     * 
+     * After the segments are seriaized to X12 strings, it will then go through the Loops (in the correct order) and
+     * recursively call this function for the child loops.
+     * 
+     * @param loopDefinition The definition of the loop that we are currently on.
+     * @return String representation The segments from this loop, including child loops.
+     */
+    public String toX12String(LoopDefinition loopDefinition) {
+        StringBuilder dump = new StringBuilder();
+
+        Set<Positioned> segmentsAndLoops = new TreeSet<>();
+        if (loopDefinition.getLoop() != null) {
+            segmentsAndLoops.addAll(loopDefinition.getLoop());
+        }
+        if (loopDefinition.getSegment() != null) {
+            segmentsAndLoops.addAll(loopDefinition.getSegment());
+        }
+        for (Positioned positioned : segmentsAndLoops) {
+            if (positioned instanceof SegmentDefinition) {
+                SegmentDefinition segmentDefinition = (SegmentDefinition)positioned;
+                int idx = 0;
+                Segment segment;
+                while ((segment = getSegment(segmentDefinition.getXid(), idx++)) != null) {
+                    dump.append(segment);
+                    dump.append(_separators.getSegment());
+                    dump.append(_separators.getLineBreak().getLineBreakString());
+                }
+            }
+            else if (positioned instanceof LoopDefinition) {
+                LoopDefinition innerLoopDefinition = (LoopDefinition)positioned;
+                int idx = 0;
+                Loop innerLoop;
+                while ((innerLoop = getLoopForPrinting(innerLoopDefinition, idx++)) != null) {
+                    dump.append(innerLoop.toX12String(innerLoopDefinition));
+                }
+            }
+        }
+        return dump.toString();
+    }
+
+    public String toHtml(LoopDefinition loopDefinition, List<String> parentIds) {
+        StringBuilder dump = new StringBuilder();
+        dump.append("<div id=\"")
+            .append(Separators.getIdString(parentIds))
+            .append("\" class=\"x12-loop\"><p>");
+        dump.append(loopDefinition.getName())
+            .append(" (")
+            .append(loopDefinition.getXid())
+            .append(")</p>");
+
+        ArrayList<String> newParentIds = new ArrayList<>();
+        newParentIds.addAll(parentIds);
+        newParentIds.add(getId());
+
+        Set<Positioned> segmentsAndLoops = new TreeSet<>();
+        if (loopDefinition.getLoop() != null) {
+            segmentsAndLoops.addAll(loopDefinition.getLoop());
+        }
+        if (loopDefinition.getSegment() != null) {
+            segmentsAndLoops.addAll(loopDefinition.getSegment());
+        }
+        for (Positioned positioned : segmentsAndLoops) {
+            if (positioned instanceof SegmentDefinition) {
+                SegmentDefinition segmentDefinition = (SegmentDefinition)positioned;
+                int idx = 0;
+                Segment segment;
+                while ((segment = getSegment(segmentDefinition.getXid(), idx++)) != null) {
+                    dump.append(segment.toHtml(segmentDefinition, newParentIds));
+                }
+            }
+            else if (positioned instanceof LoopDefinition) {
+                LoopDefinition innerLoopDefinition = (LoopDefinition)positioned;
+                int idx = 0;
+                Loop innerLoop;
+                while ((innerLoop = getLoopForPrinting(innerLoopDefinition, idx++)) != null) {
+                    dump.append(innerLoop.toHtml(innerLoopDefinition, newParentIds));
+                }
+            }
+        }
+        dump.append("</div>");
+        return dump.toString();
+    }
+
+    /**
+     * Send a LoopDefinition and the index of an loop, fetch the loop from the 
+     * child loops that matches, given that the parentLoop has this loop as a child.
+     * @param loopDefinition Loop definition for this spot in the x12 document.
+     * @param idx The index of the loops returned thus far.
+     * @return The child loop from the loops, or null otherwise.
+     */
+    private Loop getLoopForPrinting(LoopDefinition loopDefinition, int idx) {
+        Loop loop = getLoop(loopDefinition.getXid(), idx);
+
+        // We need to check that the loop we have gotten from getLoop
+        // is actually a direct child of the current loop we are processing from the
+        // loop definition.
+
+        if (loop != null && _loops.stream().noneMatch(parentLoop -> parentLoop.getId().equals(loop.getId()))) {
+            return null;
+        }
+
+        return loop;
     }
 
     /**
@@ -644,5 +758,4 @@ public class Loop implements Iterable<Segment> {
     public int hashCode() {
         return Objects.hash(_separators, _id, _segments, _loops, _parent);
     }
-
 }

@@ -1,0 +1,31 @@
+.x12-loop {
+    padding-left:20px;
+}
+.x12-loop:before {
+    content: '';
+    background:url('icons/loop.png');
+    background-size:cover;
+    position:absolute;
+    width:16px;
+    height:22px;
+    margin-left:-20px;
+    margin-top: -2px;
+}
+
+.x12-segment {
+    padding-left:24px;
+}
+.x12-segment:before {
+    content: '';
+    background:url('icons/segment.png');
+    background-size:cover;
+    position:absolute;
+    width:22px;
+    height:22px;
+    margin-left:-24px;
+    margin-top: -2px;
+}
+
+.x12-element-name {
+    font-weight: bold
+}

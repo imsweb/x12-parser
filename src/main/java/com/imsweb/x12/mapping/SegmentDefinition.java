@@ -4,16 +4,16 @@
 package com.imsweb.x12.mapping;
 
 import java.util.List;
+import java.util.Objects;
 
+import com.imsweb.x12.mapping.TransactionDefinition.Usage;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 import com.thoughtworks.xstream.annotations.XStreamConverter;
 import com.thoughtworks.xstream.annotations.XStreamImplicit;
 
-import com.imsweb.x12.mapping.TransactionDefinition.Usage;
-
 @XStreamAlias("segment")
-public class SegmentDefinition {
+public class SegmentDefinition implements Positioned {
 
     @XStreamAlias("xid")
     @XStreamAsAttribute
@@ -37,6 +37,7 @@ public class SegmentDefinition {
     @XStreamImplicit
     private List<CompositeDefinition> _composites;
 
+    @Override
     public String getXid() {
         return _xid;
     }
@@ -49,6 +50,7 @@ public class SegmentDefinition {
         return _usage;
     }
 
+    @Override
     public String getPos() {
         return _pos;
     }
@@ -69,4 +71,23 @@ public class SegmentDefinition {
         return _composites;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        SegmentDefinition that = (SegmentDefinition) o;
+        return Objects.equals(_xid, that._xid) &&
+            Objects.equals(_name, that._name) &&
+            _usage == that._usage &&
+            Objects.equals(_pos, that._pos) &&
+            Objects.equals(_maxUse, that._maxUse) &&
+            Objects.equals(_syntax, that._syntax) &&
+            Objects.equals(_elements, that._elements) &&
+            Objects.equals(_composites, that._composites);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(_xid, _name, _usage, _pos, _maxUse, _syntax, _elements, _composites);
+    }
 }
