@@ -1,7 +1,7 @@
 plugins {
     id 'java-library'
     id 'checkstyle'
-    id "com.github.spotbugs" version "4.0.7"
+    id "com.github.spotbugs" version "4.2.0"
     id 'com.bmuschko.nexus' version '2.3.1'          // prepares and copies artifacts to Sonotype OSS
     id "io.codearte.nexus-staging" version "0.21.2"  // logs into Sonotype OSS and does a "Close" and "Release"
     id 'com.adarshr.test-logger' version '2.0.0'
@@ -9,7 +9,7 @@ plugins {
 }
 
 group = 'com.imsweb'
-version = '1.8'
+version = '1.9-SNAPSHOT'
 description = 'Java client library for parsing x12 files'
 
 tasks.withType(JavaCompile) {
@@ -57,7 +57,7 @@ checkstyle {
 }
 
 spotbugs {
-    toolVersion = '3.1.11'
+    toolVersion = '4.0.3'
     excludeFilter = file('config/spotbugs/spotbugs-exclude.xml')
 }
 
@@ -107,6 +107,6 @@ nexusStaging {
 }
 
 wrapper {
-    gradleVersion = '6.3'
+    gradleVersion = '6.4.1'
     distributionType = Wrapper.DistributionType.ALL
 }
