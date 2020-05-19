@@ -1,15 +1,10 @@
 package com.imsweb.x12.reader;
 
-import com.imsweb.x12.LineBreak;
-import com.imsweb.x12.Loop;
-import com.imsweb.x12.mapping.TransactionDefinition;
-import com.imsweb.x12.reader.X12Reader.FileType;
-import org.apache.commons.io.IOUtils;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.select.Elements;
-import org.junit.Assert;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -20,11 +15,18 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import org.apache.commons.io.IOUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
+import org.junit.Assert;
+import org.junit.Test;
+
+import com.imsweb.x12.Element;
+import com.imsweb.x12.LineBreak;
+import com.imsweb.x12.Loop;
+import com.imsweb.x12.mapping.TransactionDefinition;
+import com.imsweb.x12.reader.X12Reader.FileType;
 
 public class X12ReaderTest {
 
@@ -1372,5 +1374,82 @@ public class X12ReaderTest {
         Assert.assertEquals("JANE", loop.getLoop("2320",1).getLoop("2330A").getSegment(0).getElement("NM104").getValue());
         Assert.assertEquals("AETNA", loop.getLoop("2320",0).getLoop("2330B").getSegment(0).getElement("NM103").getValue());
         Assert.assertEquals("ANOTHER NAME", loop.getLoop("2320",1).getLoop("2330B").getSegment(0).getElement("NM103").getValue());
+    }
+    
+    @Test
+    public void test277CAAccepted() throws Exception {
+        URL url = this.getClass().getResource("/837_5010/x12_277CA_accepted.txt");
+        X12Reader reader = new X12Reader(FileType.ANSI837_5010_X214, new File(url.getFile()));
+
+        List<Loop> loops = reader.getLoops();
+        Assert.assertEquals(1, loops.size());
+        Loop loop = reader.getLoops().get(0);
+        assertEquals(1, loop.getLoops().size());
+        Assert.assertEquals("Should be able to find the claim number", "1107000000014420", loop.getLoop("GS_LOOP").getLoop("ST_LOOP").getLoop("DETAIL")
+                .getLoop("2000A")
+                .getLoop("2000B")
+                .getLoop("2000C")
+                .getLoop("2000D")
+                .getLoop("2200D")
+                .getSegment("REF")
+                .getElement("REF02").getValue());
+        Element statusCodeElement = loop.getLoop("GS_LOOP").getLoop("ST_LOOP").getLoop("DETAIL")
+                .getLoop("2000A")
+                .getLoop("2000B")
+                .getLoop("2000C")
+                .getLoop("2000D")
+                .getLoop("2200D")
+                .getSegment("STC")
+                .getElement("STC01");
+        Assert.assertEquals("Should be able to see a approval status code - CSCC", "A2", statusCodeElement.getSubValues().get(0));
+        Assert.assertEquals("Should be able to see a approval status code - CSC", "20", statusCodeElement.getSubValues().get(1));
+    }
+    
+    @Test
+    public void test277CARejected() throws Exception {
+        URL url = this.getClass().getResource("/837_5010/x12_277CA_rejected.txt");
+        X12Reader reader = new X12Reader(FileType.ANSI837_5010_X214, new File(url.getFile()));
+
+        List<Loop> loops = reader.getLoops();
+        Assert.assertEquals(1, loops.size());
+        Loop loop = reader.getLoops().get(0);
+        assertEquals(1, loop.getLoops().size());
+        Element statusCodeElement = loop.getLoop("GS_LOOP").getLoop("ST_LOOP").getLoop("DETAIL")
+                .getLoop("2000A")
+                .getLoop("2000B")
+                .getLoop("2000C")
+                .getLoop("2000D")
+                .getLoop("2200D")
+                .getSegment("STC")
+                .getElement("STC01");
+        Assert.assertEquals("Should be able to see a approval status code - CSCC", "A7", statusCodeElement.getSubValues().get(0));
+        Assert.assertEquals("Should be able to see a approval status code - CSC", "562", statusCodeElement.getSubValues().get(1));
+        Assert.assertEquals("Should be able to see a approval status code - EIC", "85", statusCodeElement.getSubValues().get(2));
+    }
+    
+    @Test
+    public void test999Accepted() throws Exception {
+        URL url = this.getClass().getResource("/837_5010/x12_999_accepted.txt");
+        X12Reader reader = new X12Reader(FileType.ANSI837_5010_X231, new File(url.getFile()));
+
+        List<Loop> loops = reader.getLoops();
+        Assert.assertEquals(1, loops.size());
+        Loop loop = reader.getLoops().get(0);
+        assertEquals(1, loop.getLoops().size());
+        Assert.assertEquals("A", loop.getLoop("GS_LOOP").getLoop("ST_LOOP").getLoop("HEADER").getLoop("2000").getSegment("IK5").getElement("IK501").getValue());
+        
+    }
+    
+    @Test
+    public void test999Rejected() throws Exception {
+        URL url = this.getClass().getResource("/837_5010/x12_999_rejected.txt");
+        X12Reader reader = new X12Reader(FileType.ANSI837_5010_X231, new File(url.getFile()));
+
+        List<Loop> loops = reader.getLoops();
+        Assert.assertEquals(1, loops.size());
+        Loop loop = reader.getLoops().get(0);
+        assertEquals(1, loop.getLoops().size());
+        Assert.assertEquals("R", loop.getLoop("GS_LOOP").getLoop("ST_LOOP").getLoop("HEADER").getLoop("2000").getSegment("IK5").getElement("IK501").getValue());
+        
     }
 }

@@ -120,6 +120,7 @@
         <seq>11</seq>
         <valid_codes>
           <code>U</code>
+          <code>^</code>
         </valid_codes>
       </element>
       <element xid="ISA12">
@@ -129,6 +130,7 @@
         <seq>12</seq>
         <valid_codes>
           <code>00401</code>
+          <code>00501</code>
         </valid_codes>
       </element>
       <element xid="ISA13">
