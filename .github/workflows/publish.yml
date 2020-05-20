@@ -7,9 +7,8 @@ name: publish
 on:
   repository_dispatch:
     types: manual-publish
-# once all is working, also trigger when release is created
-#  release:
-#    types: [created]
+  release:
+    types: [created]
 
 jobs:
   publish:
