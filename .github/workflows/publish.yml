@@ -26,7 +26,7 @@ jobs:
       - id: install-secret-key
         name: Install gpg secret key
         run: cat <(echo -e "${{ secrets.SEER_GPG_SECRET_KEY }}") | gpg --batch --import
-      - name: Build with Gradle
+      - name: Publish
         run: ./gradlew uploadArchives closeAndReleaseRepository
         env:
           ORG_GRADLE_PROJECT_signing.keyId: ${{ secrets.SEER_GPG_KEYID }}
