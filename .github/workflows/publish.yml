@@ -7,8 +7,8 @@ name: publish
 on:
   repository_dispatch:
     types: manual-publish
-  release:
-    types: [created]
+#  release:
+#    types: [created]
 
 jobs:
   publish:
@@ -27,10 +27,7 @@ jobs:
         name: Install gpg secret key
         run: cat <(echo -e "${{ secrets.SEER_GPG_SECRET_KEY }}") | gpg --batch --import
       - name: Publish
-        run: ./gradlew uploadArchives closeAndReleaseRepository
+        run: ./gradlew uploadArchives closeAndReleaseRepository -Psigning.keyId=${{ secrets.SEER_GPG_KEYID }} -Psigning.password=${{ secrets.SEER_GPG_PASSWORD }} -Psigning.secretKeyRingFile=${{ secrets.SEER_GPG_KEYRING_FILE }}
         env:
-          ORG_GRADLE_PROJECT_signing.keyId: ${{ secrets.SEER_GPG_KEYID }}
-          ORG_GRADLE_PROJECT_signing.password: ${{ secrets.SEER_GPG_PASSWORD }}
-          ORG_GRADLE_PROJECT_signing.secretKeyRingFile: ${{ secrets.SEER_GPG_KEYRING_FILE }}
           ORG_GRADLE_PROJECT_nexusUsername: ${{ secrets.NEXUS_USERNAME }}
           ORG_GRADLE_PROJECT_nexusPassword: ${{ secrets.NEXUS_PASSWORD }}
