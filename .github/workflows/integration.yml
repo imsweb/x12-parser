@@ -25,5 +25,3 @@ jobs:
         run: chmod +x gradlew
       - name: Build with Gradle
         run: ./gradlew build
-        env:
-          SEER_API_KEY: ${{ secrets.SEER_API_KEY }}
