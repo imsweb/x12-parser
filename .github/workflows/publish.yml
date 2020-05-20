@@ -31,6 +31,6 @@ jobs:
         env:
           ORG_GRADLE_PROJECT_signing.keyId: ${{ secrets.SEER_GPG_KEYID }}
           ORG_GRADLE_PROJECT_signing.password: ${{ secrets.SEER_GPG_PASSWORD }}
-          ORG_GRADLE_PROJECT_signing.secretKeyRingFile: ${{ secrets.SEER_GPG_SECRET_KEYRING_FILE }}
+          ORG_GRADLE_PROJECT_signing.secretKeyRingFile: ${{ secrets.SEER_GPG_KEYRING_FILE }}
           ORG_GRADLE_PROJECT_nexusUsername: ${{ secrets.NEXUS_USERNAME }}
           ORG_GRADLE_PROJECT_nexusPassword: ${{ secrets.NEXUS_PASSWORD }}
