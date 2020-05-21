@@ -31,6 +31,8 @@ repositories {
 }
 
 dependencies {
+    spotbugs 'com.github.spotbugs:spotbugs:4.0.3'
+
     api 'com.thoughtworks.xstream:xstream:1.4.12'
 
     testImplementation 'junit:junit:4.13'
@@ -57,7 +59,6 @@ checkstyle {
 }
 
 spotbugs {
-    toolVersion = '4.0.3'
     excludeFilter = file('config/spotbugs/spotbugs-exclude.xml')
 }
 
