@@ -2,7 +2,8 @@ plugins {
     id 'java-library'
     id 'checkstyle'
     id "com.github.spotbugs" version "4.2.1"
-    id 'com.bmuschko.nexus' version '2.3.1'          // prepares and copies artifacts to Sonotype OSS
+    id 'maven-publish'
+    id 'signing'
     id "io.codearte.nexus-staging" version "0.21.2"  // logs into Sonotype OSS and does a "Close" and "Release"
     id 'com.adarshr.test-logger' version '2.0.0'
     id "com.github.ben-manes.versions" version "0.28.0"
@@ -20,6 +21,9 @@ tasks.withType(JavaCompile) {
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
+
+    withJavadocJar()
+    withSourcesJar()
 }
 
 repositories {
@@ -27,6 +31,8 @@ repositories {
 }
 
 dependencies {
+    spotbugs 'com.github.spotbugs:spotbugs:4.0.3'
+
     api 'com.thoughtworks.xstream:xstream:1.4.12'
 
     testImplementation 'junit:junit:4.13'
@@ -48,59 +54,98 @@ jar {
     }
 }
 
-testlogger {
-    theme 'mocha'
-}
-
 checkstyle {
     configFile = file('config/checkstyle/checkstyle.xml')
 }
 
 spotbugs {
-    toolVersion = '4.0.3'
     excludeFilter = file('config/spotbugs/spotbugs-exclude.xml')
 }
 
 // don't try to release a snapshot to a non-snapshot repository, that won't work anyway
-if (version.endsWith('-SNAPSHOT'))
+if (version.endsWith('-SNAPSHOT')) {
+    gradle.startParameter.excludedTaskNames += 'signMavenJavaPublication'
     gradle.startParameter.excludedTaskNames += 'closeAndReleaseRepository'
+}
 
-modifyPom {
-    project {
-        name 'X12 Parser'
-        description 'A Java library for parsing X12 files, including ANSI 837'
-        url 'https://github.com/imsweb/x12-parser'
-        inceptionYear '2015'
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = 'x12-parser'
+            from components.java
+            versionMapping {
+                usage('java-api') {
+                    fromResolutionOf('runtimeClasspath')
+                }
+                usage('java-runtime') {
+                    fromResolutionResult()
+                }
+            }
+            pom {
+                name = 'X12 Parser'
+                description = 'A Java library for parsing X12 files, including ANSI 837'
+                url = 'https://github.com/imsweb/x12-parser'
+                inceptionYear = '2015'
 
-        scm {
-            url 'https://github.com/imsweb/x12-parser'
-            connection 'scm:https://github.com/imsweb/x12-parser.git'
-            developerConnection 'scm:git@github.com:imsweb/x12-parser.git'
-        }
+                licenses {
+                    license {
+                        name = 'A modified BSD License (BSD)'
+                        url = 'https://github.com/imsweb/x12-parser/blob/master/LICENSE'
+                        distribution = 'repo'
+                    }
+                }
 
-        licenses {
-            license {
-                name 'A modified BSD License (BSD)'
-                url 'https://github.com/imsweb/x12-parser/blob/master/LICENSE'
-                distribution 'repo'
+                developers {
+                    developer {
+                        id = 'AngelaszekD'
+                        name = 'David Angelaszek'
+                        email = 'AngelaszekD@imsweb.com'
+                    }
+                    developer {
+                        id = 'ctmay4'
+                        name = 'Chuck May'
+                        email = 'mayc@imsweb.com'
+                    }
+                }
+
+                scm {
+                    url = 'https://github.com/imsweb/x12-parser'
+                    connection = 'scm:https://github.com/imsweb/x12-parser.git'
+                    developerConnection = 'scm:git@github.com:imsweb/x12-parser.git'
+                }
             }
         }
+    }
+    repositories {
+        maven {
+            def releasesRepoUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2"
+            def snapshotsRepoUrl = "https://oss.sonatype.org/content/repositories/snapshots"
+            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
 
-        developers {
-            developer {
-                id 'AngelaszekD'
-                name 'David Angelaszek'
-                email 'AngelaszekD@imsweb.com'
-            }
-            developer {
-                id 'ctmay4'
-                name 'Chuck May'
-                email 'mayc@imsweb.com'
+            credentials {
+                username = project.findProperty('nexusUsername') ?: ''
+                password = project.findProperty('nexusPassword') ?: ''
             }
         }
     }
 }
 
+signing {
+    def signingKey = project.findProperty('signingKey') ?: ''
+    def signingPassword = project.findProperty('signingPassword') ?: ''
+
+    useInMemoryPgpKeys(signingKey, signingPassword)
+
+    sign publishing.publications.mavenJava
+}
+
+javadoc {
+    if (JavaVersion.current().isJava9Compatible()) {
+        options.addBooleanOption('html5', true)
+    }
+}
+
+// configure nexus staging plugin
 nexusStaging {
     numberOfRetries = 50
     delayBetweenRetriesInMillis = 5000
