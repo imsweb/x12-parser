@@ -1090,6 +1090,7 @@
                     <usage>R</usage>
                     <seq>04</seq>
                     <valid_codes>
+                      <code>0</code>
                       <code>1</code>
                     </valid_codes>
                   </element>
