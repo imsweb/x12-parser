@@ -37,7 +37,7 @@ dependencies {
     api 'com.thoughtworks.xstream:xstream:1.4.12'
 
     testImplementation 'junit:junit:4.13'
-    testImplementation 'commons-io:commons-io:2.6'
+    testImplementation 'commons-io:commons-io:2.7'
     testImplementation 'org.jsoup:jsoup:1.13.1'
 }
 
@@ -160,6 +160,6 @@ nexusStaging {
 }
 
 wrapper {
-    gradleVersion = '6.4.1'
+    gradleVersion = '6.5'
     distributionType = Wrapper.DistributionType.ALL
 }
