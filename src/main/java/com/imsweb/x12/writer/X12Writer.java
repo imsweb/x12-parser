@@ -15,26 +15,26 @@ import com.imsweb.x12.reader.X12Reader.FileType;
 
 public class X12Writer {
     
-    private static List<Loop> _dataLoops;
-    private static Separators _separators;
-    private static TransactionDefinition _definition;
+    private static List<Loop> _DATA_LOOPS;
+    private static Separators _SEPARATORS;
+    private static TransactionDefinition _DEFINITION;
 
     public X12Writer(FileType fileType, List<Loop> loops, Separators separators) {
-        _dataLoops = loops;
-        _definition = fileType.getDefinition();
-        _separators = separators;
+        _DATA_LOOPS = loops;
+        _DEFINITION = fileType.getDefinition();
+        _SEPARATORS = separators;
     }
     
     public X12Writer(FileType fileType, List<Loop> loops) {
-        _dataLoops = loops;
-        _definition = fileType.getDefinition();
-        _separators = new Separators();
+        _DATA_LOOPS = loops;
+        _DEFINITION = fileType.getDefinition();
+        _SEPARATORS = new Separators();
     }
     
     public X12Writer(X12Reader reader) {
-        _dataLoops = reader.getLoops();
-        _definition = reader.getDefinition();
-        _separators = reader.getSeparators();
+        _DATA_LOOPS = reader.getLoops();
+        _DEFINITION = reader.getDefinition();
+        _SEPARATORS = reader.getSeparators();
     }
 
 
@@ -55,15 +55,15 @@ public class X12Writer {
      * @return X12 formatted string representing this X12 reader.
      */
     public String toX12String(LineBreak lineBreak) {
-        _separators.setLineBreak(lineBreak);
+        _SEPARATORS.setLineBreak(lineBreak);
         return toX12StringImpl();
     }
 
     private String toX12StringImpl() {
         StringBuilder builder = new StringBuilder();
-        for (Loop loop : _dataLoops) {
-            builder.append(loop.toX12String(_definition.getLoop()));
-            builder.append(_separators.getLineBreak().getLineBreakString());
+        for (Loop loop : _DATA_LOOPS) {
+            builder.append(loop.toX12String(_DEFINITION.getLoop()));
+            builder.append(_SEPARATORS.getLineBreak().getLineBreakString());
         }
         return builder.toString();
     }
@@ -75,8 +75,8 @@ public class X12Writer {
      */
     public String toHtml() {
         StringBuilder builder = new StringBuilder();
-        for (Loop loop : _dataLoops) {
-            builder.append(loop.toHtml(_definition.getLoop(), new ArrayList<>()));
+        for (Loop loop : _DATA_LOOPS) {
+            builder.append(loop.toHtml(_DEFINITION.getLoop(), new ArrayList<>()));
         }
         return builder.toString();
     }

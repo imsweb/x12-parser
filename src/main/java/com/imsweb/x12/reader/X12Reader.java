@@ -19,7 +19,6 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import com.imsweb.x12.LineBreak;
 import com.imsweb.x12.Loop;
 import com.imsweb.x12.Segment;
 import com.imsweb.x12.Separators;
