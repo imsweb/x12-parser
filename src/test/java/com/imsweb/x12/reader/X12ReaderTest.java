@@ -15,20 +15,13 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import org.apache.commons.io.IOUtils;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.select.Elements;
 import org.junit.Assert;
 import org.junit.Test;
 
 import com.imsweb.x12.Element;
-import com.imsweb.x12.LineBreak;
 import com.imsweb.x12.Loop;
-import com.imsweb.x12.X12;
 import com.imsweb.x12.mapping.TransactionDefinition;
 import com.imsweb.x12.reader.X12Reader.FileType;
-import com.imsweb.x12.writer.X12Writer;
 
 public class X12ReaderTest {
 
@@ -53,7 +46,7 @@ public class X12ReaderTest {
         assertEquals(fromFileUtf8.getLoops().get(0).toString(), fromInputStreamUtf8.getLoops().get(0).toString());
         assertEquals(fromFileUtf8.getLoops().get(0).toString(), fromReaderUtf8.getLoops().get(0).toString());
     }
-    
+
     @Test
     public void testMultipleGSLoops() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_multiple_gs.txt");
@@ -146,7 +139,7 @@ public class X12ReaderTest {
 
         validate837Valid(reader.getLoops().get(0));
     }
-    
+
     @Test
     public void testBadValidCode() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_bad_valid_code.txt");
@@ -944,14 +937,14 @@ public class X12ReaderTest {
         assertNotNull(loop.getLoop("ST_LOOP", 0).getSegment("ST"));
         assertEquals("837", loop.getLoop("ST_LOOP", 0).getSegment("ST").getElementValue("ST01"));
         assertEquals("987654", loop.getLoop("ST_LOOP", 0).getSegment("ST").getElementValue("ST02"));
-        assertNotNull(loop.getLoop("ST_LOOP",0).getSegment("SE"));
+        assertNotNull(loop.getLoop("ST_LOOP", 0).getSegment("SE"));
         assertEquals("25", loop.getLoop("ST_LOOP", 0).getSegment("SE").getElementValue("SE01"));
         assertEquals("987654", loop.getLoop("ST_LOOP", 0).getSegment("SE").getElementValue("SE02"));
 
         assertNotNull(loop.getLoop("ST_LOOP", 1).getSegment("ST"));
         assertEquals("837", loop.getLoop("ST_LOOP", 1).getSegment("ST").getElementValue("ST01"));
         assertEquals("987655", loop.getLoop("ST_LOOP", 1).getSegment("ST").getElementValue("ST02"));
-        assertNotNull(loop.getLoop("ST_LOOP",1).getSegment("SE"));
+        assertNotNull(loop.getLoop("ST_LOOP", 1).getSegment("SE"));
         assertEquals("26", loop.getLoop("ST_LOOP", 1).getSegment("SE").getElementValue("SE01"));
         assertEquals("987655", loop.getLoop("ST_LOOP", 1).getSegment("SE").getElementValue("SE02"));
 
@@ -1295,14 +1288,14 @@ public class X12ReaderTest {
         Assert.assertEquals(1, loop.getLoop("2000B").getLoop("2320", 0).findLoop("2330B").size());
         Assert.assertEquals(1, loop.getLoop("2000B").getLoop("2320", 1).findLoop("2330A").size());
         Assert.assertEquals(1, loop.getLoop("2000B").getLoop("2320", 1).findLoop("2330B").size());
-        Assert.assertEquals("S", loop.getLoop("2320",0).getSegment(0).getElement("SBR01").getValue());
-        Assert.assertEquals("T", loop.getLoop("2320",1).getSegment(0).getElement("SBR01").getValue());
-        Assert.assertEquals("JOHN", loop.getLoop("2320",0).getLoop("2330A").getSegment(0).getElement("NM104").getValue());
-        Assert.assertEquals("JANE", loop.getLoop("2320",1).getLoop("2330A").getSegment(0).getElement("NM104").getValue());
-        Assert.assertEquals("AETNA", loop.getLoop("2320",0).getLoop("2330B").getSegment(0).getElement("NM103").getValue());
-        Assert.assertEquals("ANOTHER NAME", loop.getLoop("2320",1).getLoop("2330B").getSegment(0).getElement("NM103").getValue());
+        Assert.assertEquals("S", loop.getLoop("2320", 0).getSegment(0).getElement("SBR01").getValue());
+        Assert.assertEquals("T", loop.getLoop("2320", 1).getSegment(0).getElement("SBR01").getValue());
+        Assert.assertEquals("JOHN", loop.getLoop("2320", 0).getLoop("2330A").getSegment(0).getElement("NM104").getValue());
+        Assert.assertEquals("JANE", loop.getLoop("2320", 1).getLoop("2330A").getSegment(0).getElement("NM104").getValue());
+        Assert.assertEquals("AETNA", loop.getLoop("2320", 0).getLoop("2330B").getSegment(0).getElement("NM103").getValue());
+        Assert.assertEquals("ANOTHER NAME", loop.getLoop("2320", 1).getLoop("2330B").getSegment(0).getElement("NM103").getValue());
     }
-    
+
     @Test
     public void test277CAAccepted() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_277CA_accepted.txt");
@@ -1331,7 +1324,7 @@ public class X12ReaderTest {
         Assert.assertEquals("Should be able to see a approval status code - CSCC", "A2", statusCodeElement.getSubValues().get(0));
         Assert.assertEquals("Should be able to see a approval status code - CSC", "20", statusCodeElement.getSubValues().get(1));
     }
-    
+
     @Test
     public void test277CARejected() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_277CA_rejected.txt");
@@ -1353,7 +1346,7 @@ public class X12ReaderTest {
         Assert.assertEquals("Should be able to see a approval status code - CSC", "562", statusCodeElement.getSubValues().get(1));
         Assert.assertEquals("Should be able to see a approval status code - EIC", "85", statusCodeElement.getSubValues().get(2));
     }
-    
+
     @Test
     public void test999Accepted() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_999_accepted.txt");
@@ -1364,9 +1357,9 @@ public class X12ReaderTest {
         Loop loop = reader.getLoops().get(0);
         assertEquals(1, loop.getLoops().size());
         Assert.assertEquals("A", loop.getLoop("GS_LOOP").getLoop("ST_LOOP").getLoop("HEADER").getLoop("2000").getSegment("IK5").getElement("IK501").getValue());
-        
+
     }
-    
+
     @Test
     public void test999Rejected() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_999_rejected.txt");
@@ -1377,6 +1370,6 @@ public class X12ReaderTest {
         Loop loop = reader.getLoops().get(0);
         assertEquals(1, loop.getLoops().size());
         Assert.assertEquals("R", loop.getLoop("GS_LOOP").getLoop("ST_LOOP").getLoop("HEADER").getLoop("2000").getSegment("IK5").getElement("IK501").getValue());
-        
+
     }
 }
