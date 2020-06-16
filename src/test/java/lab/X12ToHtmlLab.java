@@ -1,6 +1,8 @@
 package lab;
 
 import com.imsweb.x12.reader.X12Reader;
+import com.imsweb.x12.writer.X12Writer;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
@@ -37,7 +39,8 @@ public class X12ToHtmlLab {
 
         String x12Template = IOUtils.toString(getClass().getResourceAsStream("/html/x12-template.html"), StandardCharsets.UTF_8);
 
-        String x12HtmlSegment = fromFileUtf8.toHtml();
+        X12Writer writer = new X12Writer(fromFileUtf8);
+        String x12HtmlSegment = writer.toHtml();
 
         String fullX12Html = String.format(x12Template, x12HtmlSegment);
 
