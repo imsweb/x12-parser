@@ -106,8 +106,20 @@ public class X12WriterTest {
 
     @Test
     public void testPrintFromLoop() throws Exception {
+        String expected = IOUtils
+                .toString(this.getClass().getResourceAsStream("/837_5010/x12_writer_test.txt"), StandardCharsets.UTF_8)
+                .trim();
+
+        LineBreak lineBreak;
+        if (expected.contains(LineBreak.CRLF.getLineBreakString())) {
+            lineBreak = LineBreak.CRLF;
+        }
+        else {
+            lineBreak = LineBreak.LF;
+        }
+
         Separators separators = new Separators();
-        separators.setLineBreak(LineBreak.CRLF);
+        separators.setLineBreak(lineBreak);
         Loop isaLoop = new Loop(separators, "ISA_LOOP");
         Segment segment = new Segment("ISA");
         addElement(segment, "01", "00");
@@ -385,11 +397,7 @@ public class X12WriterTest {
         stLoop.getLoops().add(detail);
 
         X12Writer writer = new X12Writer(FileType.ANSI837_5010_X222, Collections.singletonList(isaLoop), separators);
-        String writerResult = writer.toX12String(LineBreak.CRLF).trim();
-
-        String expected = IOUtils
-                .toString(this.getClass().getResourceAsStream("/837_5010/x12_writer_test.txt"), StandardCharsets.UTF_8)
-                .trim();
+        String writerResult = writer.toX12String(lineBreak).trim();
         
         Assert.assertEquals(expected, writerResult);
     }
