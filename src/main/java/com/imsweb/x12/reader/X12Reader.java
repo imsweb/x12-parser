@@ -19,7 +19,6 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import com.imsweb.x12.LineBreak;
 import com.imsweb.x12.Loop;
 import com.imsweb.x12.Segment;
 import com.imsweb.x12.Separators;
@@ -36,10 +35,10 @@ import com.thoughtworks.xstream.security.WildcardTypePermission;
 
 public class X12Reader {
 
-    private static int _ISA_LENGTH = 106;
-    private static int _ELEMENT_SEPARATOR_POS = 3; // array position
-    private static int _COMPOSITE_SEPARATOR_POS = 104; // array position
-    private static int _SEGMENT_SEPARATOR_POS = 105; // array position
+    private static final int _ISA_LENGTH = 106;
+    private static final int _ELEMENT_SEPARATOR_POS = 3; // array position
+    private static final int _COMPOSITE_SEPARATOR_POS = 104; // array position
+    private static final int _SEGMENT_SEPARATOR_POS = 105; // array position
 
     private static final String _X091_ANSI_VERSION = "004010X091A1";
     private static final String _X221_ANSI_VERSION = "005010X221A1";
@@ -59,6 +58,7 @@ public class X12Reader {
     private Map<String, List<Set<String>>> _childLoopTracker = new HashMap<>();
     private Separators _separators;
     TransactionDefinition _definition;
+    private FileType _type;
 
     /**
      * All supported X12 file definitions
@@ -86,7 +86,7 @@ public class X12Reader {
          * Load definition from file
          * @return a TransactionDefinition
          */
-        protected synchronized TransactionDefinition getDefinition() {
+        public synchronized TransactionDefinition getDefinition() {
             if (!_DEFINITIONS.containsKey(_mapping)) {
                 XStream xstream = new XStream(new StaxDriver());
                 xstream.autodetectAnnotations(true);
@@ -103,8 +103,6 @@ public class X12Reader {
             return _DEFINITIONS.get(_mapping);
         }
     }
-
-    private FileType _type;
 
     static {
         _TYPES.put(FileType.ANSI835_4010_X091, _X091_ANSI_VERSION);
@@ -178,40 +176,9 @@ public class X12Reader {
         else
             parse(reader);
     }
-    
-    /**
-     * Gets an X12 formatted string representing this X12 reader. Will use no line
-     * breaks after separators.
-     * 
-     * @return X12 formatted string representing this X12 reader.
-     */
-    public String toX12String() {
-        _separators.setLineBreak(LineBreak.NONE);
-        return toX12StringImpl();
-    }
 
-    /**
-     * Gets an X12 formatted string representing this X12 reader.
-     * 
-     * @param lineBreak Line break to use for separators.
-     * @return X12 formatted string representing this X12 reader.
-     */
-    public String toX12String(LineBreak lineBreak) {
-        _separators.setLineBreak(lineBreak);
-        return toX12StringImpl();
-    }
-
-    /**
-     * To HTML string will create an HTML segment from this X12 file.
-     *
-     * @return Human readable html segment representation of the X12 file.
-     */
-    public String toHtml() {
-        StringBuilder builder = new StringBuilder();
-        for (Loop loop : _dataLoops) {
-            builder.append(loop.toHtml(_definition.getLoop(), new ArrayList<>()));
-        }
-        return builder.toString();
+    public TransactionDefinition getDefinition() {
+        return _definition;
     }
 
     /**
@@ -1071,14 +1038,5 @@ public class X12Reader {
         }
 
         return requiredPositions;
-    }
-
-    private String toX12StringImpl() {
-        StringBuilder builder = new StringBuilder();
-        for (Loop loop : _dataLoops) {
-            builder.append(loop.toX12String(_definition.getLoop()));
-            builder.append(_separators.getLineBreak().getLineBreakString());
-        }
-        return builder.toString();
     }
 }

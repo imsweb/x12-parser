@@ -39,6 +39,7 @@ public class Separators {
         setSegment(segment);
         setElement(element);
         setCompositeElement(composite);
+        setLineBreak(LineBreak.NONE);
     }
 
     /**
