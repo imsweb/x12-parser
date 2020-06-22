@@ -1,7 +1,7 @@
 plugins {
     id 'java-library'
     id 'checkstyle'
-    id "com.github.spotbugs" version "4.3.0"
+    id "com.github.spotbugs" version "4.4.2"
     id 'maven-publish'
     id 'signing'
     id "io.codearte.nexus-staging" version "0.21.2"  // logs into Sonotype OSS and does a "Close" and "Release"
@@ -11,7 +11,7 @@ plugins {
 }
 
 group = 'com.imsweb'
-version = '1.10-SNAPSHOT'
+version = '1.10'
 description = 'Java client library for parsing x12 files'
 
 tasks.withType(JavaCompile) {
@@ -32,7 +32,7 @@ repositories {
 }
 
 dependencies {
-    spotbugs 'com.github.spotbugs:spotbugs:4.0.4'
+    spotbugs 'com.github.spotbugs:spotbugs:4.0.5'
 
     api 'com.thoughtworks.xstream:xstream:1.4.12'
 
