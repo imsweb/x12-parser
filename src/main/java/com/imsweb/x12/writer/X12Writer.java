@@ -85,6 +85,7 @@ public class X12Writer {
     /**
      * To HTML string will create an HTML segment from this nth data loop in this X12 file.
      *
+     * @param dataLoopIndex The index of the data loop to return.
      * @return Human readable html segment representation of the X12 file of the nth data loop.
      */
     public String toHtml(int dataLoopIndex) {
