@@ -77,6 +77,9 @@ public class X12WriterTest {
 
         Elements elements = doc.select(".x12-element");
         Assert.assertEquals(216, elements.size());
+
+        Elements inputTexts = doc.select(".x12-element-input-text");
+        Assert.assertEquals(216, inputTexts.size());
     }
 
     /**
