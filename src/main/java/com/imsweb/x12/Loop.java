@@ -634,19 +634,26 @@ public class Loop implements Iterable<Segment> {
         return dump.toString();
     }
 
-    public String toHtml(LoopDefinition loopDefinition, List<String> parentIds) {
+    public String toHtml(LoopDefinition loopDefinition, List<String> parentIds, int rootLoopIndex) {
+        List<String> newParentIds = new ArrayList<>();
+        newParentIds.addAll(parentIds);
+        newParentIds.add(Separators.htmlId(this));
+
         StringBuilder dump = new StringBuilder();
+
+        if (parentIds.isEmpty()) {
+            dump.append(String.format("<div class=\"x12-data-loop-container\" id=\"data_loop_%d\">", rootLoopIndex));
+        }
+
         dump.append("<div id=\"")
-            .append(Separators.getIdString(parentIds))
-            .append("\" class=\"x12-loop\"><p>");
-        dump.append(loopDefinition.getName())
+            .append(Separators.getIdString(newParentIds))
+            .append("\" title=\"")
+            .append(Separators.getReadableParentList(newParentIds))
+            .append("\" class=\"x12-loop\"><p>")
+            .append(loopDefinition.getName())
             .append(" (")
             .append(loopDefinition.getXid())
             .append(")</p>");
-
-        ArrayList<String> newParentIds = new ArrayList<>();
-        newParentIds.addAll(parentIds);
-        newParentIds.add(getId());
 
         Set<Positioned> segmentsAndLoops = new TreeSet<>();
         if (loopDefinition.getLoop() != null) {
@@ -669,11 +676,14 @@ public class Loop implements Iterable<Segment> {
                 int idx = 0;
                 Loop innerLoop;
                 while ((innerLoop = getLoopForPrinting(innerLoopDefinition, idx++)) != null) {
-                    dump.append(innerLoop.toHtml(innerLoopDefinition, newParentIds));
+                    dump.append(innerLoop.toHtml(innerLoopDefinition, newParentIds, rootLoopIndex));
                 }
             }
         }
         dump.append("</div>");
+        if (parentIds.isEmpty()) {
+            dump.append("</div>");
+        }
         return dump.toString();
     }
 

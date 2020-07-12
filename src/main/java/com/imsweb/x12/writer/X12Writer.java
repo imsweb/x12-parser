@@ -75,9 +75,21 @@ public class X12Writer {
      */
     public String toHtml() {
         StringBuilder builder = new StringBuilder();
+        int idx = 0;
         for (Loop loop : _dataLoops) {
-            builder.append(loop.toHtml(_definition.getLoop(), new ArrayList<>()));
+            builder.append(loop.toHtml(_definition.getLoop(), new ArrayList<>(), idx++));
         }
+        return builder.toString();
+    }
+
+    /**
+     * To HTML string will create an HTML segment from this nth data loop in this X12 file.
+     *
+     * @return Human readable html segment representation of the X12 file of the nth data loop.
+     */
+    public String toHtml(int dataLoopIndex) {
+        StringBuilder builder = new StringBuilder();
+        builder.append(_dataLoops.get(dataLoopIndex).toHtml(_definition.getLoop(), new ArrayList<>(), dataLoopIndex));
         return builder.toString();
     }
 }

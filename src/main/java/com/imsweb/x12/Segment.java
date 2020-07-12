@@ -311,11 +311,13 @@ public class Segment implements Iterable<Element> {
     public String toHtml(SegmentDefinition segmentDefinition, List<String> parentIds) {
         ArrayList<String> newParentIds = new ArrayList<>();
         newParentIds.addAll(parentIds);
-        newParentIds.add(getId());
+        newParentIds.add(Separators.htmlId(this));
 
         StringBuilder output = new StringBuilder();
         output.append("<div id=\"")
-            .append(Separators.getIdString(parentIds))
+            .append(Separators.getIdString(newParentIds))
+            .append("\" title=\"")
+            .append(Separators.getReadableParentList(newParentIds))
             .append("\" class=\"x12-segment\">");
         output.append("<p>").append(segmentDefinition.getName()).append(" (").append(_id).append(")</p>");
         for (Element e : _elements) {

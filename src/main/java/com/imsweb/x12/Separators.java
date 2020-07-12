@@ -10,6 +10,7 @@ import java.util.regex.Pattern;
 public class Separators {
 
     public static final String HTML_ID_SEPARATOR = "__";
+    public static final String READABLE_PATH_SEPARATOR = " -> ";
 
     private Character _segment;
     private Character _element;
@@ -121,11 +122,46 @@ public class Separators {
         this._lineBreak = lineBreak;
     }
 
+    public static String htmlId(Object loopSegmentOrElement) {
+        if (loopSegmentOrElement instanceof Loop) {
+            return String.format("L:%s", ((Loop)loopSegmentOrElement).getId());
+        } else if (loopSegmentOrElement instanceof Segment) {
+            return String.format("S:%s", ((Segment)loopSegmentOrElement).getId());
+        } else if (loopSegmentOrElement instanceof Element) {
+            return String.format("E:%s", ((Element)loopSegmentOrElement).getId());
+        }
+        return null;
+    }
+
+    /**
+     * This method produces a human readable string of the hierarchy for this X12 entity.
+     * @param idList List of IDs of all parents and current id.
+     * @return A human readable string that can be used in HTML markup to display the 'path' to an x12 loop, segment or element.
+     */
+    public static String getReadableParentList(List<String> idList) {
+        StringBuilder sb = new StringBuilder();
+        for (String id : idList) {
+            if (sb.length() != 0) {
+                sb.append(READABLE_PATH_SEPARATOR);
+            }
+            String [] elementSplit = id.split(":");
+            if (elementSplit[0].equals("L")) {
+                sb.append("Loop ");
+            } else if (elementSplit[0].equals("S")) {
+                sb.append("Segment ");
+            } else if (elementSplit[0].equals("E")) {
+                sb.append("Element ");
+            }
+            sb.append(elementSplit[1]);
+        }
+        return sb.toString();
+    }
+
     /**
      * This method produces an ID string from a list of IDs that is used when creating
-     * HTML contents from the x12 file.
+     * HTML contents from the x12 file. Used
      * @param idList List of IDs of all parents and current id.
-     * @return An ID string with all the parent ids separated by HTML_ID_SEPARATOR.
+     * @return An ID string with all the ids separated by HTML_ID_SEPARATOR.
      */
     public static String getIdString(List<String> idList) {
         StringBuilder sb = new StringBuilder();

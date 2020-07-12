@@ -80,6 +80,60 @@ public class X12WriterTest {
     }
 
     /**
+     * Tests the toHtml method that
+     */
+    @Test
+    public void testToHtmlMultipleIsa() throws IOException {
+        URL url = this.getClass().getResource("/837_5010/x12_multiple_isa.txt");
+
+        X12Reader fromFileUtf8 = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()),
+            StandardCharsets.UTF_8);
+
+        String x12Template = IOUtils.toString(getClass().getResourceAsStream("/html/x12-template.html"), StandardCharsets.UTF_8);
+
+        X12Writer writer = new X12Writer(fromFileUtf8);
+        String x12HtmlSegment = writer.toHtml();
+
+        String fullX12Html = String.format(x12Template, x12HtmlSegment);
+
+        Document doc = Jsoup.parse(fullX12Html);
+        Elements dataLoopContainers = doc.select(".x12-data-loop-container");
+        Assert.assertEquals(2, dataLoopContainers.size());
+
+        Elements dataLoopContainer0 = doc.select("#data_loop_0");
+        Assert.assertNotNull(dataLoopContainer0);
+
+        Elements dataLoopContainer1 = doc.select("#data_loop_1");
+        Assert.assertNotNull(dataLoopContainer1);
+    }
+
+    /**
+     * Tests the toHtml method that
+     */
+    @Test
+    public void testToHtmlNthDataLoop() throws IOException {
+        URL url = this.getClass().getResource("/837_5010/x12_multiple_isa.txt");
+
+        X12Reader fromFileUtf8 = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()),
+            StandardCharsets.UTF_8);
+
+        String x12Template = IOUtils.toString(getClass().getResourceAsStream("/html/x12-template.html"), StandardCharsets.UTF_8);
+
+        X12Writer writer = new X12Writer(fromFileUtf8);
+        String x12HtmlSegment = writer.toHtml(1);
+
+        String fullX12Html = String.format(x12Template, x12HtmlSegment);
+
+        Document doc = Jsoup.parse(fullX12Html);
+        Elements dataLoopContainers = doc.select(".x12-data-loop-container");
+        Assert.assertEquals(1, dataLoopContainers.size());
+
+        Elements dataLoopContainer = doc.select("#data_loop_1");
+        Assert.assertNotNull(dataLoopContainer);
+
+    }
+
+    /**
      * Test a more complex x12 doc and see if we can serialize it.
      */
     @Test

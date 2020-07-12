@@ -108,10 +108,14 @@ public class Element {
 
         ArrayList<String> newParentIds = new ArrayList<>();
         newParentIds.addAll(parentIds);
-        newParentIds.add(getId());
+        newParentIds.add(Separators.htmlId(this));
 
         StringBuilder dump = new StringBuilder()
-            .append("<div class=\"x12-element\"><p><span class=\"x12-element-name\">");
+            .append("<div class=\"x12-element\" id=\"")
+            .append(Separators.getIdString(newParentIds))
+            .append("\" title=\"")
+            .append(Separators.getReadableParentList(newParentIds))
+            .append("\"><p><span class=\"x12-element-name\">");
 
         if (elementDefinition.isPresent()) {
             dump.append(elementDefinition.get().getName())
