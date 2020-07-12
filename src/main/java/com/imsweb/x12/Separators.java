@@ -125,9 +125,11 @@ public class Separators {
     public static String htmlId(Object loopSegmentOrElement) {
         if (loopSegmentOrElement instanceof Loop) {
             return String.format("L:%s", ((Loop)loopSegmentOrElement).getId());
-        } else if (loopSegmentOrElement instanceof Segment) {
+        }
+        else if (loopSegmentOrElement instanceof Segment) {
             return String.format("S:%s", ((Segment)loopSegmentOrElement).getId());
-        } else if (loopSegmentOrElement instanceof Element) {
+        }
+        else if (loopSegmentOrElement instanceof Element) {
             return String.format("E:%s", ((Element)loopSegmentOrElement).getId());
         }
         return null;
@@ -147,9 +149,11 @@ public class Separators {
             String [] elementSplit = id.split(":");
             if (elementSplit[0].equals("L")) {
                 sb.append("Loop ");
-            } else if (elementSplit[0].equals("S")) {
+            }
+            else if (elementSplit[0].equals("S")) {
                 sb.append("Segment ");
-            } else if (elementSplit[0].equals("E")) {
+            }
+            else if (elementSplit[0].equals("E")) {
                 sb.append("Element ");
             }
             sb.append(elementSplit[1]);
