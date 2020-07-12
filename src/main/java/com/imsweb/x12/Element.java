@@ -128,7 +128,7 @@ public class Element {
                 .append(": ");
         }
         return dump
-            .append("</span> <input type=\"text\" name=\"")
+            .append("</span> <input class=\"x12-element-input-text\" type=\"text\" name=\"")
             .append(Separators.getIdString(newParentIds))
             .append("\" value=\"")
             .append(_value)
