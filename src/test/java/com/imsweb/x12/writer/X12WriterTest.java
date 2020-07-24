@@ -7,8 +7,13 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
+import com.sun.deploy.util.StringUtils;
 import org.apache.commons.io.IOUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -80,6 +85,8 @@ public class X12WriterTest {
 
         Elements inputTexts = doc.select(".x12-element-input-text");
         Assert.assertEquals(216, inputTexts.size());
+
+        ensureX12InputTextNamesAreUnique(doc);
     }
 
     /**
@@ -108,6 +115,8 @@ public class X12WriterTest {
 
         Elements dataLoopContainer1 = doc.select("#data_loop_1");
         Assert.assertNotNull(dataLoopContainer1);
+
+        ensureX12InputTextNamesAreUnique(doc);
     }
 
     /**
@@ -134,6 +143,21 @@ public class X12WriterTest {
         Elements dataLoopContainer = doc.select("#data_loop_1");
         Assert.assertNotNull(dataLoopContainer);
 
+        ensureX12InputTextNamesAreUnique(doc);
+
+    }
+
+    private void ensureX12InputTextNamesAreUnique(Document doc) {
+        Elements inputTexts = doc.select(".x12-element-input-text");
+        List<String> dupeNames = new ArrayList<>();
+        Set<String> names = new HashSet<>();
+        for (org.jsoup.nodes.Element inputText : inputTexts) {
+            String name = inputText.attr("name");
+            if (!names.add(name)) {
+                dupeNames.add(name);
+            }
+        }
+        Assert.assertEquals("Found dupeNames " + StringUtils.join(dupeNames, ","), 0, dupeNames.size());
     }
 
     /**
