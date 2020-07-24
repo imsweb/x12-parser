@@ -634,10 +634,10 @@ public class Loop implements Iterable<Segment> {
         return dump.toString();
     }
 
-    public String toHtml(LoopDefinition loopDefinition, List<String> parentIds, int rootLoopIndex) {
+    public String toHtml(LoopDefinition loopDefinition, List<String> parentIds, int rootLoopIndex, int loopIndex) {
         List<String> newParentIds = new ArrayList<>();
         newParentIds.addAll(parentIds);
-        newParentIds.add(Separators.htmlId(this));
+        newParentIds.add(Separators.htmlId(this, loopIndex));
 
         StringBuilder dump = new StringBuilder();
 
@@ -667,16 +667,18 @@ public class Loop implements Iterable<Segment> {
                 SegmentDefinition segmentDefinition = (SegmentDefinition)positioned;
                 int idx = 0;
                 Segment segment;
-                while ((segment = getSegment(segmentDefinition.getXid(), idx++)) != null) {
-                    dump.append(segment.toHtml(segmentDefinition, newParentIds));
+                while ((segment = getSegment(segmentDefinition.getXid(), idx)) != null) {
+                    dump.append(segment.toHtml(segmentDefinition, newParentIds, idx));
+                    ++idx;
                 }
             }
             else if (positioned instanceof LoopDefinition) {
                 LoopDefinition innerLoopDefinition = (LoopDefinition)positioned;
                 int idx = 0;
                 Loop innerLoop;
-                while ((innerLoop = getLoopForPrinting(innerLoopDefinition, idx++)) != null) {
-                    dump.append(innerLoop.toHtml(innerLoopDefinition, newParentIds, rootLoopIndex));
+                while ((innerLoop = getLoopForPrinting(innerLoopDefinition, idx)) != null) {
+                    dump.append(innerLoop.toHtml(innerLoopDefinition, newParentIds, rootLoopIndex, idx));
+                    ++idx;
                 }
             }
         }

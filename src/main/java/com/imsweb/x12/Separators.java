@@ -122,15 +122,15 @@ public class Separators {
         this._lineBreak = lineBreak;
     }
 
-    public static String htmlId(Object loopSegmentOrElement) {
+    public static String htmlId(Object loopSegmentOrElement, int index) {
         if (loopSegmentOrElement instanceof Loop) {
-            return String.format("L:%s", ((Loop)loopSegmentOrElement).getId());
+            return String.format("L:%s:%d", ((Loop)loopSegmentOrElement).getId(), index);
         }
         else if (loopSegmentOrElement instanceof Segment) {
-            return String.format("S:%s", ((Segment)loopSegmentOrElement).getId());
+            return String.format("S:%s:%d", ((Segment)loopSegmentOrElement).getId(), index);
         }
         else if (loopSegmentOrElement instanceof Element) {
-            return String.format("E:%s", ((Element)loopSegmentOrElement).getId());
+            return String.format("E:%s:%d", ((Element)loopSegmentOrElement).getId(), index);
         }
         return null;
     }

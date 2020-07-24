@@ -1,8 +1,10 @@
 package com.imsweb.x12;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -308,10 +310,10 @@ public class Segment implements Iterable<Element> {
      * @param segmentDefinition The segment definition that defines this segment.
      * @param parentIds The parent ids up until this point.
      */
-    public String toHtml(SegmentDefinition segmentDefinition, List<String> parentIds) {
+    public String toHtml(SegmentDefinition segmentDefinition, List<String> parentIds, int segmentIndex) {
         ArrayList<String> newParentIds = new ArrayList<>();
         newParentIds.addAll(parentIds);
-        newParentIds.add(Separators.htmlId(this));
+        newParentIds.add(Separators.htmlId(this, segmentIndex));
 
         StringBuilder output = new StringBuilder();
         output.append("<div id=\"")
@@ -319,19 +321,25 @@ public class Segment implements Iterable<Element> {
             .append("\" title=\"")
             .append(Separators.getReadableParentList(newParentIds))
             .append("\" class=\"x12-segment\">");
+        Map<String, Integer> indexMap = new HashMap<>();
         output.append("<p>").append(segmentDefinition.getName()).append(" (").append(_id).append(")</p>");
         for (Element e : _elements) {
+            int elementIndex = 0;
+            if (indexMap.containsKey(e.getId())) {
+                elementIndex = indexMap.get(e.getId()) + 1;
+            }
             if (segmentDefinition.getElements() != null) {
                 Optional<ElementDefinition> elementDef = segmentDefinition
                         .getElements()
                         .stream()
                         .filter(ed -> ed.getXid().equals(e.getId()))
                         .findFirst();
-                output.append(e.toHtml(elementDef, newParentIds));
+                output.append(e.toHtml(elementDef, newParentIds, elementIndex));
             }
             else {
-                output.append(e.toHtml(Optional.empty(), newParentIds));
+                output.append(e.toHtml(Optional.empty(), newParentIds, elementIndex));
             }
+            indexMap.put(e.getId(), elementIndex);
         }
 
         output.append("</div>");

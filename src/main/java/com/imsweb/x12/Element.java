@@ -104,11 +104,11 @@ public class Element {
      * @param parentIds The parent IDs thus far.
      * @return Html segment representing this element.
      */
-    public String toHtml(Optional<ElementDefinition> elementDefinition, List<String> parentIds) {
+    public String toHtml(Optional<ElementDefinition> elementDefinition, List<String> parentIds, int elementIndex) {
 
         ArrayList<String> newParentIds = new ArrayList<>();
         newParentIds.addAll(parentIds);
-        newParentIds.add(Separators.htmlId(this));
+        newParentIds.add(Separators.htmlId(this, elementIndex));
 
         StringBuilder dump = new StringBuilder()
             .append("<div class=\"x12-element\" id=\"")
