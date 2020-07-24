@@ -37,6 +37,7 @@ dependencies {
     api 'com.thoughtworks.xstream:xstream:1.4.12'
 
     testImplementation 'junit:junit:4.13'
+    testImplementation 'org.apache.commons:commons-lang3:3.11'
     testImplementation 'commons-io:commons-io:2.7'
     testImplementation 'org.jsoup:jsoup:1.13.1'
 }
