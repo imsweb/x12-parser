@@ -321,25 +321,19 @@ public class Segment implements Iterable<Element> {
             .append("\" title=\"")
             .append(Separators.getReadableParentList(newParentIds))
             .append("\" class=\"x12-segment\">");
-        Map<String, Integer> indexMap = new HashMap<>();
         output.append("<p>").append(segmentDefinition.getName()).append(" (").append(_id).append(")</p>");
         for (Element e : _elements) {
-            int elementIndex = 0;
-            if (indexMap.containsKey(e.getId())) {
-                elementIndex = indexMap.get(e.getId()) + 1;
-            }
             if (segmentDefinition.getElements() != null) {
                 Optional<ElementDefinition> elementDef = segmentDefinition
                         .getElements()
                         .stream()
                         .filter(ed -> ed.getXid().equals(e.getId()))
                         .findFirst();
-                output.append(e.toHtml(elementDef, newParentIds, elementIndex));
+                output.append(e.toHtml(elementDef, newParentIds));
             }
             else {
-                output.append(e.toHtml(Optional.empty(), newParentIds, elementIndex));
+                output.append(e.toHtml(Optional.empty(), newParentIds));
             }
-            indexMap.put(e.getId(), elementIndex);
         }
 
         output.append("</div>");

@@ -129,8 +129,12 @@ public class Separators {
         else if (loopSegmentOrElement instanceof Segment) {
             return String.format("S:%s:%d", ((Segment)loopSegmentOrElement).getId(), index);
         }
-        else if (loopSegmentOrElement instanceof Element) {
-            return String.format("E:%s:%d", ((Element)loopSegmentOrElement).getId(), index);
+        return null;
+    }
+
+    public static String htmlId(Object loopSegmentOrElement) {
+        if (loopSegmentOrElement instanceof Element) {
+            return String.format("E:%s", ((Element)loopSegmentOrElement).getId());
         }
         return null;
     }
