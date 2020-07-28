@@ -28,6 +28,7 @@ import com.imsweb.x12.mapping.LoopDefinition;
 import com.imsweb.x12.mapping.SegmentDefinition;
 import com.imsweb.x12.mapping.TransactionDefinition;
 import com.imsweb.x12.mapping.TransactionDefinition.Usage;
+
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.StaxDriver;
 import com.thoughtworks.xstream.security.NoTypePermission;
@@ -200,7 +201,7 @@ public class X12Reader {
     public List<String> getFatalErrors() {
         return _fatalErrors;
     }
-    
+
     public Separators getSeparators() {
         return _separators;
     }
@@ -423,23 +424,23 @@ public class X12Reader {
         char[] firstLine = new char[_ISA_LENGTH];
         int ret = reader.read(firstLine);
         boolean isAlphaNumeric = Character.isDigit(firstLine[_SEGMENT_SEPARATOR_POS]) ||
-            Character.isDigit(firstLine[_ELEMENT_SEPARATOR_POS]) ||
-            Character.isDigit(firstLine[_COMPOSITE_SEPARATOR_POS]) ||
-            Character.isLetter(firstLine[_SEGMENT_SEPARATOR_POS]) ||
-            Character.isLetter(firstLine[_ELEMENT_SEPARATOR_POS]) ||
-            Character.isLetter(firstLine[_COMPOSITE_SEPARATOR_POS]);
+                Character.isDigit(firstLine[_ELEMENT_SEPARATOR_POS]) ||
+                Character.isDigit(firstLine[_COMPOSITE_SEPARATOR_POS]) ||
+                Character.isLetter(firstLine[_SEGMENT_SEPARATOR_POS]) ||
+                Character.isLetter(firstLine[_ELEMENT_SEPARATOR_POS]) ||
+                Character.isLetter(firstLine[_COMPOSITE_SEPARATOR_POS]);
 
         boolean isWhiteSpace = Character.isWhitespace(firstLine[_SEGMENT_SEPARATOR_POS]) ||
-            Character.isWhitespace(firstLine[_ELEMENT_SEPARATOR_POS]) ||
-            Character.isWhitespace(firstLine[_COMPOSITE_SEPARATOR_POS]);
+                Character.isWhitespace(firstLine[_ELEMENT_SEPARATOR_POS]) ||
+                Character.isWhitespace(firstLine[_COMPOSITE_SEPARATOR_POS]);
         if (ret != _ISA_LENGTH || (isAlphaNumeric || isWhiteSpace)) {
             _errors.add("Error getting separators");
             return null;
         }
         // don't need to reset the reader---we need to check the version on the next line
         return new Separators(firstLine[_SEGMENT_SEPARATOR_POS],
-            firstLine[_ELEMENT_SEPARATOR_POS],
-            firstLine[_COMPOSITE_SEPARATOR_POS]);
+                firstLine[_ELEMENT_SEPARATOR_POS],
+                firstLine[_COMPOSITE_SEPARATOR_POS]);
     }
 
     /**
@@ -710,7 +711,7 @@ public class X12Reader {
                 // starting a new loop but we aren't quite sure which one yet. Remove loops where the segment is known to be the last segment of that loop - clearly we aren't in a new loop then
                 matchedLoops = matchedLoops.stream().filter(lc -> !(lc.getLastSegmentXid().getXid().equals(tokens[0]) && codesValidatedForLoopId(tokens, lc.getLastSegmentXid()))).collect(
                         Collectors.toList());
-                result = matchedLoops.isEmpty() ? null : getFinalizedMatch(previousLoopID, matchedLoops);
+                result = matchedLoops.isEmpty() ? null : (matchedLoops.size() == 1 ? matchedLoops.get(0) : getFinalizedMatch(previousLoopID, matchedLoops));
             }
             else if (matchedLoops.size() == 1)
                 result = matchedLoops.get(0);
@@ -750,17 +751,20 @@ public class X12Reader {
      * @return the finalized loop match
      */
     private LoopConfig getFinalizedMatch(String previousLoopId, List<LoopConfig> matchedLoops) {
-        LoopConfig result = matchedLoops.get(0);
+        LoopConfig result = null;
         for (LoopConfig lc : _config) {
             if (lc.getLoopId().equals(previousLoopId)) {
-                for (LoopConfig s1 : matchedLoops) {
+                // if one of the ambiguous loops is a child loop of the previous loop then we should use that one
+                if (lc.getChildList() != null)
+                    result = matchedLoops.stream().filter(matchedLoop -> lc.getChildList().contains(matchedLoop.getLoopId())).findFirst().orElse(null);
+
+                // otherwise, if one of the ambiguous loops has the same parent as the previous loop's parent then we should use that loop
+                if (result == null) {
                     String parentLoop = getParentLoop(previousLoopId, null);
-                    if ((lc.getChildList() != null && lc.getChildList().contains(s1.getLoopId()))
-                            || (parentLoop != null && parentLoop.equals(getParentLoop(s1.getLoopId(), null)))) {
-                        result = s1;
-                        break;
-                    }
+                    if (parentLoop != null)
+                        result = matchedLoops.stream().filter(matchedLoop -> parentLoop.equals(getParentLoop(matchedLoop.getLoopId(), null))).findFirst().orElse(null);
                 }
+                break;
             }
         }
         return result;
