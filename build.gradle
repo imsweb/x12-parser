@@ -77,6 +77,7 @@ ossIndexAudit {
         }
     }
 }
+check.dependsOn 'ossIndexAudit'
 
 // don't try to release a snapshot to a non-snapshot repository, that won't work anyway
 if (version.endsWith('-SNAPSHOT')) {
