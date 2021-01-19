@@ -1,13 +1,13 @@
 plugins {
     id 'java-library'
     id 'checkstyle'
-    id "com.github.spotbugs" version "4.4.4"
+    id "com.github.spotbugs" version "4.6.0"
     id 'maven-publish'
     id 'signing'
-    id "io.codearte.nexus-staging" version "0.21.2"  // logs into Sonotype OSS and does a "Close" and "Release"
-    id 'com.adarshr.test-logger' version '2.1.0'
-    id "com.github.ben-manes.versions" version "0.29.0"
-    id "org.owasp.dependencycheck" version "5.3.2.1"
+    id "io.codearte.nexus-staging" version "0.22.0"  // logs into Sonotype OSS and does a "Close" and "Release"
+    id 'com.adarshr.test-logger' version '2.1.1'
+    id "com.github.ben-manes.versions" version "0.36.0"
+    id 'org.sonatype.gradle.plugins.scan' version '2.0.2'
 }
 
 group = 'com.imsweb'
@@ -32,12 +32,12 @@ repositories {
 }
 
 dependencies {
-    spotbugs 'com.github.spotbugs:spotbugs:4.0.6'
+    spotbugs 'com.github.spotbugs:spotbugs:4.2.0'
 
-    api 'com.thoughtworks.xstream:xstream:1.4.12'
+    api 'com.thoughtworks.xstream:xstream:1.4.15'
 
-    testImplementation 'junit:junit:4.13'
-    testImplementation 'commons-io:commons-io:2.7'
+    testImplementation 'junit:junit:4.13.1'
+    testImplementation 'commons-io:commons-io:2.8.0'
     testImplementation 'org.jsoup:jsoup:1.13.1'
 }
 
@@ -64,10 +64,18 @@ spotbugs {
     excludeFilter = file('config/spotbugs/spotbugs-exclude.xml')
 }
 
-// OWASP check (https://jeremylong.github.io/DependencyCheck/index.html)
-dependencyCheck {
-    failOnError = true
-    format = 'ALL'
+// Nexus vulnerability scan (https://github.com/sonatype-nexus-community/scan-gradle-plugin)
+ossIndexAudit {
+    dependencyGraph = true
+
+    // only set proxy if running outside of Github Actions
+    if (!System.getenv().GITHUB_ACTIONS) {
+        proxyConfiguration {
+            protocol = 'http'
+            host = 'webproxy-btp.imsweb.com'
+            port = 8080
+        }
+    }
 }
 
 // don't try to release a snapshot to a non-snapshot repository, that won't work anyway
@@ -160,6 +168,6 @@ nexusStaging {
 }
 
 wrapper {
-    gradleVersion = '6.5'
+    gradleVersion = '6.8'
     distributionType = Wrapper.DistributionType.ALL
 }
