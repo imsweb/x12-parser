@@ -1524,14 +1524,6 @@ public class X12ReaderTest {
         Loop loop = reader.getLoops().get(0);
         assertEquals(1, loop.getLoops().size());
 
-        loop.getLoop("GS_LOOP").getLoop("ST_LOOP").getLoop("DETAIL")
-                .getLoop("2000A")
-                .getLoop("2000B")
-                .getLoop("2000C")
-                .getLoop("2100C")
-                .getLoop("2110C")
-                .getLoop("2120C");
-
         Element statusCodeElement = loop.getLoop("GS_LOOP").getLoop("ST_LOOP").getLoop("DETAIL")
                 .getLoop("2000A")
                 .getLoop("2000B")
