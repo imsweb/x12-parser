@@ -50,6 +50,7 @@ public class X12Reader {
     private static final String _X223_ANSI_VERSION = "005010X223A2";
     private static final String _X231_ANSI_VERSION = "005010X231A1";
     private static final String _X214_ANSI_VERSION = "005010X214";
+    private static final String _X270_271_092_ANSI_VERSION = "004010X092A1";
     private static final Map<FileType, String> _TYPES = new HashMap<>();
 
     private List<String> _errors = new ArrayList<>();
@@ -73,7 +74,9 @@ public class X12Reader {
         ANSI837_5010_X222("mapping/837.5010.X222.A1.xml"),
         ANSI837_5010_X223("mapping/837Q3.I.5010.X223.A1.xml"),
         ANSI837_5010_X231("mapping/999.5010.xml"),
-        ANSI837_5010_X214("mapping/277.5010.X214.xml");
+        ANSI837_5010_X214("mapping/277.5010.X214.xml"),
+        ANSI270_4010_X092("mapping/270.4010.X092.A1.xml"),
+        ANSI271_4010_X092("mapping/271.4010.X092.A1.xml");
 
         private String _mapping;
 
@@ -115,6 +118,8 @@ public class X12Reader {
         _TYPES.put(FileType.ANSI837_5010_X223, _X223_ANSI_VERSION);
         _TYPES.put(FileType.ANSI837_5010_X214, _X214_ANSI_VERSION);
         _TYPES.put(FileType.ANSI837_5010_X231, _X231_ANSI_VERSION);
+        _TYPES.put(FileType.ANSI270_4010_X092, _X270_271_092_ANSI_VERSION);
+        _TYPES.put(FileType.ANSI271_4010_X092, _X270_271_092_ANSI_VERSION);
     }
 
     /**
@@ -404,7 +409,7 @@ public class X12Reader {
                 version = lineString.substring(versionStartPos + 1);
         }
         reader.reset();
-
+        
         boolean result = _TYPES.get(_type).equals(version);
 
         if (!result)
@@ -709,7 +714,7 @@ public class X12Reader {
 
             if (matchedLoops.size() > 1) {
                 // starting a new loop but we aren't quite sure which one yet. Remove loops where the segment is known to be the last segment of that loop - clearly we aren't in a new loop then
-                matchedLoops = matchedLoops.stream().filter(lc -> !(lc.getLastSegmentXid().getXid().equals(tokens[0]) && codesValidatedForLoopId(tokens, lc.getLastSegmentXid()))).collect(
+                matchedLoops = matchedLoops.stream().filter(lc -> lc.getLastSegmentXid() == null || !(lc.getLastSegmentXid().getXid().equals(tokens[0]) && codesValidatedForLoopId(tokens, lc.getLastSegmentXid()))).collect(
                         Collectors.toList());
                 result = matchedLoops.isEmpty() ? null : (matchedLoops.size() == 1 ? matchedLoops.get(0) : getFinalizedMatch(previousLoopID, matchedLoops));
             }
@@ -800,10 +805,9 @@ public class X12Reader {
                     _errors.add("Unable to split elements to validate segment ID!");
                 i++;
             }
-
-            if (!lineMatchesFormat)
+            
+            if (!lineMatchesFormat) 
                 _errors.add("Unable to find a matching segment format in loop " + loopId);
-
             lineMatchesFormat = false;
         }
 
