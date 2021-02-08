@@ -1494,6 +1494,57 @@ public class X12ReaderTest {
     }
 
     @Test
+    public void test270() throws Exception {
+        URL url = this.getClass().getResource("/x270_271/x270.txt");
+        X12Reader reader = new X12Reader(FileType.ANSI270_4010_X092, new File(url.getFile()));
+
+        List<Loop> loops = reader.getLoops();
+        Assert.assertEquals(1, loops.size());
+        Loop loop = reader.getLoops().get(0);
+        assertEquals(1, loop.getLoops().size());
+        
+        Element statusCodeElement = loop.getLoop("GS_LOOP").getLoop("ST_LOOP").getLoop("DETAIL")
+                .getLoop("2000A")
+                .getLoop("2000B")
+                .getLoop("2000C")
+                .getLoop("2100C")
+                .getLoop("2110C")
+                .getSegment("EQ")
+                .getElement("EQ01");
+        Assert.assertEquals("30", statusCodeElement.getSubValues().get(0));
+    }
+
+    @Test
+    public void test271() throws Exception {
+        URL url = this.getClass().getResource("/x270_271/x271.txt");
+        X12Reader reader = new X12Reader(FileType.ANSI271_4010_X092, new File(url.getFile()));
+        
+        List<Loop> loops = reader.getLoops();
+        Assert.assertEquals(1, loops.size());
+        Loop loop = reader.getLoops().get(0);
+        assertEquals(1, loop.getLoops().size());
+
+        loop.getLoop("GS_LOOP").getLoop("ST_LOOP").getLoop("DETAIL")
+                .getLoop("2000A")
+                .getLoop("2000B")
+                .getLoop("2000C")
+                .getLoop("2100C")
+                .getLoop("2110C")
+                .getLoop("2120C");
+
+        Element statusCodeElement = loop.getLoop("GS_LOOP").getLoop("ST_LOOP").getLoop("DETAIL")
+                .getLoop("2000A")
+                .getLoop("2000B")
+                .getLoop("2000C")
+                .getLoop("2100C")
+                .getLoop("2110C")
+                .getLoop("2120C")
+                .getSegment("NM1")
+                .getElement("NM101");
+        Assert.assertEquals("P3", statusCodeElement.getSubValues().get(0));
+    }
+
+    @Test
     public void testAmbiguousLoop() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_ambiguous_loop.txt");
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));

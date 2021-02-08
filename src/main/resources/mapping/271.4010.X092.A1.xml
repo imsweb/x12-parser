@@ -2814,8 +2814,6 @@
                         </element>
                       </segment>
                                   <!--End of PRV segment-->
-                    </loop>
-                              <!--End of 2120C loop-->
                               <segment xid="LE">
                       <name>Loop Trailer</name>
                       <usage>S</usage>
@@ -2832,6 +2830,8 @@
                       </element>
                     </segment>
                               <!--End of LE segment-->
+                      </loop>
+                              <!--End of 2120C loop-->
                   </loop>
                           <!--End of 2110C loop-->
                 </loop>
