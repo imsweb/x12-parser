@@ -49,7 +49,7 @@ An example of how to process an X12 file is shown below
 
 ## Processing a file
 
-```code
+```java
 URL url = this.getClass().getResource("/837_5010/x12_example.txt");
 X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
 ```
@@ -57,27 +57,27 @@ X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFil
 Each supported X12 standard has a FileType option that must be passed as the first argument to the X12Reader. In this example, an 837 5010 X222 file is being processed. If there are errors in the
 document structure you can review them as follows:
 
-```code
+```java
 List<String> errors = reader.getErrors();
 ```
 
 There may be errors in the structure that are severe enough that they prevent proper processing of the file. You can access these as follows:
 
-```code
+```java
 List<String> errors = reader.getFatalErrors();
 ```
 
 ## Accessing Data
 You can access the data from the file using:
 
-```code
+```java
 List<Loop> loops = reader.getLoops();
 ```
 
 Each individual ISA-IEA transaction is one element in the list. If a file contains only a single ISA-IEA transaction then the length of the list is 1. You can access data further down in the X12 structure
 as follows:
 
-```code
+```java
 String data = loop.getLoop("ISA_LOOP").getLoop("GS_LOOP").getLoop("ST_LOOP").getLoop("1000A").getSegment("NM1").getElement("NM101").getSubElement(1);
 ```
 
@@ -85,13 +85,13 @@ In this example, GS_LOOP is a subloop of ISA_LOOP, ST_LOOP is a subloop of GS_LO
 to NM1. The fourth element of NM1 would be NM104. This code is grabbing the first sub-element in that element. The loop and segment names are all specified in the mapping files. If an element does not
 have sub-elements, you can access the element value using:
 
-```code
+```java
 String data = loop.getLoop("ISA_LOOP").getLoop("GS_LOOP").getLoop("ST_LOOP").getLoop("1000A").getSegment("NM1").getElementValue("NM101");
 ```
 
 It's possible for loops and segments to repeat multiple times. Here is an example of how to access a particular repeated loop or segment
 
-```code
+```java
 Loop loop = loop.getLoop("1000A", 1);
 Segment segment = loop.getSegment("NM1", 2);
 ```
@@ -101,7 +101,7 @@ iteration is grabbed.
 
 You can also search for all loops with a particular ID that is either a subloop of the current loop object or a subloop of on the current loop's subloops.
 
-```code
+```java
 Loop loop = loop.getLoop("1000A");
 List<Loop> loops = loop.findLoop("1000B");
 ```
@@ -109,7 +109,7 @@ List<Loop> loops = loop.findLoop("1000B");
 All loops with ID of 1000B that are contained with the 1000A loop structure are returned. The 1000B loops will either be a direct subloop of 1000A or a subloop of one 1000A's subloops. A 1000B will be
 returned event if it's contained deep within the loop structure. The same can be done for segments.
 
-```code
+```java
 List<Segment> segments = loop.findSegment("NM1");
 ```
 
@@ -117,7 +117,7 @@ List<Segment> segments = loop.findSegment("NM1");
 
 It is also possible to create a loop object and then write the contents to a file. Here is an example of creating a loop with a segment.
 
-```code
+```java
 Separators separators = new Separators();
 separators.setLineBreak(lineBreak);
 Loop isaLoop = new Loop(separators, "ISA_LOOP");
@@ -147,7 +147,7 @@ isaLoop.addSegment(segment);
 
 Subsequent segments and subloops could then be appended to the ISA loop. This data can then be written to a string as follows:
 
-```code
+```java
 X12Writer writer = new X12Writer(FileType.ANSI837_5010_X222, Collections.singletonList(isaLoop), separators);
 String writerResult = writer.toX12String(lineBreak).trim();
 ```
