@@ -5,7 +5,8 @@
 
 A parser for ANSI ASC X12 documents.  This project was originally based on the Python project [pyx12](https://github.com/azoner/pyx12).
 
-The library supports the following file types:
+The library takes ANSI X12 claim files and reads the data into a Loop object that replicates the X12 structure described in the standard's specifications. The current supported standards of X12 that
+are supported are :
 
 - ANSI 835 5010 X221
 - ANSI 835 4010 X091
@@ -14,6 +15,13 @@ The library supports the following file types:
 - ANSI 837 4010 X098
 - ANSI 837 5010 X222
 - ANSI 837 5010 X223
+- 999 5010
+- 277 5010 X214
+- 270 4010 X092
+- 271 4010 X092
+
+The layouts for these standards are specified in XML mapping files contained in the mapping directory. The structure of the Loop object will match the structure specified in the mapping files for 
+the X12 standard you are processing.
 
 ## Download
 
@@ -36,3 +44,112 @@ compile 'com.imsweb.com:x12-parser:1.13'
 ```
 
 [1]: http://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=com.imsweb&a=x12-parser&v=LATEST
+
+An example of how to process an X12 file is shown below
+
+## Processing a file
+
+```code
+URL url = this.getClass().getResource("/837_5010/x12_example.txt");
+X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
+```
+
+Each supported X12 standard has a FileType option that must be passed as the first argument to the X12Reader. In this example, an 837 5010 X222 file is being processed. If there are errors in the
+document structure you can review them as follows:
+
+```code
+List<String> errors = reader.getErrors();
+```
+
+There may be errors in the structure that are severe enough that they prevent proper processing of the file. You can access these as follows:
+
+```code
+List<String> errors = reader.getFatalErrors();
+```
+
+## Accessing Data
+You can access the data from the file using:
+
+```code
+List<Loop> loops = reader.getLoops();
+```
+
+Each individual ISA-IEA transaction is one element in the list. If a file contains only a single ISA-IEA transaction then the length of the list is 1. You can access data further down in the X12 structure
+as follows:
+
+```code
+String data = loop.getLoop("ISA_LOOP").getLoop("GS_LOOP").getLoop("ST_LOOP").getLoop("1000A").getSegment("NM1").getElement("NM101").getSubElement(1);
+```
+
+In this example, GS_LOOP is a subloop of ISA_LOOP, ST_LOOP is a subloop of GS_LOOP and so on. NM1 is a segment of loop 1000A. NM101 is the first element of segment NM1, as indicated by the 01 appened
+to NM1. The fourth element of NM1 would be NM104. This code is grabbing the first sub-element in that element. The loop and segment names are all specified in the mapping files. If an element does not
+have sub-elements, you can access the element value using:
+
+```code
+String data = loop.getLoop("ISA_LOOP").getLoop("GS_LOOP").getLoop("ST_LOOP").getLoop("1000A").getSegment("NM1").getElementValue("NM101");
+```
+
+It's possible for loops and segments to repeat multiple times. Here is an example of how to access a particular repeated loop or segment
+
+```code
+Loop loop = loop.getLoop("1000A", 1);
+Segment segment = loop.getSegment("NM1", 2);
+```
+
+This gets the first iteration of the 1000A subloop an the second instance of the NM1 segment within the 1000A loop. If no iteration index is specified in getLoop() or getSegment() then the first
+iteration is grabbed.
+
+You can also search for all loops with a particular ID that is either a subloop of the current loop object or a subloop of on the current loop's subloops.
+
+```code
+Loop loop = loop.getLoop("1000A");
+List<Loop> loops = loop.findLoop("1000B");
+```
+
+All loops with ID of 1000B that are contained with the 1000A loop structure are returned. The 1000B loops will either be a direct subloop of 1000A or a subloop of one 1000A's subloops. A 1000B will be
+returned event if it's contained deep within the loop structure. The same can be done for segments.
+
+```code
+List<Segment> segments = loop.findSegment("NM1");
+```
+
+##Creating and Writing an X12 File
+
+It is also possible to create a loop object and then write the contents to a file. Here is an example of creating a loop with a segment.
+
+```code
+Separators separators = new Separators();
+separators.setLineBreak(lineBreak);
+Loop isaLoop = new Loop(separators, "ISA_LOOP");
+Segment segment = new Segment("ISA");
+addElement(segment, "01", "00");
+addElement(segment, "02", "          ");
+addElement(segment, "03", "01");
+addElement(segment, "04", "SECRET    ");
+addElement(segment, "05", "ZZ");
+addElement(segment, "06", "SUBMITTERS.ID  ");
+addElement(segment, "07", "ZZ");
+addElement(segment, "08", "RECEIVERS.ID   ");
+addElement(segment, "09", "030101");
+addElement(segment, "10", "1253");
+addElement(segment, "11", "U");
+addElement(segment, "12", "00501");
+addElement(segment, "13", "000000905");
+addElement(segment, "14", "1");
+addElement(segment, "15", "T");
+addElement(segment, "16", ":");
+isaLoop.addSegment(segment);
+segment = new Segment("IEA");
+addElement(segment, "01", "1");
+addElement(segment, "02", "000000905");
+isaLoop.addSegment(segment);
+```
+
+Subsequent segments and subloops could then be appended to the ISA loop. This data can then be written to a string as follows:
+
+```code
+X12Writer writer = new X12Writer(FileType.ANSI837_5010_X222, Collections.singletonList(isaLoop), separators);
+String writerResult = writer.toX12String(lineBreak).trim();
+```
+
+The string can also be written to a file if needed.
