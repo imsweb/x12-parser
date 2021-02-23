@@ -50,8 +50,7 @@ An example of how to process an X12 file is shown below
 ## Processing a file
 
 ```java
-URL url = this.getClass().getResource("/837_5010/x12_example.txt");
-X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
+X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File("/path/file.txt"));
 ```
 
 Each supported X12 standard has a FileType option that must be passed as the first argument to the X12Reader. In this example, an 837 5010 X222 file is being processed. If there are errors in the
@@ -78,7 +77,13 @@ Each individual ISA-IEA transaction is one element in the list. If a file contai
 as follows:
 
 ```java
-String data = loop.getLoop("ISA_LOOP").getLoop("GS_LOOP").getLoop("ST_LOOP").getLoop("1000A").getSegment("NM1").getElement("NM101").getSubElement(1);
+String data = loop.getLoop("ISA_LOOP")
+        .getLoop("GS_LOOP")
+        .getLoop("ST_LOOP")
+        .getLoop("1000A")
+        .getSegment("NM1")
+        .getElement("NM101")
+        .getSubElement(1);
 ```
 
 In this example, GS_LOOP is a subloop of ISA_LOOP, ST_LOOP is a subloop of GS_LOOP and so on. NM1 is a segment of loop 1000A. NM101 is the first element of segment NM1, as indicated by the 01 appened
@@ -86,7 +91,12 @@ to NM1. The fourth element of NM1 would be NM104. This code is grabbing the firs
 have sub-elements, you can access the element value using:
 
 ```java
-String data = loop.getLoop("ISA_LOOP").getLoop("GS_LOOP").getLoop("ST_LOOP").getLoop("1000A").getSegment("NM1").getElementValue("NM101");
+String data = loop.getLoop("ISA_LOOP")
+        .getLoop("GS_LOOP")
+        .getLoop("ST_LOOP")
+        .getLoop("1000A")
+        .getSegment("NM1")
+        .getElementValue("NM101");
 ```
 
 It's possible for loops and segments to repeat multiple times. Here is an example of how to access a particular repeated loop or segment
@@ -113,7 +123,7 @@ returned event if it's contained deep within the loop structure. The same can be
 List<Segment> segments = loop.findSegment("NM1");
 ```
 
-##Creating and Writing an X12 File
+## Creating and Writing an X12 File
 
 It is also possible to create a loop object and then write the contents to a file. Here is an example of creating a loop with a segment.
 
