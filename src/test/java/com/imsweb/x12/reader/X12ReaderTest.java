@@ -1418,8 +1418,8 @@ public class X12ReaderTest {
 
     @Test
     public void test277CAAccepted() throws Exception {
-        URL url = this.getClass().getResource("/837_5010/x12_277CA_accepted.txt");
-        X12Reader reader = new X12Reader(FileType.ANSI837_5010_X214, new File(url.getFile()));
+        URL url = this.getClass().getResource("/277_5010/x12_277CA_accepted.txt");
+        X12Reader reader = new X12Reader(FileType.ANSI277_5010_X214, new File(url.getFile()));
 
         List<Loop> loops = reader.getLoops();
         Assert.assertEquals(1, loops.size());
@@ -1447,8 +1447,8 @@ public class X12ReaderTest {
 
     @Test
     public void test277CARejected() throws Exception {
-        URL url = this.getClass().getResource("/837_5010/x12_277CA_rejected.txt");
-        X12Reader reader = new X12Reader(FileType.ANSI837_5010_X214, new File(url.getFile()));
+        URL url = this.getClass().getResource("/277_5010/x12_277CA_rejected.txt");
+        X12Reader reader = new X12Reader(FileType.ANSI277_5010_X214, new File(url.getFile()));
 
         List<Loop> loops = reader.getLoops();
         Assert.assertEquals(1, loops.size());

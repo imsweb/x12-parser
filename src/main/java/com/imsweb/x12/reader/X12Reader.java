@@ -74,7 +74,7 @@ public class X12Reader {
         ANSI837_5010_X222("mapping/837.5010.X222.A1.xml"),
         ANSI837_5010_X223("mapping/837Q3.I.5010.X223.A1.xml"),
         ANSI837_5010_X231("mapping/999.5010.xml"),
-        ANSI837_5010_X214("mapping/277.5010.X214.xml"),
+        ANSI277_5010_X214("mapping/277.5010.X214.xml"),
         ANSI270_4010_X092("mapping/270.4010.X092.A1.xml"),
         ANSI271_4010_X092("mapping/271.4010.X092.A1.xml");
 
@@ -116,7 +116,7 @@ public class X12Reader {
         _TYPES.put(FileType.ANSI835_5010_X221, _X221_ANSI_VERSION);
         _TYPES.put(FileType.ANSI837_5010_X222, _X222_ANSI_VERSION);
         _TYPES.put(FileType.ANSI837_5010_X223, _X223_ANSI_VERSION);
-        _TYPES.put(FileType.ANSI837_5010_X214, _X214_ANSI_VERSION);
+        _TYPES.put(FileType.ANSI277_5010_X214, _X214_ANSI_VERSION);
         _TYPES.put(FileType.ANSI837_5010_X231, _X231_ANSI_VERSION);
         _TYPES.put(FileType.ANSI270_4010_X092, _X270_271_092_ANSI_VERSION);
         _TYPES.put(FileType.ANSI271_4010_X092, _X270_271_092_ANSI_VERSION);
