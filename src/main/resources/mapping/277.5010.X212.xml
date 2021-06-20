@@ -4471,6 +4471,34 @@
 
         </loop>
         <!--End of DETAIL loop-->
+
+        <loop xid="FOOTER" type="wrapper">
+          <name>Table 3 - Footer</name>
+          <usage>N</usage>
+          <pos>2700</pos>
+          <repeat>1</repeat>
+        </loop>
+        <!--End of FOOTER loop-->
+        <segment xid="SE">
+          <name>Transaction Set Trailer</name>
+          <usage>R</usage>
+          <pos>2700</pos>
+          <max_use>1</max_use>
+          <element xid="SE01">
+            <data_ele>96</data_ele>
+            <name>Number of Included Segments</name>
+            <usage>R</usage>
+            <seq>01</seq>
+          </element>
+          <element xid="SE02">
+            <data_ele>329</data_ele>
+            <name>Transaction Set Control Number</name>
+            <usage>R</usage>
+            <seq>02</seq>
+          </element>
+        </segment>
+        <!--End of SE segment-->
+
       </loop>
       <!--End of STLOOP-->
 
