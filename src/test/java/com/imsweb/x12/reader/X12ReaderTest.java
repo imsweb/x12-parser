@@ -1549,4 +1549,29 @@ public class X12ReaderTest {
         Assert.assertTrue(loops.get(0).findLoop("2330D").isEmpty());
         Assert.assertTrue(loops.get(0).findLoop("2310B").isEmpty());
     }
+
+    @Test
+    public void test277X212() throws Exception {
+        URL url = this.getClass().getResource("/277_5010/x12_277_x212.txt");
+        X12Reader reader = new X12Reader(FileType.ANSI277_5010_X212, new File(url.getFile()));
+
+        List<Loop> loops = reader.getLoops();
+        Assert.assertEquals(1, loops.size());
+        Loop loop = reader.getLoops().get(0);
+        assertEquals(1, loop.getLoops().size());
+        Assert.assertEquals("Should be able to find the Claim Status Tracking Number - Payer Claim Control Number", "EJ", loop.getLoop("GS_LOOP").getLoop("ST_LOOP").getLoop("DETAIL")
+            .getLoop("TABLE2AREA5")
+            .getLoop("2000D")
+            .getLoop("2200D")
+            .getSegment("REF")
+            .getElement("REF01").getValue());
+        Element statusCodeElement = loop.getLoop("GS_LOOP").getLoop("ST_LOOP").getLoop("DETAIL")
+            .getLoop("TABLE2AREA5")
+            .getLoop("2000D")
+            .getLoop("2200D")
+            .getSegment("STC")
+            .getElement("STC01");
+        Assert.assertEquals("Should be able to see a health care claim status category code - C043", "A1", statusCodeElement.getSubValues().get(0));
+        Assert.assertEquals("Should be able to see a health care claim status category code - 1271", "704", statusCodeElement.getSubValues().get(1));
+    }
 }
