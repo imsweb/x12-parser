@@ -34,7 +34,7 @@ repositories {
 dependencies {
     spotbugs 'com.github.spotbugs:spotbugs:4.2.3'
 
-    api 'com.thoughtworks.xstream:xstream:1.4.16'
+    api 'com.thoughtworks.xstream:xstream:1.4.17'
 
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'commons-io:commons-io:2.8.0'
