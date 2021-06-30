@@ -1559,6 +1559,17 @@ public class X12ReaderTest {
         Assert.assertEquals(1, loops.size());
         Loop loop = reader.getLoops().get(0);
         assertEquals(1, loop.getLoops().size());
+        Assert.assertEquals("Should be able to find the Information Source Detail - Payer Name", "PR", loop.getLoop("GS_LOOP").getLoop("ST_LOOP").getLoop("DETAIL")
+            .getLoop("2000A")
+            .getLoop("2100A")
+            .getSegment("NM1")
+            .getElement("NM101").getValue());
+        Assert.assertEquals("Should be able to find the Information Receiver Detail - Information Receiver Name", "41", loop.getLoop("GS_LOOP").getLoop("ST_LOOP").getLoop("DETAIL")
+            .getLoop("TABLE2AREA3")
+            .getLoop("2000B")
+            .getLoop("2100B")
+            .getSegment("NM1")
+            .getElement("NM101").getValue());
         Assert.assertEquals("Should be able to find the Claim Status Tracking Number - Payer Claim Control Number", "EJ", loop.getLoop("GS_LOOP").getLoop("ST_LOOP").getLoop("DETAIL")
             .getLoop("TABLE2AREA5")
             .getLoop("2000D")

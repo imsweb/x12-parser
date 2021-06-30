@@ -561,6 +561,13 @@
               <!--End of PER segment-->
             </loop>
             <!--End of 2100A loop-->
+          </loop>
+          <!--End of 2000A loop-->
+          <loop xid="TABLE2AREA3" type="wrapper">
+            <name>Table2 - Area3</name>
+            <usage>S</usage>
+            <pos>0130</pos>
+            <repeat>&gt;1</repeat>
             <loop xid="2000B">
               <name>Information Receiver Level</name>
               <usage>R</usage>
@@ -903,7 +910,7 @@
             </loop>
             <!--End of 2000B loop-->
           </loop>
-          <!--End of 2000A loop-->
+          <!--End of Table2 - Area3 loop-->
           <loop xid="TABLE2AREA4" type="wrapper">
             <name>Table2 - Area4</name>
             <usage>S</usage>
