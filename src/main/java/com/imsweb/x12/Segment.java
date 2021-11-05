@@ -1,11 +1,14 @@
 package com.imsweb.x12;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+import com.imsweb.x12.mapping.CompositeDefinition;
 import com.imsweb.x12.mapping.ElementDefinition;
 import com.imsweb.x12.mapping.SegmentDefinition;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
@@ -334,6 +337,40 @@ public class Segment implements Iterable<Element> {
 
         output.append("</div>");
         return output.toString();
+    }
+
+    public Map<String, Object> toMap(SegmentDefinition segmentDefinition, List<String> parentIds, int segmentIndex) {
+        ArrayList<String> newParentIds = new ArrayList<>(parentIds);
+        Map<String, Object> res = new HashMap<>();
+        res.put("parentIds", newParentIds);
+        res.put("xid", _id);
+        res.put("name", segmentDefinition.getName());
+        res.put("segmentIndex", segmentIndex);
+        res.put("type", "segment");
+        List<Map<String, Object>> children = new ArrayList<>();
+        for (Element e : _elements) {
+            Optional<ElementDefinition> elementDef = Optional.empty();
+            Optional<CompositeDefinition> compositeDef = Optional.empty();
+            if (segmentDefinition.getElements() != null) {
+                elementDef = segmentDefinition
+                        .getElements()
+                        .stream()
+                        .filter(ed -> ed.getXid().equals(e.getId()))
+                        .findFirst();
+            }
+            if (segmentDefinition.getComposites() != null) {
+                compositeDef = segmentDefinition
+                        .getComposites()
+                        .stream()
+                        .filter(ed -> ed.getXid().equals(e.getId()))
+                        .findFirst();
+            }
+            children.add(e.toMap(elementDef, compositeDef, newParentIds));
+        }
+        if (!children.isEmpty()) {
+            res.put("children", children);
+        }
+        return res;
     }
 
     /**

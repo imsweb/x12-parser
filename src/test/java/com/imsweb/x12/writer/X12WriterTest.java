@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
 import org.jsoup.Jsoup;
@@ -23,6 +25,7 @@ import com.imsweb.x12.Segment;
 import com.imsweb.x12.Separators;
 import com.imsweb.x12.reader.X12Reader;
 import com.imsweb.x12.reader.X12Reader.FileType;
+import com.jayway.jsonpath.JsonPath;
 
 public class X12WriterTest {
 
@@ -404,5 +407,29 @@ public class X12WriterTest {
 
     private void addElement(Segment segment, String elementNum, String data) {
         segment.addElement(new Element(segment.getId() + elementNum, data));
+    }
+
+    @Test
+    public void testToMap() throws Exception {
+        URL url = this.getClass().getResource("/837_5010/x12_valid.txt");
+
+        X12Reader fromFileUtf8 = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()),
+                StandardCharsets.UTF_8);
+
+        X12Writer writer = new X12Writer(fromFileUtf8);
+        List<Map<String, Object>> listOfMap = writer.toListOfMap();
+
+        List<String> types = JsonPath.parse(listOfMap).read("$..type");
+
+        Assert.assertEquals(20, types.stream().filter("loop"::equals).count());
+        Assert.assertEquals(38, types.stream().filter("segment"::equals).count());
+        Assert.assertEquals(216, types.stream().filter("element"::equals).count());
+
+        List<Map<String, Object>> loopsAndSegmentsByName = JsonPath.parse(listOfMap).read("$..[?(@.name=='Interchange Control Header')]");
+        Assert.assertEquals(2, loopsAndSegmentsByName.size());
+
+        List<Map<String, Object>> elmByName = JsonPath.parse(listOfMap).read("$..[?(@.name=='Functional Identifier Code')]");
+        Assert.assertEquals(1, elmByName.size());
+        Assert.assertEquals("HC", elmByName.get(0).get("value"));
     }
 }

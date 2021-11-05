@@ -5,6 +5,7 @@ package com.imsweb.x12.writer;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import com.imsweb.x12.LineBreak;
 import com.imsweb.x12.Loop;
@@ -79,5 +80,15 @@ public class X12Writer {
             builder.append(loop.toHtml(_definition.getLoop(), new ArrayList<>()));
         }
         return builder.toString();
+    }
+
+    public List<Map<String, Object>> toListOfMap() {
+        List<Map<String, Object>> res = new ArrayList<>();
+        int idx = 0;
+        for (Loop loop : _dataLoops) {
+            res.add(loop.toMap(_definition.getLoop(), new ArrayList<>(), idx, idx));
+            ++idx;
+        }
+        return res;
     }
 }

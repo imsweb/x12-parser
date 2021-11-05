@@ -2,10 +2,13 @@ package com.imsweb.x12;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+import com.imsweb.x12.mapping.CompositeDefinition;
 import com.imsweb.x12.mapping.ElementDefinition;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
@@ -130,6 +133,21 @@ public class Element {
             .append(_value)
             .append("\" /> </p></div>")
             .toString();
+    }
+
+    public Map<String, Object> toMap(Optional<ElementDefinition> elementDefinition, Optional<CompositeDefinition> compositeDefinition, List<String> parentIds) {
+        Map<String, Object> res = new HashMap<>();
+        res.put("parentIds", parentIds);
+        res.put("xid", _id);
+        res.put("type", "element");
+        if (elementDefinition.isPresent()) {
+            res.put("name", elementDefinition.get().getName());
+        }
+        else {
+            compositeDefinition.ifPresent(definition -> res.put("name", definition.getName()));
+        }
+        res.put("value", _value);
+        return res;
     }
 
     @Override
