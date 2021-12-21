@@ -27,7 +27,7 @@ public class UsageConverter implements Converter {
         if ("N".equals(reader.getValue()))
             return Usage.NOT_USED;
 
-        throw new RuntimeException("Unexpected usage value: " + reader.getValue());
+        throw new IllegalStateException("Unexpected usage value: " + reader.getValue());
     }
 
     @Override
