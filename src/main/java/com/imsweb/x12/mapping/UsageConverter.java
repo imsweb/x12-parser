@@ -31,6 +31,7 @@ public class UsageConverter implements Converter {
     }
 
     @Override
+    @SuppressWarnings("rawtypes")
     public boolean canConvert(Class type) {
         return type.equals(Usage.class);
     }
