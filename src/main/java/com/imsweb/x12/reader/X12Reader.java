@@ -19,6 +19,11 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.io.xml.StaxDriver;
+import com.thoughtworks.xstream.security.NoTypePermission;
+import com.thoughtworks.xstream.security.WildcardTypePermission;
+
 import com.imsweb.x12.Loop;
 import com.imsweb.x12.Segment;
 import com.imsweb.x12.Separators;
@@ -28,11 +33,6 @@ import com.imsweb.x12.mapping.LoopDefinition;
 import com.imsweb.x12.mapping.SegmentDefinition;
 import com.imsweb.x12.mapping.TransactionDefinition;
 import com.imsweb.x12.mapping.TransactionDefinition.Usage;
-
-import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.io.xml.StaxDriver;
-import com.thoughtworks.xstream.security.NoTypePermission;
-import com.thoughtworks.xstream.security.WildcardTypePermission;
 
 public class X12Reader {
 
@@ -55,13 +55,13 @@ public class X12Reader {
     private static final Map<FileType, String> _TYPES = new HashMap<>();
 
     private List<String> _errors = new ArrayList<>();
-    private List<String> _fatalErrors = new ArrayList<>(); // structure issues so bad we should stop processing.
-    private List<LoopConfig> _config = new ArrayList<>();
-    private List<Loop> _dataLoops = new ArrayList<>();
-    private Map<String, List<Set<String>>> _childLoopTracker = new HashMap<>();
+    private final List<String> _fatalErrors = new ArrayList<>(); // structure issues so bad we should stop processing.
+    private final List<LoopConfig> _config = new ArrayList<>();
+    private final List<Loop> _dataLoops = new ArrayList<>();
+    private final Map<String, List<Set<String>>> _childLoopTracker = new HashMap<>();
     private Separators _separators;
     TransactionDefinition _definition;
-    private FileType _type;
+    private final FileType _type;
 
     /**
      * All supported X12 file definitions
@@ -80,7 +80,7 @@ public class X12Reader {
         ANSI271_4010_X092("mapping/271.4010.X092.A1.xml"),
         ANSI277_5010_X212("mapping/277.5010.X212.xml");
 
-        private String _mapping;
+        private final String _mapping;
 
         private static Map<String, TransactionDefinition> _DEFINITIONS = new HashMap<>();
 
@@ -654,7 +654,7 @@ public class X12Reader {
             for (String parentLoop : parentLoops)
                 if (previousParentLoops.contains(parentLoop))
                     return parentLoop;
-        if (parentLoops.size() != 0)
+        if (!parentLoops.isEmpty())
             return parentLoops.get(0);
         else
             return null;
@@ -987,7 +987,7 @@ public class X12Reader {
             if (loop.getLoop() != null)
                 for (LoopDefinition subloop : loop.getLoop()) {
                     segs = getSegmentDefinitions(subloop, id);
-                    if (segs == null || segs.size() != 0)
+                    if (segs == null || !segs.isEmpty())
                         break;
                 }
         }
