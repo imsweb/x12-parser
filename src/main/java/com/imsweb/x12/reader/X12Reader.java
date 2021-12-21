@@ -9,6 +9,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -52,7 +53,7 @@ public class X12Reader {
     private static final String _X214_ANSI_VERSION = "005010X214";
     private static final String _X270_271_092_ANSI_VERSION = "004010X092A1";
     private static final String _X212_ANSI_VERSION = "005010X212";
-    private static final Map<FileType, String> _TYPES = new HashMap<>();
+    private static final EnumMap<FileType, String> _TYPES = new EnumMap<>(FileType.class);
 
     private List<String> _errors = new ArrayList<>();
     private final List<String> _fatalErrors = new ArrayList<>(); // structure issues so bad we should stop processing.
@@ -82,7 +83,7 @@ public class X12Reader {
 
         private final String _mapping;
 
-        private static Map<String, TransactionDefinition> _DEFINITIONS = new HashMap<>();
+        private static final Map<String, TransactionDefinition> _DEFINITIONS = new HashMap<>();
 
         FileType(String mapping) {
             _mapping = mapping;
@@ -93,7 +94,7 @@ public class X12Reader {
          * @return a TransactionDefinition
          */
         public synchronized TransactionDefinition getDefinition() {
-            if (!_DEFINITIONS.containsKey(_mapping)) {
+            return _DEFINITIONS.computeIfAbsent(_mapping, k -> {
                 XStream xstream = new XStream(new StaxDriver());
                 xstream.autodetectAnnotations(true);
                 xstream.alias("transaction", TransactionDefinition.class);
@@ -102,11 +103,8 @@ public class X12Reader {
                 xstream.addPermission(NoTypePermission.NONE);
                 xstream.addPermission(new WildcardTypePermission(new String[] {"com.imsweb.x12.**"}));
 
-                TransactionDefinition def = (TransactionDefinition)xstream.fromXML(Thread.currentThread().getContextClassLoader().getResourceAsStream(_mapping));
-                _DEFINITIONS.put(_mapping, def);
-            }
-
-            return _DEFINITIONS.get(_mapping);
+                return (TransactionDefinition)xstream.fromXML(Thread.currentThread().getContextClassLoader().getResourceAsStream(_mapping));
+            });
         }
     }
 
@@ -412,7 +410,7 @@ public class X12Reader {
                 version = lineString.substring(versionStartPos + 1);
         }
         reader.reset();
-        
+
         boolean result = _TYPES.get(_type).equals(version);
 
         if (!result)
@@ -717,7 +715,8 @@ public class X12Reader {
 
             if (matchedLoops.size() > 1) {
                 // starting a new loop but we aren't quite sure which one yet. Remove loops where the segment is known to be the last segment of that loop - clearly we aren't in a new loop then
-                matchedLoops = matchedLoops.stream().filter(lc -> lc.getLastSegmentXid() == null || !(lc.getLastSegmentXid().getXid().equals(tokens[0]) && codesValidatedForLoopId(tokens, lc.getLastSegmentXid()))).collect(
+                matchedLoops = matchedLoops.stream().filter(lc -> lc.getLastSegmentXid() == null || !(lc.getLastSegmentXid().getXid().equals(tokens[0]) && codesValidatedForLoopId(tokens,
+                        lc.getLastSegmentXid()))).collect(
                         Collectors.toList());
                 result = matchedLoops.isEmpty() ? null : (matchedLoops.size() == 1 ? matchedLoops.get(0) : getFinalizedMatch(previousLoopID, matchedLoops));
             }
@@ -808,8 +807,8 @@ public class X12Reader {
                     _errors.add("Unable to split elements to validate segment ID!");
                 i++;
             }
-            
-            if (!lineMatchesFormat) 
+
+            if (!lineMatchesFormat)
                 _errors.add("Unable to find a matching segment format in loop " + loopId);
             lineMatchesFormat = false;
         }
