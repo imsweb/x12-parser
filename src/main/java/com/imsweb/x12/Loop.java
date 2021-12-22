@@ -12,20 +12,22 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
-import com.imsweb.x12.converters.ElementConverter;
-import com.imsweb.x12.mapping.LoopDefinition;
-import com.imsweb.x12.mapping.Positioned;
-import com.imsweb.x12.mapping.SegmentDefinition;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
+import com.thoughtworks.xstream.io.json.AbstractJsonWriter;
 import com.thoughtworks.xstream.io.json.JsonHierarchicalStreamDriver;
 import com.thoughtworks.xstream.io.json.JsonWriter;
 import com.thoughtworks.xstream.io.xml.PrettyPrintWriter;
 import com.thoughtworks.xstream.io.xml.StaxDriver;
 import com.thoughtworks.xstream.security.NoTypePermission;
 import com.thoughtworks.xstream.security.WildcardTypePermission;
+
+import com.imsweb.x12.converters.ElementConverter;
+import com.imsweb.x12.mapping.LoopDefinition;
+import com.imsweb.x12.mapping.Positioned;
+import com.imsweb.x12.mapping.SegmentDefinition;
 
 /**
  * The Loop class is the representation of an Loop in a ANSI X12 transaction. The building block of an X12 transaction is an element. Some
@@ -280,7 +282,7 @@ public class Loop implements Iterable<Segment> {
      */
     public Loop getLoop(String loopId) {
         List<Loop> loops = findLoop(loopId);
-        if (loops.size() != 0)
+        if (!loops.isEmpty())
             return findLoop(loopId).get(0);
         return null;
     }
@@ -312,7 +314,7 @@ public class Loop implements Iterable<Segment> {
                 foundLoops.add(loop);
 
             List<Loop> moreLoops = loop.findLoop(id);
-            if (moreLoops.size() > 0)
+            if (!moreLoops.isEmpty())
                 foundLoops.addAll(moreLoops);
         }
 
@@ -370,7 +372,7 @@ public class Loop implements Iterable<Segment> {
      */
     public Segment getSegment(String id) {
         List<Segment> segs = findSegment(id);
-        if (segs.size() != 0)
+        if (!segs.isEmpty())
             return findSegment(id).get(0);
         return null;
     }
@@ -770,8 +772,9 @@ public class Loop implements Iterable<Segment> {
      */
     public String toJson() {
         XStream xstream = new XStream(new JsonHierarchicalStreamDriver() {
+            @Override
             public HierarchicalStreamWriter createWriter(Writer writer) {
-                return new JsonWriter(writer, JsonWriter.DROP_ROOT_MODE);
+                return new JsonWriter(writer, AbstractJsonWriter.DROP_ROOT_MODE);
             }
         });
 
