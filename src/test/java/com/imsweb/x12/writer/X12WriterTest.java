@@ -409,6 +409,7 @@ public class X12WriterTest {
         segment.addElement(new Element(segment.getId() + elementNum, data));
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     public void testToMap() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_valid.txt");
@@ -423,7 +424,8 @@ public class X12WriterTest {
 
         Assert.assertEquals(20, types.stream().filter("loop"::equals).count());
         Assert.assertEquals(38, types.stream().filter("segment"::equals).count());
-        Assert.assertEquals(216, types.stream().filter("element"::equals).count());
+        Assert.assertEquals(200, types.stream().filter("element"::equals).count());
+        Assert.assertEquals(16, types.stream().filter("composite"::equals).count());
 
         List<Map<String, Object>> loopsAndSegmentsByName = JsonPath.parse(listOfMap).read("$..[?(@.name=='Interchange Control Header')]");
         Assert.assertEquals(2, loopsAndSegmentsByName.size());
@@ -431,5 +433,15 @@ public class X12WriterTest {
         List<Map<String, Object>> elmByName = JsonPath.parse(listOfMap).read("$..[?(@.name=='Functional Identifier Code')]");
         Assert.assertEquals(1, elmByName.size());
         Assert.assertEquals("HC", elmByName.get(0).get("value"));
+        List<Map<String, Object>> compositeList = JsonPath.parse(listOfMap).read("$..[?(@.type=='composite')]");
+        Assert.assertEquals(compositeList.get(0).get("name"), "Health Care Service Location Information");
+        Assert.assertEquals(compositeList.get(0).get("value"), "11:B:1");
+        List<Map<String, Object>> subElements = (List<Map<String, Object>>)compositeList.get(0).get("subElements");
+        Assert.assertEquals(3, subElements.size());
+        Map<String, Object> subElement = subElements.get(0);
+        Assert.assertEquals("11", subElement.get("value"));
+        Assert.assertEquals("Place of Service Code", subElement.get("name"));
+        Assert.assertEquals("compositeValue", subElement.get("type"));
+        Assert.assertEquals("CLM05-01", subElement.get("xid"));
     }
 }

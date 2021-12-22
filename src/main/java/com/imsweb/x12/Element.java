@@ -136,18 +136,35 @@ public class Element {
     }
 
     public Map<String, Object> toMap(Optional<ElementDefinition> elementDefinition, Optional<CompositeDefinition> compositeDefinition, List<String> parentIds) {
-        Map<String, Object> res = new HashMap<>();
-        res.put("parentIds", parentIds);
-        res.put("xid", _id);
-        res.put("type", "element");
+        Map<String, Object> elmMap = new HashMap<>();
+        elmMap.put("parentIds", parentIds);
+        elmMap.put("xid", _id);
+        elmMap.put("type", elementDefinition.isPresent() ? "element" : "composite");
+        elmMap.put("value", _value);
         if (elementDefinition.isPresent()) {
-            res.put("name", elementDefinition.get().getName());
+            elmMap.put("name", elementDefinition.get().getName());
         }
         else {
-            compositeDefinition.ifPresent(definition -> res.put("name", definition.getName()));
+            compositeDefinition.ifPresent(definition -> {
+                List<Map<String, Object>> subElements = new ArrayList<>();
+                List<String> subParentIds = new ArrayList<>(parentIds);
+                subParentIds.add(_id);
+                elmMap.put("name", definition.getName());
+                for (int i = 0; i < getNumOfSubElements(); ++i) {
+                    String subElementVal = getSubElement(i);
+                    ElementDefinition subElementDefinition = definition.getElements().get(i);
+                    Map<String, Object> compositeMap = new HashMap<>();
+                    compositeMap.put("name", subElementDefinition.getName());
+                    compositeMap.put("parentIds", subParentIds);
+                    compositeMap.put("xid", subElementDefinition.getXid());
+                    compositeMap.put("type", "compositeValue");
+                    compositeMap.put("value", subElementVal);
+                    subElements.add(compositeMap);
+                }
+                elmMap.put("subElements", subElements);
+            });
         }
-        res.put("value", _value);
-        return res;
+        return elmMap;
     }
 
     @Override
