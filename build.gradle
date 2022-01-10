@@ -41,6 +41,7 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'commons-io:commons-io:2.11.0'
     testImplementation 'org.jsoup:jsoup:1.14.3'
+    testImplementation 'com.jayway.jsonpath:json-path:2.6.0'
 }
 
 jar {

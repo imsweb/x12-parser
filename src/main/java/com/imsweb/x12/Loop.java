@@ -3,8 +3,10 @@ package com.imsweb.x12;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
@@ -677,6 +679,48 @@ public class Loop implements Iterable<Segment> {
         }
         dump.append("</div>");
         return dump.toString();
+    }
+
+
+    public Map<String, Object> toMap(LoopDefinition loopDefinition, List<String> parentIds, int rootLoopIndex, int loopIndex) {
+        List<String> newParentIds = new ArrayList<>(parentIds);
+        Map<String, Object> res = new HashMap<>();
+        res.put("parentIds", parentIds);
+        res.put("xid", _id);
+        res.put("name", loopDefinition.getName());
+        res.put("type", "loop");
+        Set<Positioned> segmentsAndLoops = new TreeSet<>();
+        if (loopDefinition.getLoop() != null) {
+            segmentsAndLoops.addAll(loopDefinition.getLoop());
+        }
+        if (loopDefinition.getSegment() != null) {
+            segmentsAndLoops.addAll(loopDefinition.getSegment());
+        }
+        List<Map<String, Object>> children = new ArrayList<>();
+        for (Positioned positioned : segmentsAndLoops) {
+            if (positioned instanceof SegmentDefinition) {
+                SegmentDefinition segmentDefinition = (SegmentDefinition)positioned;
+                int idx = 0;
+                Segment segment;
+                while ((segment = getSegment(segmentDefinition.getXid(), idx)) != null) {
+                    children.add(segment.toMap(segmentDefinition, newParentIds, idx));
+                    ++idx;
+                }
+            }
+            else if (positioned instanceof LoopDefinition) {
+                LoopDefinition innerLoopDefinition = (LoopDefinition)positioned;
+                int idx = 0;
+                Loop innerLoop;
+                while ((innerLoop = getLoopForPrinting(innerLoopDefinition, idx)) != null) {
+                    children.add(innerLoop.toMap(innerLoopDefinition, newParentIds, rootLoopIndex, idx));
+                    ++idx;
+                }
+            }
+        }
+        if (!children.isEmpty()) {
+            res.put("children", children);
+        }
+        return res;
     }
 
     /**

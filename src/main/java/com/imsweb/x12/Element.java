@@ -2,10 +2,13 @@ package com.imsweb.x12;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+import com.imsweb.x12.mapping.CompositeDefinition;
 import com.imsweb.x12.mapping.ElementDefinition;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
@@ -130,6 +133,38 @@ public class Element {
             .append(_value)
             .append("\" /> </p></div>")
             .toString();
+    }
+
+    public Map<String, Object> toMap(Optional<ElementDefinition> elementDefinition, Optional<CompositeDefinition> compositeDefinition, List<String> parentIds) {
+        Map<String, Object> elmMap = new HashMap<>();
+        elmMap.put("parentIds", parentIds);
+        elmMap.put("xid", _id);
+        elmMap.put("type", elementDefinition.isPresent() ? "element" : "composite");
+        elmMap.put("value", _value);
+        if (elementDefinition.isPresent()) {
+            elmMap.put("name", elementDefinition.get().getName());
+        }
+        else {
+            compositeDefinition.ifPresent(definition -> {
+                List<Map<String, Object>> subElements = new ArrayList<>();
+                List<String> subParentIds = new ArrayList<>(parentIds);
+                subParentIds.add(_id);
+                elmMap.put("name", definition.getName());
+                for (int i = 0; i < getNumOfSubElements(); ++i) {
+                    String subElementVal = getSubElement(i);
+                    ElementDefinition subElementDefinition = definition.getElements().get(i);
+                    Map<String, Object> compositeMap = new HashMap<>();
+                    compositeMap.put("name", subElementDefinition.getName());
+                    compositeMap.put("parentIds", subParentIds);
+                    compositeMap.put("xid", subElementDefinition.getXid());
+                    compositeMap.put("type", "compositeValue");
+                    compositeMap.put("value", subElementVal);
+                    subElements.add(compositeMap);
+                }
+                elmMap.put("subElements", subElements);
+            });
+        }
+        return elmMap;
     }
 
     @Override
