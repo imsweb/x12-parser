@@ -2,7 +2,7 @@ plugins {
     id 'java-library'
     id 'checkstyle'
     id 'jacoco'
-    id "com.github.spotbugs" version "4.7.1"
+    id "com.github.spotbugs" version "5.0.6"
     id 'maven-publish'
     id 'signing'
     id "io.codearte.nexus-staging" version "0.30.0"  // logs into Sonotype OSS and does a "Close" and "Release"
@@ -34,7 +34,7 @@ repositories {
 }
 
 dependencies {
-    spotbugs 'com.github.spotbugs:spotbugs:4.2.3'
+    spotbugs 'com.github.spotbugs:spotbugs:4.6.0'
 
     api 'com.thoughtworks.xstream:xstream:1.4.19'
 
