@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@SuppressWarnings("java:S5961")
+@SuppressWarnings({"java:S5961", "java:S5976")
 class X12ReaderTest {
 
     @Test
@@ -314,6 +314,7 @@ class X12ReaderTest {
     /**
      * Valid output for a testing file
      */
+    @SuppressWarnings("java:S5778")
     private void validate837Valid(Loop loop) {
         assertEquals(1, loop.getLoops().size());
         assertEquals(1, loop.getLoop("GS_LOOP").getLoops().size());
