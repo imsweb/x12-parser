@@ -1,15 +1,16 @@
 package com.imsweb.x12;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class SegmentTest {
+class SegmentTest {
 
     @Test
-    public void testSegmentEmpty() {
+    void testSegmentEmpty() {
         Segment s = new Segment(new Separators('~', '*', ':'));
         assertNotNull(s);
         assertEquals(new Separators(), s.getSeparators());
@@ -21,13 +22,13 @@ public class SegmentTest {
     }
 
     @Test
-    public void testAddElementString() {
+    void testAddElementString() {
         Segment s = new Segment();
         assertTrue(s.addElement(new Element("ISA00", "ISA")));
     }
 
     @Test
-    public void testAddElements() {
+    void testAddElements() {
         Segment s = new Segment();
         s.setId("ISA");
         Element elem2 = new Element("ISA01", "ISA01", new Separators('~', '*', ':'));
@@ -36,13 +37,13 @@ public class SegmentTest {
     }
 
     @Test
-    public void testAddCompositeElementStringArray() {
+    void testAddCompositeElementStringArray() {
         Segment s = new Segment();
         assertTrue(s.addCompositeElement("ID", "AB", "CD", "EF"));
     }
 
     @Test
-    public void testAddElementIntString() {
+    void testAddElementIntString() {
         Segment s = new Segment();
         s.setId("ISA");
         Element elem2 = new Element("ISA01", "ISA01", new Separators('~', '*', ':'));
@@ -52,7 +53,7 @@ public class SegmentTest {
     }
 
     @Test
-    public void testAddCompositeElementIntStringArray() {
+    void testAddCompositeElementIntStringArray() {
         Segment s = new Segment();
         s.setId("ISA");
         Element elem1 = new Element("ISA01", "ISA01", new Separators('~', '*', ':'));
@@ -64,13 +65,13 @@ public class SegmentTest {
     }
 
     @Test
-    public void testGetSeparators() {
+    void testGetSeparators() {
         Segment s = new Segment();
         assertEquals("[~,*,:]", s.getSeparators().toString());
     }
 
     @Test
-    public void testGetElement() {
+    void testGetElement() {
         Segment s = new Segment();
         s.setId("ISA");
         Element elem1 = new Element("ISA01", "ISA01", new Separators('~', '*', ':'));
@@ -81,7 +82,7 @@ public class SegmentTest {
     }
 
     @Test
-    public void testIterator() {
+    void testIterator() {
         Segment s = new Segment();
         s.setId("ISA");
         Element elem1 = new Element("ISA01", "ISA01", new Separators('~', '*', ':'));
@@ -92,7 +93,7 @@ public class SegmentTest {
     }
 
     @Test
-    public void testRemoveElement() {
+    void testRemoveElement() {
         Segment s = new Segment();
         s.setId("ISA");
         Element elem1 = new Element("ISA01", "ISA01", new Separators('~', '*', ':'));
@@ -104,7 +105,7 @@ public class SegmentTest {
     }
 
     @Test
-    public void testRemoveElementTwo() {
+    void testRemoveElementTwo() {
         Segment s = new Segment();
         s.setId("ISA");
         Element elem1 = new Element("ISA01", "ISA01", new Separators('~', '*', ':'));
@@ -116,14 +117,14 @@ public class SegmentTest {
     }
 
     @Test
-    public void testSetSeparators() {
+    void testSetSeparators() {
         Segment s = new Segment();
         s.setSeparators(new Separators('s', 'e', 'c'));
         assertEquals("[s,e,c]", s.getSeparators().toString());
     }
 
     @Test
-    public void testSetElement() {
+    void testSetElement() {
         Segment s = new Segment();
         s.setId("ISA");
         Element elem1 = new Element("ISA01", "ISA01", new Separators('~', '*', ':'));
@@ -136,7 +137,7 @@ public class SegmentTest {
     }
 
     @Test
-    public void testSetCompositeElement() {
+    void testSetCompositeElement() {
         Segment s = new Segment();
         s.setId("ISA");
         Element elem1 = new Element("ISA01", "ISA01", new Separators('~', '*', ':'));
@@ -149,7 +150,7 @@ public class SegmentTest {
     }
 
     @Test
-    public void testSize() {
+    void testSize() {
         Segment s = new Segment();
         s.setId("ISA");
         Element elem1 = new Element("ISA01", "ISA01", new Separators('~', '*', ':'));
@@ -161,7 +162,7 @@ public class SegmentTest {
     }
 
     @Test
-    public void testToString() {
+    void testToString() {
         Segment s = new Segment();
         s.setId("ISA");
         Element elem1 = new Element("ISA01", "ISA01", new Separators('~', '*', ':'));
@@ -171,11 +172,10 @@ public class SegmentTest {
         s.addElements(elem1, elem2, elem3, elem4);
         s.setCompositeElement(3, "ISA03_1", "ISA03_2", "ISA03_3");
         assertEquals("ISA*ISA01*ISA02*ISA03_1:ISA03_2:ISA03_3*ISA04", s.toString());
-
     }
 
     @Test
-    public void testToStringEmptyElements() {
+    void testToStringEmptyElements() {
         Segment s = new Segment();
         s.setId("ISA");
         Element elem1 = new Element("ISA01", "ISA01", new Separators('~', '*', ':'));
@@ -190,7 +190,7 @@ public class SegmentTest {
     }
 
     @Test
-    public void testToStringNullElements() {
+    void testToStringNullElements() {
         Segment s = new Segment();
         s.setId("ISA");
         Element elem1 = new Element("ISA01", "ISA01", new Separators('~', '*', ':'));
@@ -204,20 +204,20 @@ public class SegmentTest {
         assertEquals("ISA*ISA01*ISA02*ISA03*ISA04***", s.toString());
     }
 
-    @Test(expected = IllegalStateException.class)
-    public void testAppendElementToInvalidSegments() {
+    @Test
+    void testAppendElementToInvalidSegments() {
         Segment s = new Segment();
-        s.appendElement("Append");
-    }
-
-    @Test(expected = IllegalStateException.class)
-    public void testAppendNullSegment() {
-        Segment s = new Segment();
-        s.appendElement(null);
+        assertThrows(IllegalStateException.class, () -> s.appendElement("Append"));
     }
 
     @Test
-    public void testAppendSegment() {
+    void testAppendNullSegment() {
+        Segment s = new Segment();
+        assertThrows(IllegalStateException.class, () -> s.appendElement(null));
+    }
+
+    @Test
+    void testAppendSegment() {
         Segment s = new Segment("ISA");
         Element elem1 = new Element("ISA01", "ISA01", new Separators('~', '*', ':'));
         Element elem2 = new Element("ISA02", "ISA02", new Separators('~', '*', ':'));

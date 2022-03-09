@@ -2,16 +2,16 @@ package com.imsweb.x12;
 
 import java.util.List;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class LoopTest {
+class LoopTest {
 
     @Test
-    public void testLoop() {
+    void testLoop() {
         Loop loop = new Loop(new Separators('~', '*', ':'), "ISA");
         assertNotNull(loop);
         assertEquals(new Separators('~', '*', ':'), loop.getSeparators());
@@ -26,14 +26,14 @@ public class LoopTest {
     }
 
     @Test
-    public void testAddChildString() {
+    void testAddChildString() {
         Loop loop = new Loop("ISA");
         Loop child = loop.addLoop("GS");
         assertNotNull(child);
     }
 
     @Test
-    public void testAddChildIntLoop() {
+    void testAddChildIntLoop() {
         Loop loop = new Loop("ISA");
         Loop gs = new Loop("GS");
         Loop st = new Loop("ST");
@@ -43,21 +43,21 @@ public class LoopTest {
     }
 
     @Test
-    public void testAddSegment() {
+    void testAddSegment() {
         Loop loop = new Loop("ST");
         Segment s = loop.addSegment();
         assertNotNull(s);
     }
 
     @Test
-    public void testAddSegmentString() {
+    void testAddSegmentString() {
         Loop loop = new Loop("ST");
         loop.addSegment("ST*835*000000001");
         assertEquals("ST", loop.getSegment(0).getId());
     }
 
     @Test
-    public void testAddSegmentSegment() {
+    void testAddSegmentSegment() {
         Loop loop = new Loop("ST");
         Segment segment = new Segment(new Separators('~', '*', ':'));
         segment.addElements("ST*835*000000001");
@@ -66,7 +66,7 @@ public class LoopTest {
     }
 
     @Test
-    public void testAddSegmentInt() {
+    void testAddSegmentInt() {
         Loop loop = new Loop("ST");
         loop.addSegment("BPR*DATA*NOT*VALID*RANDOM*TEXT");
         loop.addSegment("TRN*1*0000000000*1999999999");
@@ -78,7 +78,7 @@ public class LoopTest {
     }
 
     @Test
-    public void testAddSegmentIntString() {
+    void testAddSegmentIntString() {
         Loop loop = new Loop("ST");
         loop.addSegment("BPR*DATA*NOT*VALID*RANDOM*TEXT");
         loop.addSegment("TRN*1*0000000000*1999999999");
@@ -88,7 +88,7 @@ public class LoopTest {
     }
 
     @Test
-    public void testAddSegmentIntSegment() {
+    void testAddSegmentIntSegment() {
         Loop loop = new Loop("ST");
         loop.addSegment("ST*835*000000001");
         loop.addSegment("BPR*DATA*NOT*VALID*RANDOM*TEXT");
@@ -100,7 +100,7 @@ public class LoopTest {
     }
 
     @Test
-    public void testAddChildIntString() {
+    void testAddChildIntString() {
         Loop loop = new Loop("ISA");
         loop.addLoop("GS");
         loop.addLoop(1, "ST");
@@ -108,7 +108,7 @@ public class LoopTest {
     }
 
     @Test
-    public void testHasLoop() {
+    void testHasLoop() {
         Loop loop = new Loop("ISA");
         loop.addLoop("GS");
         loop.addLoop("ST");
@@ -116,7 +116,7 @@ public class LoopTest {
     }
 
     @Test
-    public void testFindLoop() {
+    void testFindLoop() {
         Loop loop = new Loop("ISA");
         loop.addLoop("GS");
         loop.addLoop("ST");
@@ -132,7 +132,7 @@ public class LoopTest {
     }
 
     @Test
-    public void testFindSegment() {
+    void testFindSegment() {
         Loop loop = new Loop("ISA");
         loop.addLoop("GS");
         loop.addLoop("ST");
@@ -163,13 +163,13 @@ public class LoopTest {
     }
 
     @Test
-    public void testGetSeparators() {
+    void testGetSeparators() {
         Loop loop = new Loop("ISA");
         assertEquals("[~,*,:]", loop.getSeparators().toString());
     }
 
     @Test
-    public void testGetLoop() {
+    void testGetLoop() {
         Loop loop = new Loop("X12");
         loop.addLoop("ISA");
         loop.addLoop("GS");
@@ -185,7 +185,7 @@ public class LoopTest {
     }
 
     @Test
-    public void testGetSegment() {
+    void testGetSegment() {
         Loop loop = new Loop("ST");
         loop.addSegment("ST*835*000000001");
         loop.addSegment("BPR*DATA*NOT*VALID*RANDOM*TEXT");
@@ -194,19 +194,19 @@ public class LoopTest {
     }
 
     @Test
-    public void testGetName() {
+    void testGetName() {
         Loop loop = new Loop("ST");
         assertEquals("ST", loop.getId());
     }
 
     @Test
-    public void testIterator() {
+    void testIterator() {
         Loop loop = new Loop("ST");
         assertNotNull(loop.iterator());
     }
 
     @Test
-    public void testRemoveLoop() {
+    void testRemoveLoop() {
         Loop loop = new Loop("X12");
         loop.addLoop("ISA");
         loop.addLoop("GS");
@@ -228,7 +228,7 @@ public class LoopTest {
     }
 
     @Test
-    public void testRemoveSegment() {
+    void testRemoveSegment() {
         Loop loop = new Loop("ST");
         loop.addSegment("BPR*DATA*NOT*VALID*RANDOM*TEXT");
         loop.addSegment("TRN*1*0000000000*1999999999");
@@ -241,7 +241,7 @@ public class LoopTest {
     }
 
     @Test
-    public void testChildList() {
+    void testChildList() {
         Loop loop = new Loop("X12");
         loop.addLoop("ISA");
         loop.addLoop("GS");
@@ -259,7 +259,7 @@ public class LoopTest {
     }
 
     @Test
-    public void testSize() {
+    void testSize() {
         Loop loop = new Loop("ST");
         loop.addSegment("ST*835*000000001");
         loop.addSegment("BPR*DATA*NOT*VALID*RANDOM*TEXT");
@@ -268,7 +268,7 @@ public class LoopTest {
     }
 
     @Test
-    public void testSetSeparators() {
+    void testSetSeparators() {
         Loop loop = new Loop(new Separators('a', 'b', 'c'), "ST");
         Separators separators = new Separators('~', '*', ':');
         loop.setSeparators(separators);
@@ -276,7 +276,7 @@ public class LoopTest {
     }
 
     @Test
-    public void testSetChildIntString() {
+    void testSetChildIntString() {
         Loop loop = new Loop("X12");
         loop.addLoop("ISA");
         loop.addLoop("GS");
@@ -293,7 +293,7 @@ public class LoopTest {
     }
 
     @Test
-    public void testSetChildIntLoop() {
+    void testSetChildIntLoop() {
         Loop loop = new Loop("X12");
         loop.addLoop("ISA");
         loop.addLoop("GS");
@@ -310,7 +310,7 @@ public class LoopTest {
     }
 
     @Test
-    public void testSetSegmentInt() {
+    void testSetSegmentInt() {
         Loop loop = new Loop("ST");
         loop.addSegment("NOT*THE*RIGHT*SEGMENT");
         loop.addSegment("BPR*DATA*NOT*VALID*RANDOM*TEXT");
@@ -323,7 +323,7 @@ public class LoopTest {
     }
 
     @Test
-    public void testSetSegmentIntSegment() {
+    void testSetSegmentIntSegment() {
         Loop loop = new Loop("ST");
         loop.addSegment("ST*835*000000001");
         loop.addSegment("BPR*DATA*NOT*VALID*RANDOM*TEXT");
@@ -334,21 +334,21 @@ public class LoopTest {
     }
 
     @Test
-    public void testSetName() {
+    void testSetName() {
         Loop loop = new Loop("AB");
         loop.setId("ST");
         assertEquals("ST", loop.getId());
     }
 
     @Test
-    public void testToString() {
+    void testToString() {
         Loop loop = new Loop("ST");
         loop.addSegment("ST*835*000000001");
         assertEquals("ST*835*000000001~", loop.toString());
     }
 
     @Test
-    public void testToXML() {
+    void testToXML() {
         Loop loop = new Loop("ST");
         loop.addSegment("ST*835*000000001");
         assertEquals("<loop id=\"ST\">\n"
