@@ -31,6 +31,7 @@ class X12ReaderTest {
     @Test
     void testConstructors() throws IOException {
         URL url = this.getClass().getResource("/837_5010/x12_valid.txt");
+        assertNotNull(url);
 
         X12Reader fromFile = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
         X12Reader fromFileUtf8 = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()), StandardCharsets.UTF_8);
@@ -46,6 +47,7 @@ class X12ReaderTest {
     @Test
     void testMultipleGSLoops() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_multiple_gs.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
         validateMultipleGSLoops(reader.getLoops().get(0));
     }
@@ -53,6 +55,7 @@ class X12ReaderTest {
     @Test
     void testMultipleISALoops() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_multiple_isa.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
         validateMultipleISALoops(reader.getLoops());
     }
@@ -60,6 +63,7 @@ class X12ReaderTest {
     @Test
     void testMultipleSTLoops() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_multiple_st.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
 
         List<Loop> loops = reader.getLoops();
@@ -70,6 +74,7 @@ class X12ReaderTest {
     @Test
     void testMarkingFiles() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_valid.txt");
+        assertNotNull(url);
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(url.getFile()), StandardCharsets.UTF_8))) {
             String line = null;
 
@@ -88,6 +93,7 @@ class X12ReaderTest {
     @Test
     void testNewGetMethods() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_valid.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
         Loop loop = reader.getLoops().get(0);
 
@@ -115,6 +121,7 @@ class X12ReaderTest {
     @Test
     void testDifferentSeparators() throws IOException {
         URL url = this.getClass().getResource("/837_5010/x12_valid_different_separators.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
         validate837Valid(reader.getLoops().get(0));
     }
@@ -122,6 +129,7 @@ class X12ReaderTest {
     @Test
     void testWithFileConstructor() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_valid.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
 
         validate837Valid(reader.getLoops().get(0));
@@ -130,6 +138,7 @@ class X12ReaderTest {
     @Test
     void testWithReadableConstructor() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_valid.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
 
         validate837Valid(reader.getLoops().get(0));
@@ -138,6 +147,7 @@ class X12ReaderTest {
     @Test
     void testWithInputStreamConstructor() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_valid.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new FileInputStream(url.getFile()));
 
         validate837Valid(reader.getLoops().get(0));
@@ -146,6 +156,7 @@ class X12ReaderTest {
     @Test
     void testBadValidCode() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_bad_valid_code.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
 
         List<String> errors = reader.getErrors();
@@ -159,6 +170,7 @@ class X12ReaderTest {
     @Test
     void testSegmentErrors() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_segment_errors.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
 
         List<String> errors = reader.getErrors();
@@ -174,6 +186,7 @@ class X12ReaderTest {
     @Test
     void testBadSegementIdentifier() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_bad_segment_identifier.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
 
         List<String> errors = reader.getErrors();
@@ -192,6 +205,7 @@ class X12ReaderTest {
     @Test
     void testMissingRequiredElements() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_missing_elements.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
 
         List<String> errors = reader.getErrors();
@@ -208,6 +222,7 @@ class X12ReaderTest {
     })
     void testRepeats(String file) throws Exception {
         URL url = this.getClass().getResource(file);
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
 
         List<String> errors = reader.getErrors();
@@ -221,6 +236,7 @@ class X12ReaderTest {
     @Test
     void testMissingLoop() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_loop_errors3_missing_loops.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
 
         List<String> errors = reader.getErrors();
@@ -234,6 +250,7 @@ class X12ReaderTest {
     @Test
     void testValidLoopStructure() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_no_errors.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
 
         List<String> errors = reader.getErrors();
@@ -246,6 +263,7 @@ class X12ReaderTest {
     @Test
     void testMissingLoopInOneRepeat() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_missing_required_loop_in_one_repeat.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
 
         List<String> errors = reader.getErrors();
@@ -273,7 +291,10 @@ class X12ReaderTest {
 
     @Test
     void testToXml() throws IOException {
-        X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(this.getClass().getResource("/837_5010/x12_no_errors.txt").getFile()));
+        URL url = this.getClass().getResource("/837_5010/x12_no_errors.txt");
+        assertNotNull(url);
+
+        X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
 
         String xml = reader.getLoops().get(0).toXML();
         assertTrue(xml.length() > 0);
@@ -282,23 +303,20 @@ class X12ReaderTest {
 
     @Test
     void testToJson() throws IOException {
-        X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(this.getClass().getResource("/837_5010/x12_no_errors.txt").getFile()));
+        URL url = this.getClass().getResource("/837_5010/x12_no_errors.txt");
+        assertNotNull(url);
+
+        X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
 
         String json = reader.getLoops().get(0).toJson();
         assertTrue(json.length() > 0);
         assertTrue(json.startsWith("{\n  \"id\": \"ISA_LOOP\",\n  \"segments\""));
-
-        // TODO test JSON equality
-        //        reader = new X12Reader(FileType.ANSI837_5010_X222, new File(this.getClass().getResource("/837_5010/x12_multiple_gs.txt").getFile()));
-        //
-        //        json = reader.getLoop().toJson();
-        //
-        //        System.out.println(json);
     }
 
     @Test
     void testMissingRequiredLoopInMultipleRepeats() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_missing_required_loops_mult_repeats.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
 
         List<String> errors = reader.getErrors();
@@ -598,6 +616,7 @@ class X12ReaderTest {
     @Test
     void testSegmentsNotInOrder() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_segments_out_of_order.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
 
         List<String> errors = reader.getErrors();
@@ -612,6 +631,7 @@ class X12ReaderTest {
     @Test
     void testBadFirstLine() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_bad_first_line.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
         assertEquals(1, reader.getErrors().size());
         assertTrue(reader.getErrors().contains("Error getting separators"));
@@ -621,6 +641,7 @@ class X12ReaderTest {
     @Test
     void testMissingFirstLine() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_no_isa_line.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
         assertEquals(1, reader.getErrors().size());
         assertTrue(reader.getErrors().contains("Error getting separators"));
@@ -630,6 +651,7 @@ class X12ReaderTest {
     @Test
     void testConsistentVersions() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_valid.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X223, new File(url.getFile()));
         assertEquals(1, reader.getErrors().size());
         assertTrue(reader.getErrors().get(0).contains("not consistent with version specified"));
@@ -642,6 +664,7 @@ class X12ReaderTest {
     @Test
     void testManyClaims() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_many_claims.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
         assertTrue(reader.getFatalErrors().isEmpty());
         List<Loop> loops = reader.getLoops();
@@ -769,6 +792,7 @@ class X12ReaderTest {
     @Test
     void testManyTransactions() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_multiple_transactions.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
         assertTrue(reader.getFatalErrors().isEmpty());
         List<Loop> loops = reader.getLoops();
@@ -896,6 +920,7 @@ class X12ReaderTest {
     @Test
     void testComplex() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_complex.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
         assertTrue(reader.getFatalErrors().isEmpty());
         List<Loop> loops = reader.getLoops();
@@ -1375,6 +1400,7 @@ class X12ReaderTest {
     @Test
     void testX223Repeated2320() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x223-test.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X223, new FileInputStream(url.getFile()));
 
         assertEquals(1, reader.getLoops().size());
@@ -1402,6 +1428,7 @@ class X12ReaderTest {
     @Test
     void test277CAAccepted() throws Exception {
         URL url = this.getClass().getResource("/277_5010/x12_277CA_accepted.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI277_5010_X214, new File(url.getFile()));
 
         List<Loop> loops = reader.getLoops();
@@ -1431,6 +1458,7 @@ class X12ReaderTest {
     @Test
     void test277CARejected() throws Exception {
         URL url = this.getClass().getResource("/277_5010/x12_277CA_rejected.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI277_5010_X214, new File(url.getFile()));
 
         List<Loop> loops = reader.getLoops();
@@ -1453,6 +1481,7 @@ class X12ReaderTest {
     @Test
     void test999Accepted() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_999_accepted.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X231, new File(url.getFile()));
 
         List<Loop> loops = reader.getLoops();
@@ -1466,6 +1495,7 @@ class X12ReaderTest {
     @Test
     void test999Rejected() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_999_rejected.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X231, new File(url.getFile()));
 
         List<Loop> loops = reader.getLoops();
@@ -1479,6 +1509,7 @@ class X12ReaderTest {
     @Test
     void test270() throws Exception {
         URL url = this.getClass().getResource("/x270_271/x270.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI270_4010_X092, new File(url.getFile()));
 
         List<Loop> loops = reader.getLoops();
@@ -1500,6 +1531,7 @@ class X12ReaderTest {
     @Test
     void test271() throws Exception {
         URL url = this.getClass().getResource("/x270_271/x271.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI271_4010_X092, new File(url.getFile()));
 
         List<Loop> loops = reader.getLoops();
@@ -1522,6 +1554,7 @@ class X12ReaderTest {
     @Test
     void testAmbiguousLoop() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_ambiguous_loop.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
 
         List<Loop> loops = reader.getLoops();
@@ -1536,6 +1569,7 @@ class X12ReaderTest {
     @Test
     void test277X212() throws Exception {
         URL url = this.getClass().getResource("/277_5010/x12_277_x212.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI277_5010_X212, new File(url.getFile()));
 
         List<Loop> loops = reader.getLoops();
