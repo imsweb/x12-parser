@@ -5,7 +5,7 @@ package com.imsweb.x12;
 
 import java.io.InputStream;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.StaxDriver;
@@ -15,13 +15,13 @@ import com.thoughtworks.xstream.security.WildcardTypePermission;
 import com.imsweb.x12.mapping.TransactionDefinition;
 import com.imsweb.x12.mapping.TransactionDefinition.Usage;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-public class XStreamTest {
+class XStreamTest {
 
     @Test
-    public void testXStream() {
+    void testXStream() {
         XStream xstream = new XStream(new StaxDriver());
         xstream.autodetectAnnotations(true);
         xstream.alias("transaction", TransactionDefinition.class);

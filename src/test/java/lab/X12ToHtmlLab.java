@@ -1,17 +1,17 @@
 package lab;
 
-import com.imsweb.x12.reader.X12Reader;
-import com.imsweb.x12.writer.X12Writer;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-
 import java.awt.Desktop;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
 import java.nio.file.Paths;
 import java.util.UUID;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+
+import com.imsweb.x12.reader.X12Reader;
+import com.imsweb.x12.writer.X12Writer;
 
 /**
  * The following program will output an HTML file from an x12 file.
@@ -27,7 +27,7 @@ public class X12ToHtmlLab {
         x12ToHtmlLab.generateHtmlFromX12();
     }
 
-    private File _x12File;
+    private final File _x12File;
 
     public X12ToHtmlLab(File x12File) {
         this._x12File = x12File;

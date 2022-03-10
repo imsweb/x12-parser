@@ -9,33 +9,29 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import com.imsweb.x12.Element;
 import com.imsweb.x12.Loop;
 import com.imsweb.x12.mapping.TransactionDefinition;
 import com.imsweb.x12.reader.X12Reader.FileType;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@SuppressWarnings("java:S5961")
-public class X12ReaderTest {
-
-    @Test
-    public void testDifferentSeparators() throws IOException {
-        URL url = this.getClass().getResource("/837_5010/x12_valid_different_separators.txt");
-        X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
-        validate837Valid(reader.getLoops().get(0));
-    }
+@SuppressWarnings({"java:S5961", "java:S5976"})
+class X12ReaderTest {
 
     @Test
-    public void testConstructors() throws IOException {
+    void testConstructors() throws IOException {
         URL url = this.getClass().getResource("/837_5010/x12_valid.txt");
+        assertNotNull(url);
 
         X12Reader fromFile = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
         X12Reader fromFileUtf8 = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()), StandardCharsets.UTF_8);
@@ -49,32 +45,36 @@ public class X12ReaderTest {
     }
 
     @Test
-    public void testMultipleGSLoops() throws Exception {
+    void testMultipleGSLoops() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_multiple_gs.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
         validateMultipleGSLoops(reader.getLoops().get(0));
     }
 
     @Test
-    public void testMultipleISALoops() throws Exception {
+    void testMultipleISALoops() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_multiple_isa.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
         validateMultipleISALoops(reader.getLoops());
     }
 
     @Test
-    public void testMultipleSTLoops() throws Exception {
+    void testMultipleSTLoops() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_multiple_st.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
 
         List<Loop> loops = reader.getLoops();
-        Assert.assertEquals(1, loops.size());
+        assertEquals(1, loops.size());
         validateMultipleSTLoops(loops.get(0));
     }
 
     @Test
-    public void testMarkingFiles() throws Exception {
+    void testMarkingFiles() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_valid.txt");
+        assertNotNull(url);
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(url.getFile()), StandardCharsets.UTF_8))) {
             String line = null;
 
@@ -91,8 +91,9 @@ public class X12ReaderTest {
     }
 
     @Test
-    public void testNewGetMethods() throws Exception {
+    void testNewGetMethods() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_valid.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
         Loop loop = reader.getLoops().get(0);
 
@@ -118,32 +119,44 @@ public class X12ReaderTest {
     }
 
     @Test
-    public void testWithFileConstructor() throws Exception {
+    void testDifferentSeparators() throws IOException {
+        URL url = this.getClass().getResource("/837_5010/x12_valid_different_separators.txt");
+        assertNotNull(url);
+        X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
+        validate837Valid(reader.getLoops().get(0));
+    }
+
+    @Test
+    void testWithFileConstructor() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_valid.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
 
         validate837Valid(reader.getLoops().get(0));
     }
 
     @Test
-    public void testWithReadableConstructor() throws Exception {
+    void testWithReadableConstructor() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_valid.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
 
         validate837Valid(reader.getLoops().get(0));
     }
 
     @Test
-    public void testWithInputStreamConstructor() throws Exception {
+    void testWithInputStreamConstructor() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_valid.txt");
-        X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new FileInputStream(new File(url.getFile())));
+        assertNotNull(url);
+        X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new FileInputStream(url.getFile()));
 
         validate837Valid(reader.getLoops().get(0));
     }
 
     @Test
-    public void testBadValidCode() throws Exception {
+    void testBadValidCode() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_bad_valid_code.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
 
         List<String> errors = reader.getErrors();
@@ -151,12 +164,13 @@ public class X12ReaderTest {
         assertEquals(3, errors.size());
         assertTrue(errors.contains("Unable to find a matching segment format in loop 2000A"));
 
-        Assert.assertFalse(reader.getFatalErrors().isEmpty());
+        assertFalse(reader.getFatalErrors().isEmpty());
     }
 
     @Test
-    public void testSegmentErrors() throws Exception {
+    void testSegmentErrors() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_segment_errors.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
 
         List<String> errors = reader.getErrors();
@@ -165,13 +179,14 @@ public class X12ReaderTest {
         assertTrue(errors.contains("N3 in loop 2010AA is required but not found"));
         assertTrue(errors.contains("HI in loop 2300 is required but not found"));
         assertTrue(errors.contains("REF in loop 2010AA appears too many times"));
-        Assert.assertTrue(reader.getFatalErrors().isEmpty());
+        assertTrue(reader.getFatalErrors().isEmpty());
     }
 
     //tests a file that has segments with missing data that is required.
     @Test
-    public void testBadSegementIdentifier() throws Exception {
+    void testBadSegementIdentifier() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_bad_segment_identifier.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
 
         List<String> errors = reader.getErrors();
@@ -183,88 +198,83 @@ public class X12ReaderTest {
         assertTrue(errors.contains("N4 in loop 2010AA is required but not found"));
         assertTrue(errors.contains("PER in loop 1000A is required but not found"));
         assertTrue(errors.contains("2010BA is required but not found in 2000B iteration #1"));
-        Assert.assertTrue(reader.getFatalErrors().isEmpty());
+        assertTrue(reader.getFatalErrors().isEmpty());
     }
 
     //tests a file that has segments with missing data that is required.
     @Test
-    public void testMissingRequiredElements() throws Exception {
+    void testMissingRequiredElements() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_missing_elements.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
 
         List<String> errors = reader.getErrors();
         assertEquals(2, errors.size());
         assertTrue(errors.contains("NM1 in loop 1000B is missing a required element at 2"));
         assertTrue(errors.contains("CLM in loop 2300 is missing a required composite element at 5"));
-        Assert.assertTrue(reader.getFatalErrors().isEmpty());
+        assertTrue(reader.getFatalErrors().isEmpty());
     }
 
-    //tests a loop that appears too many times with the parent loop appearing once
-    @Test
-    public void testExceedsRepeatsOneParents() throws Exception {
-        URL url = this.getClass().getResource("/837_5010/x12_loop_errors1_exceeds_max_1_parent.txt");
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "/837_5010/x12_loop_errors1_exceeds_max_1_parent.txt",
+            "/837_5010/x12_loop_errors2_exceeds_max_repeats_multiple_parents.txt",
+    })
+    void testRepeats(String file) throws Exception {
+        URL url = this.getClass().getResource(file);
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
 
         List<String> errors = reader.getErrors();
 
         assertEquals(1, errors.size());
         assertTrue(errors.contains("2010AA appears too many times"));
-        Assert.assertTrue(reader.getFatalErrors().isEmpty());
-    }
-
-    //tests a loop that appears too many times with a parent loop that appears more than once
-    @Test
-    public void testExceedRepeatsMultipleParents() throws Exception {
-        URL url = this.getClass().getResource("/837_5010/x12_loop_errors2_exceeds_max_repeats_mulitple_parents.txt");
-        X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
-
-        List<String> errors = reader.getErrors();
-
-        assertEquals(1, errors.size());
-        assertTrue(errors.contains("2010AA appears too many times"));
-        Assert.assertTrue(reader.getFatalErrors().isEmpty());
+        assertTrue(reader.getFatalErrors().isEmpty());
     }
 
     //tests a missing required loop
     @Test
-    public void testMissingLoop() throws Exception {
+    void testMissingLoop() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_loop_errors3_missing_loops.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
 
         List<String> errors = reader.getErrors();
         assertEquals(1, errors.size());
 
         assertTrue(errors.contains("2010AA is required but not found in 2000A iteration #1"));
-        Assert.assertTrue(reader.getFatalErrors().isEmpty());
+        assertTrue(reader.getFatalErrors().isEmpty());
     }
 
     //tests a loop that appears the correct number of times but in a parent that appears more than once.
     @Test
-    public void testValidLoopStructure() throws Exception {
+    void testValidLoopStructure() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_no_errors.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
 
         List<String> errors = reader.getErrors();
 
         assertEquals(0, errors.size());
-        Assert.assertTrue(reader.getFatalErrors().isEmpty());
+        assertTrue(reader.getFatalErrors().isEmpty());
     }
 
     //tests a loop that appears the correct number of times but in a parent that appears more than once.
     @Test
-    public void testMissingLoopInOneRepeat() throws Exception {
+    void testMissingLoopInOneRepeat() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_missing_required_loop_in_one_repeat.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
 
         List<String> errors = reader.getErrors();
         assertEquals(1, errors.size());
 
         assertTrue(errors.contains("2010BA is required but not found in 2000B iteration #1"));
-        Assert.assertTrue(reader.getFatalErrors().isEmpty());
+        assertTrue(reader.getFatalErrors().isEmpty());
     }
 
     @Test
-    public void testDefinitions() {
+    void testDefinitions() {
         for (FileType type : FileType.values()) {
             TransactionDefinition definition = type.getDefinition();
 
@@ -280,8 +290,11 @@ public class X12ReaderTest {
     }
 
     @Test
-    public void testToXml() throws IOException {
-        X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(this.getClass().getResource("/837_5010/x12_no_errors.txt").getFile()));
+    void testToXml() throws IOException {
+        URL url = this.getClass().getResource("/837_5010/x12_no_errors.txt");
+        assertNotNull(url);
+
+        X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
 
         String xml = reader.getLoops().get(0).toXML();
         assertTrue(xml.length() > 0);
@@ -289,24 +302,21 @@ public class X12ReaderTest {
     }
 
     @Test
-    public void testToJson() throws IOException {
-        X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(this.getClass().getResource("/837_5010/x12_no_errors.txt").getFile()));
+    void testToJson() throws IOException {
+        URL url = this.getClass().getResource("/837_5010/x12_no_errors.txt");
+        assertNotNull(url);
+
+        X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
 
         String json = reader.getLoops().get(0).toJson();
         assertTrue(json.length() > 0);
         assertTrue(json.startsWith("{\n  \"id\": \"ISA_LOOP\",\n  \"segments\""));
-
-        // TODO test JSON equality
-        //        reader = new X12Reader(FileType.ANSI837_5010_X222, new File(this.getClass().getResource("/837_5010/x12_multiple_gs.txt").getFile()));
-        //
-        //        json = reader.getLoop().toJson();
-        //
-        //        System.out.println(json);
     }
 
     @Test
-    public void testMissingRequiredLoopInMultipleRepeats() throws Exception {
+    void testMissingRequiredLoopInMultipleRepeats() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_missing_required_loops_mult_repeats.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
 
         List<String> errors = reader.getErrors();
@@ -315,13 +325,14 @@ public class X12ReaderTest {
         assertTrue(errors.contains("Unable to find a matching segment format in loop 2300"));
         assertTrue(errors.contains("2400 is required but not found in 2300 iteration #2"));
         assertTrue(errors.contains("2400 is required but not found in 2300 iteration #5"));
-        Assert.assertEquals(4, errors.stream().filter(e -> e.equals("Unable to find a matching segment format in loop 2300")).count());
-        Assert.assertTrue(reader.getFatalErrors().isEmpty());
+        assertEquals(4, errors.stream().filter(e -> e.equals("Unable to find a matching segment format in loop 2300")).count());
+        assertTrue(reader.getFatalErrors().isEmpty());
     }
 
     /**
      * Valid output for a testing file
      */
+    @SuppressWarnings("java:S5778")
     private void validate837Valid(Loop loop) {
         assertEquals(1, loop.getLoops().size());
         assertEquals(1, loop.getLoop("GS_LOOP").getLoops().size());
@@ -350,20 +361,9 @@ public class X12ReaderTest {
         assertNull(loop.getLoop("2310"));
         assertNull(loop.getLoop("2400").getSegment("MEA"));
         assertNull(loop.getLoop("2000B").getSegment("HL", 2));
-        try {
-            assertNull(loop.getLoop("2400", 2).getSegment("MEA"));
-            fail("Expecting a null pointer exception to be thrown (test #1)");
-        }
-        catch (NullPointerException e) {
-            //Expected
-        }
-        try {
-            assertNull(loop.getLoop("2400").getSegment("MEA").getElementValue("MEA02"));
-            fail("Expecting a null pointer exception to be thrown (test #2)");
-        }
-        catch (NullPointerException e) {
-            //Expected
-        }
+
+        assertThrows(NullPointerException.class, () -> loop.getLoop("2400", 2).getSegment("MEA"));
+        assertThrows(NullPointerException.class, () -> loop.getLoop("2400").getSegment("MEA").getElementValue("MEA02"));
 
         // testing loopID match for each subloop
         assertEquals("GS_LOOP", loop.getLoops().get(0).getId());
@@ -614,8 +614,9 @@ public class X12ReaderTest {
     }
 
     @Test
-    public void testSegmentsNotInOrder() throws Exception {
+    void testSegmentsNotInOrder() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_segments_out_of_order.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
 
         List<String> errors = reader.getErrors();
@@ -624,47 +625,51 @@ public class X12ReaderTest {
 
         assertTrue(errors.contains("Segment N4 in loop 2010AA is not in the correct position."));
         assertTrue(errors.contains("Segment N3 in loop 2010AB is not in the correct position."));
-        Assert.assertTrue(reader.getFatalErrors().isEmpty());
+        assertTrue(reader.getFatalErrors().isEmpty());
     }
 
     @Test
-    public void testBadFirstLine() throws Exception {
+    void testBadFirstLine() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_bad_first_line.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
         assertEquals(1, reader.getErrors().size());
         assertTrue(reader.getErrors().contains("Error getting separators"));
-        Assert.assertFalse(reader.getFatalErrors().isEmpty());
+        assertFalse(reader.getFatalErrors().isEmpty());
     }
 
     @Test
-    public void testMissingFirstLine() throws Exception {
+    void testMissingFirstLine() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_no_isa_line.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
         assertEquals(1, reader.getErrors().size());
         assertTrue(reader.getErrors().contains("Error getting separators"));
-        Assert.assertFalse(reader.getFatalErrors().isEmpty());
+        assertFalse(reader.getFatalErrors().isEmpty());
     }
 
     @Test
-    public void testConsistentVersions() throws Exception {
+    void testConsistentVersions() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_valid.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X223, new File(url.getFile()));
         assertEquals(1, reader.getErrors().size());
         assertTrue(reader.getErrors().get(0).contains("not consistent with version specified"));
 
         reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
         assertTrue(reader.getErrors().isEmpty());
-        Assert.assertTrue(reader.getFatalErrors().isEmpty());
+        assertTrue(reader.getFatalErrors().isEmpty());
     }
 
     @Test
-    public void testManyClaims() throws Exception {
+    void testManyClaims() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_many_claims.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
-        Assert.assertTrue(reader.getFatalErrors().isEmpty());
+        assertTrue(reader.getFatalErrors().isEmpty());
         List<Loop> loops = reader.getLoops();
 
-        Assert.assertEquals(1, loops.size());
+        assertEquals(1, loops.size());
         Loop loop = loops.get(0);
 
         assertEquals("ISA_LOOP", loop.getId());
@@ -785,10 +790,11 @@ public class X12ReaderTest {
     }
 
     @Test
-    public void testManyTransactions() throws Exception {
+    void testManyTransactions() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_multiple_transactions.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
-        Assert.assertTrue(reader.getFatalErrors().isEmpty());
+        assertTrue(reader.getFatalErrors().isEmpty());
         List<Loop> loops = reader.getLoops();
         assertEquals(312, loops.size());
 
@@ -912,10 +918,11 @@ public class X12ReaderTest {
     }
 
     @Test
-    public void testComplex() throws Exception {
+    void testComplex() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_complex.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
-        Assert.assertTrue(reader.getFatalErrors().isEmpty());
+        assertTrue(reader.getFatalErrors().isEmpty());
         List<Loop> loops = reader.getLoops();
         assertEquals(1, loops.size());
 
@@ -1391,49 +1398,51 @@ public class X12ReaderTest {
     }
 
     @Test
-    public void testX223Repeated2320() throws Exception {
+    void testX223Repeated2320() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x223-test.txt");
-        X12Reader reader = new X12Reader(FileType.ANSI837_5010_X223, new FileInputStream(new File(url.getFile())));
+        assertNotNull(url);
+        X12Reader reader = new X12Reader(FileType.ANSI837_5010_X223, new FileInputStream(url.getFile()));
 
-        Assert.assertEquals(1, reader.getLoops().size());
+        assertEquals(1, reader.getLoops().size());
         Loop loop = reader.getLoops().get(0);
         assertEquals(1, loop.getLoops().size());
-        Assert.assertEquals(1, loop.findLoop("2000B").size());
-        Assert.assertEquals(2, loop.getLoop("2000B").getSegments().size());
-        Assert.assertEquals("HL", loop.getLoop("2000B").getSegment(0).getId());
-        Assert.assertEquals("SBR", loop.getLoop("2000B").getSegment(1).getId());
-        Assert.assertEquals("SUBSCRIBER GROUP", loop.getLoop("2000B").getSegment(1).getElement("SBR03").getValue());
-        Assert.assertEquals(2, loop.findLoop("2320").size());
-        Assert.assertEquals(2, loop.getLoop("2000B").findLoop("2320").size());
-        Assert.assertEquals(1, loop.getLoop("2000B").getLoop("2320", 0).findLoop("2330A").size());
-        Assert.assertEquals(1, loop.getLoop("2000B").getLoop("2320", 0).findLoop("2330B").size());
-        Assert.assertEquals(1, loop.getLoop("2000B").getLoop("2320", 1).findLoop("2330A").size());
-        Assert.assertEquals(1, loop.getLoop("2000B").getLoop("2320", 1).findLoop("2330B").size());
-        Assert.assertEquals("S", loop.getLoop("2320", 0).getSegment(0).getElement("SBR01").getValue());
-        Assert.assertEquals("T", loop.getLoop("2320", 1).getSegment(0).getElement("SBR01").getValue());
-        Assert.assertEquals("JOHN", loop.getLoop("2320", 0).getLoop("2330A").getSegment(0).getElement("NM104").getValue());
-        Assert.assertEquals("JANE", loop.getLoop("2320", 1).getLoop("2330A").getSegment(0).getElement("NM104").getValue());
-        Assert.assertEquals("AETNA", loop.getLoop("2320", 0).getLoop("2330B").getSegment(0).getElement("NM103").getValue());
-        Assert.assertEquals("ANOTHER NAME", loop.getLoop("2320", 1).getLoop("2330B").getSegment(0).getElement("NM103").getValue());
+        assertEquals(1, loop.findLoop("2000B").size());
+        assertEquals(2, loop.getLoop("2000B").getSegments().size());
+        assertEquals("HL", loop.getLoop("2000B").getSegment(0).getId());
+        assertEquals("SBR", loop.getLoop("2000B").getSegment(1).getId());
+        assertEquals("SUBSCRIBER GROUP", loop.getLoop("2000B").getSegment(1).getElement("SBR03").getValue());
+        assertEquals(2, loop.findLoop("2320").size());
+        assertEquals(2, loop.getLoop("2000B").findLoop("2320").size());
+        assertEquals(1, loop.getLoop("2000B").getLoop("2320", 0).findLoop("2330A").size());
+        assertEquals(1, loop.getLoop("2000B").getLoop("2320", 0).findLoop("2330B").size());
+        assertEquals(1, loop.getLoop("2000B").getLoop("2320", 1).findLoop("2330A").size());
+        assertEquals(1, loop.getLoop("2000B").getLoop("2320", 1).findLoop("2330B").size());
+        assertEquals("S", loop.getLoop("2320", 0).getSegment(0).getElement("SBR01").getValue());
+        assertEquals("T", loop.getLoop("2320", 1).getSegment(0).getElement("SBR01").getValue());
+        assertEquals("JOHN", loop.getLoop("2320", 0).getLoop("2330A").getSegment(0).getElement("NM104").getValue());
+        assertEquals("JANE", loop.getLoop("2320", 1).getLoop("2330A").getSegment(0).getElement("NM104").getValue());
+        assertEquals("AETNA", loop.getLoop("2320", 0).getLoop("2330B").getSegment(0).getElement("NM103").getValue());
+        assertEquals("ANOTHER NAME", loop.getLoop("2320", 1).getLoop("2330B").getSegment(0).getElement("NM103").getValue());
     }
 
     @Test
-    public void test277CAAccepted() throws Exception {
+    void test277CAAccepted() throws Exception {
         URL url = this.getClass().getResource("/277_5010/x12_277CA_accepted.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI277_5010_X214, new File(url.getFile()));
 
         List<Loop> loops = reader.getLoops();
-        Assert.assertEquals(1, loops.size());
+        assertEquals(1, loops.size());
         Loop loop = reader.getLoops().get(0);
         assertEquals(1, loop.getLoops().size());
-        Assert.assertEquals("Should be able to find the claim number", "1107000000014420", loop.getLoop("GS_LOOP").getLoop("ST_LOOP").getLoop("DETAIL")
+        assertEquals("1107000000014420", loop.getLoop("GS_LOOP").getLoop("ST_LOOP").getLoop("DETAIL")
                 .getLoop("2000A")
                 .getLoop("2000B")
                 .getLoop("2000C")
                 .getLoop("2000D")
                 .getLoop("2200D")
                 .getSegment("REF")
-                .getElement("REF02").getValue());
+                .getElement("REF02").getValue(), "Should be able to find the claim number");
         Element statusCodeElement = loop.getLoop("GS_LOOP").getLoop("ST_LOOP").getLoop("DETAIL")
                 .getLoop("2000A")
                 .getLoop("2000B")
@@ -1442,17 +1451,18 @@ public class X12ReaderTest {
                 .getLoop("2200D")
                 .getSegment("STC")
                 .getElement("STC01");
-        Assert.assertEquals("Should be able to see a approval status code - CSCC", "A2", statusCodeElement.getSubValues().get(0));
-        Assert.assertEquals("Should be able to see a approval status code - CSC", "20", statusCodeElement.getSubValues().get(1));
+        assertEquals("A2", statusCodeElement.getSubValues().get(0), "Should be able to see a approval status code - CSCC");
+        assertEquals("20", statusCodeElement.getSubValues().get(1), "Should be able to see a approval status code - CSC");
     }
 
     @Test
-    public void test277CARejected() throws Exception {
+    void test277CARejected() throws Exception {
         URL url = this.getClass().getResource("/277_5010/x12_277CA_rejected.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI277_5010_X214, new File(url.getFile()));
 
         List<Loop> loops = reader.getLoops();
-        Assert.assertEquals(1, loops.size());
+        assertEquals(1, loops.size());
         Loop loop = reader.getLoops().get(0);
         assertEquals(1, loop.getLoops().size());
         Element statusCodeElement = loop.getLoop("GS_LOOP").getLoop("ST_LOOP").getLoop("DETAIL")
@@ -1463,44 +1473,47 @@ public class X12ReaderTest {
                 .getLoop("2200D")
                 .getSegment("STC")
                 .getElement("STC01");
-        Assert.assertEquals("Should be able to see a approval status code - CSCC", "A7", statusCodeElement.getSubValues().get(0));
-        Assert.assertEquals("Should be able to see a approval status code - CSC", "562", statusCodeElement.getSubValues().get(1));
-        Assert.assertEquals("Should be able to see a approval status code - EIC", "85", statusCodeElement.getSubValues().get(2));
+        assertEquals("A7", statusCodeElement.getSubValues().get(0), "Should be able to see a approval status code - CSCC");
+        assertEquals("562", statusCodeElement.getSubValues().get(1), "Should be able to see a approval status code - CSC");
+        assertEquals("85", statusCodeElement.getSubValues().get(2), "Should be able to see a approval status code - EIC");
     }
 
     @Test
-    public void test999Accepted() throws Exception {
+    void test999Accepted() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_999_accepted.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X231, new File(url.getFile()));
 
         List<Loop> loops = reader.getLoops();
-        Assert.assertEquals(1, loops.size());
+        assertEquals(1, loops.size());
         Loop loop = reader.getLoops().get(0);
         assertEquals(1, loop.getLoops().size());
-        Assert.assertEquals("A", loop.getLoop("GS_LOOP").getLoop("ST_LOOP").getLoop("HEADER").getLoop("2000").getSegment("IK5").getElement("IK501").getValue());
+        assertEquals("A", loop.getLoop("GS_LOOP").getLoop("ST_LOOP").getLoop("HEADER").getLoop("2000").getSegment("IK5").getElement("IK501").getValue());
 
     }
 
     @Test
-    public void test999Rejected() throws Exception {
+    void test999Rejected() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_999_rejected.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X231, new File(url.getFile()));
 
         List<Loop> loops = reader.getLoops();
-        Assert.assertEquals(1, loops.size());
+        assertEquals(1, loops.size());
         Loop loop = reader.getLoops().get(0);
         assertEquals(1, loop.getLoops().size());
-        Assert.assertEquals("R", loop.getLoop("GS_LOOP").getLoop("ST_LOOP").getLoop("HEADER").getLoop("2000").getSegment("IK5").getElement("IK501").getValue());
+        assertEquals("R", loop.getLoop("GS_LOOP").getLoop("ST_LOOP").getLoop("HEADER").getLoop("2000").getSegment("IK5").getElement("IK501").getValue());
 
     }
 
     @Test
-    public void test270() throws Exception {
+    void test270() throws Exception {
         URL url = this.getClass().getResource("/x270_271/x270.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI270_4010_X092, new File(url.getFile()));
 
         List<Loop> loops = reader.getLoops();
-        Assert.assertEquals(1, loops.size());
+        assertEquals(1, loops.size());
         Loop loop = reader.getLoops().get(0);
         assertEquals(1, loop.getLoops().size());
 
@@ -1512,16 +1525,17 @@ public class X12ReaderTest {
                 .getLoop("2110C")
                 .getSegment("EQ")
                 .getElement("EQ01");
-        Assert.assertEquals("30", statusCodeElement.getSubValues().get(0));
+        assertEquals("30", statusCodeElement.getSubValues().get(0));
     }
 
     @Test
-    public void test271() throws Exception {
+    void test271() throws Exception {
         URL url = this.getClass().getResource("/x270_271/x271.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI271_4010_X092, new File(url.getFile()));
 
         List<Loop> loops = reader.getLoops();
-        Assert.assertEquals(1, loops.size());
+        assertEquals(1, loops.size());
         Loop loop = reader.getLoops().get(0);
         assertEquals(1, loop.getLoops().size());
 
@@ -1534,56 +1548,58 @@ public class X12ReaderTest {
                 .getLoop("2120C")
                 .getSegment("NM1")
                 .getElement("NM101");
-        Assert.assertEquals("P3", statusCodeElement.getSubValues().get(0));
+        assertEquals("P3", statusCodeElement.getSubValues().get(0));
     }
 
     @Test
-    public void testAmbiguousLoop() throws Exception {
+    void testAmbiguousLoop() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_ambiguous_loop.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()));
 
         List<Loop> loops = reader.getLoops();
-        Assert.assertEquals(1, loops.size());
-        Assert.assertEquals(1, loops.get(0).findLoop("2420A").size());
-        Assert.assertEquals("PERSON", loops.get(0).findLoop("2420A").get(0).getElement("NM1", "NM103"));
-        Assert.assertEquals("2420A", loops.get(0).findLoop("2420A").get(0).getElement("PRV", "PRV03"));
-        Assert.assertTrue(loops.get(0).findLoop("2330D").isEmpty());
-        Assert.assertTrue(loops.get(0).findLoop("2310B").isEmpty());
+        assertEquals(1, loops.size());
+        assertEquals(1, loops.get(0).findLoop("2420A").size());
+        assertEquals("PERSON", loops.get(0).findLoop("2420A").get(0).getElement("NM1", "NM103"));
+        assertEquals("2420A", loops.get(0).findLoop("2420A").get(0).getElement("PRV", "PRV03"));
+        assertTrue(loops.get(0).findLoop("2330D").isEmpty());
+        assertTrue(loops.get(0).findLoop("2310B").isEmpty());
     }
 
     @Test
-    public void test277X212() throws Exception {
+    void test277X212() throws Exception {
         URL url = this.getClass().getResource("/277_5010/x12_277_x212.txt");
+        assertNotNull(url);
         X12Reader reader = new X12Reader(FileType.ANSI277_5010_X212, new File(url.getFile()));
 
         List<Loop> loops = reader.getLoops();
-        Assert.assertEquals(1, loops.size());
+        assertEquals(1, loops.size());
         Loop loop = reader.getLoops().get(0);
         assertEquals(1, loop.getLoops().size());
-        Assert.assertEquals("Should be able to find the Information Source Detail - Payer Name", "PR", loop.getLoop("GS_LOOP").getLoop("ST_LOOP").getLoop("DETAIL")
+        assertEquals("PR", loop.getLoop("GS_LOOP").getLoop("ST_LOOP").getLoop("DETAIL")
                 .getLoop("2000A")
                 .getLoop("2100A")
                 .getSegment("NM1")
-                .getElement("NM101").getValue());
-        Assert.assertEquals("Should be able to find the Information Receiver Detail - Information Receiver Name", "41", loop.getLoop("GS_LOOP").getLoop("ST_LOOP").getLoop("DETAIL")
+                .getElement("NM101").getValue(), "Should be able to find the Information Source Detail - Payer Name");
+        assertEquals("41", loop.getLoop("GS_LOOP").getLoop("ST_LOOP").getLoop("DETAIL")
                 .getLoop("TABLE2AREA3")
                 .getLoop("2000B")
                 .getLoop("2100B")
                 .getSegment("NM1")
-                .getElement("NM101").getValue());
-        Assert.assertEquals("Should be able to find the Claim Status Tracking Number - Payer Claim Control Number", "EJ", loop.getLoop("GS_LOOP").getLoop("ST_LOOP").getLoop("DETAIL")
+                .getElement("NM101").getValue(), "Should be able to find the Information Receiver Detail - Information Receiver Name");
+        assertEquals("EJ", loop.getLoop("GS_LOOP").getLoop("ST_LOOP").getLoop("DETAIL")
                 .getLoop("TABLE2AREA5")
                 .getLoop("2000D")
                 .getLoop("2200D")
                 .getSegment("REF")
-                .getElement("REF01").getValue());
+                .getElement("REF01").getValue(), "Should be able to find the Claim Status Tracking Number - Payer Claim Control Number");
         Element statusCodeElement = loop.getLoop("GS_LOOP").getLoop("ST_LOOP").getLoop("DETAIL")
                 .getLoop("TABLE2AREA5")
                 .getLoop("2000D")
                 .getLoop("2200D")
                 .getSegment("STC")
                 .getElement("STC01");
-        Assert.assertEquals("Should be able to see a health care claim status category code - C043", "A1", statusCodeElement.getSubValues().get(0));
-        Assert.assertEquals("Should be able to see a health care claim status category code - 1271", "704", statusCodeElement.getSubValues().get(1));
+        assertEquals("A1", statusCodeElement.getSubValues().get(0), "Should be able to see a health care claim status category code - C043");
+        assertEquals("704", statusCodeElement.getSubValues().get(1), "Should be able to see a health care claim status category code - 1271");
     }
 }

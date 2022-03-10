@@ -15,8 +15,9 @@ import org.apache.commons.io.IOUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import com.jayway.jsonpath.JsonPath;
 
 import com.imsweb.x12.Element;
 import com.imsweb.x12.LineBreak;
@@ -25,20 +26,20 @@ import com.imsweb.x12.Segment;
 import com.imsweb.x12.Separators;
 import com.imsweb.x12.reader.X12Reader;
 import com.imsweb.x12.reader.X12Reader.FileType;
-import com.jayway.jsonpath.JsonPath;
 
-public class X12WriterTest {
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+class X12WriterTest {
 
     /**
      * Here we will test that you can go from x12, make changes, then serialize the
      * x12 once again.
      */
     @Test
-    public void testSerializeBasic() throws IOException {
+    void testSerializeBasic() throws IOException {
         URL url = this.getClass().getResource("/837_5010/x12_valid.txt");
 
-        X12Reader fromFileUtf8 = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()),
-                StandardCharsets.UTF_8);
+        X12Reader fromFileUtf8 = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()), StandardCharsets.UTF_8);
 
         String expected = IOUtils
                 .toString(this.getClass().getResourceAsStream("/837_5010/x12_valid.txt"), StandardCharsets.UTF_8)
@@ -51,14 +52,14 @@ public class X12WriterTest {
             lineBreak = LineBreak.LF;
         }
         X12Writer writer = new X12Writer(fromFileUtf8);
-        Assert.assertEquals(expected, writer.toX12String(lineBreak).trim());
+        assertEquals(expected, writer.toX12String(lineBreak).trim());
     }
 
     /**
      * Tests the toHtml method that
      */
     @Test
-    public void testToHtmlBasic() throws IOException {
+    void testToHtmlBasic() throws IOException {
         URL url = this.getClass().getResource("/837_5010/x12_valid.txt");
 
         X12Reader fromFileUtf8 = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()),
@@ -73,20 +74,20 @@ public class X12WriterTest {
 
         Document doc = Jsoup.parse(fullX12Html);
         Elements loops = doc.select(".x12-loop");
-        Assert.assertEquals(20, loops.size());
+        assertEquals(20, loops.size());
 
         Elements segments = doc.select(".x12-segment");
-        Assert.assertEquals(38, segments.size());
+        assertEquals(38, segments.size());
 
         Elements elements = doc.select(".x12-element");
-        Assert.assertEquals(216, elements.size());
+        assertEquals(216, elements.size());
     }
 
     /**
      * Test a more complex x12 doc and see if we can serialize it.
      */
     @Test
-    public void testSerializeComplex() throws IOException {
+    void testSerializeComplex() throws IOException {
         URL url = this.getClass().getResource("/837_5010/x12_complex.txt");
 
         X12Reader fromFileUtf8 = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()),
@@ -104,11 +105,11 @@ public class X12WriterTest {
             lineBreak = LineBreak.LF;
         }
         X12Writer writer = new X12Writer(fromFileUtf8);
-        Assert.assertEquals(expected, writer.toX12String(lineBreak).trim());
+        assertEquals(expected, writer.toX12String(lineBreak).trim());
     }
 
     @Test
-    public void testPrintFromLoop() throws Exception {
+    void testPrintFromLoop() throws Exception {
         String expected = IOUtils
                 .toString(this.getClass().getResourceAsStream("/837_5010/x12_writer_test.txt"), StandardCharsets.UTF_8)
                 .trim();
@@ -401,8 +402,8 @@ public class X12WriterTest {
 
         X12Writer writer = new X12Writer(FileType.ANSI837_5010_X222, Collections.singletonList(isaLoop), separators);
         String writerResult = writer.toX12String(lineBreak).trim();
-        
-        Assert.assertEquals(expected, writerResult);
+
+        assertEquals(expected, writerResult);
     }
 
     private void addElement(Segment segment, String elementNum, String data) {
@@ -411,7 +412,7 @@ public class X12WriterTest {
 
     @SuppressWarnings("unchecked")
     @Test
-    public void testToMap() throws Exception {
+    void testToMap() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_valid.txt");
 
         X12Reader fromFileUtf8 = new X12Reader(FileType.ANSI837_5010_X222, new File(url.getFile()),
@@ -422,26 +423,26 @@ public class X12WriterTest {
 
         List<String> types = JsonPath.parse(listOfMap).read("$..type");
 
-        Assert.assertEquals(20, types.stream().filter("loop"::equals).count());
-        Assert.assertEquals(38, types.stream().filter("segment"::equals).count());
-        Assert.assertEquals(200, types.stream().filter("element"::equals).count());
-        Assert.assertEquals(16, types.stream().filter("composite"::equals).count());
+        assertEquals(20, types.stream().filter("loop"::equals).count());
+        assertEquals(38, types.stream().filter("segment"::equals).count());
+        assertEquals(200, types.stream().filter("element"::equals).count());
+        assertEquals(16, types.stream().filter("composite"::equals).count());
 
         List<Map<String, Object>> loopsAndSegmentsByName = JsonPath.parse(listOfMap).read("$..[?(@.name=='Interchange Control Header')]");
-        Assert.assertEquals(2, loopsAndSegmentsByName.size());
+        assertEquals(2, loopsAndSegmentsByName.size());
 
         List<Map<String, Object>> elmByName = JsonPath.parse(listOfMap).read("$..[?(@.name=='Functional Identifier Code')]");
-        Assert.assertEquals(1, elmByName.size());
-        Assert.assertEquals("HC", elmByName.get(0).get("value"));
+        assertEquals(1, elmByName.size());
+        assertEquals("HC", elmByName.get(0).get("value"));
         List<Map<String, Object>> compositeList = JsonPath.parse(listOfMap).read("$..[?(@.type=='composite')]");
-        Assert.assertEquals(compositeList.get(0).get("name"), "Health Care Service Location Information");
-        Assert.assertEquals(compositeList.get(0).get("value"), "11:B:1");
+        assertEquals("Health Care Service Location Information", compositeList.get(0).get("name"));
+        assertEquals("11:B:1", compositeList.get(0).get("value"));
         List<Map<String, Object>> subElements = (List<Map<String, Object>>)compositeList.get(0).get("subElements");
-        Assert.assertEquals(3, subElements.size());
+        assertEquals(3, subElements.size());
         Map<String, Object> subElement = subElements.get(0);
-        Assert.assertEquals("11", subElement.get("value"));
-        Assert.assertEquals("Place of Service Code", subElement.get("name"));
-        Assert.assertEquals("compositeValue", subElement.get("type"));
-        Assert.assertEquals("CLM05-01", subElement.get("xid"));
+        assertEquals("11", subElement.get("value"));
+        assertEquals("Place of Service Code", subElement.get("name"));
+        assertEquals("compositeValue", subElement.get("type"));
+        assertEquals("CLM05-01", subElement.get("xid"));
     }
 }

@@ -14,4 +14,9 @@
         <Class name="com.imsweb.x12.LoopTest"/>
         <Bug pattern="RV_RETURN_VALUE_IGNORED_INFERRED"/>
     </Match>
+    <Match>
+        <!-- This bug doesn't need to be reported in LoopTest -->
+        <Class name="com.imsweb.x12.reader.X12ReaderTest"/>
+        <Bug pattern="RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT"/>
+    </Match>
 </FindBugsFilter>
