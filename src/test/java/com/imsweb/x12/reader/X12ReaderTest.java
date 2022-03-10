@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@SuppressWarnings({"java:S5961", "java:S5976")
+@SuppressWarnings({"java:S5961", "java:S5976"})
 class X12ReaderTest {
 
     @Test
@@ -138,7 +138,7 @@ class X12ReaderTest {
     @Test
     void testWithInputStreamConstructor() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_valid.txt");
-        X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new FileInputStream(new File(url.getFile())));
+        X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new FileInputStream(url.getFile()));
 
         validate837Valid(reader.getLoops().get(0));
     }
@@ -1375,7 +1375,7 @@ class X12ReaderTest {
     @Test
     void testX223Repeated2320() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x223-test.txt");
-        X12Reader reader = new X12Reader(FileType.ANSI837_5010_X223, new FileInputStream(new File(url.getFile())));
+        X12Reader reader = new X12Reader(FileType.ANSI837_5010_X223, new FileInputStream(url.getFile()));
 
         assertEquals(1, reader.getLoops().size());
         Loop loop = reader.getLoops().get(0);
