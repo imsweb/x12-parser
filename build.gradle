@@ -40,6 +40,7 @@ dependencies {
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
     testImplementation 'org.junit.jupiter:junit-jupiter-params:5.8.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
     testImplementation 'commons-io:commons-io:2.11.0'
     testImplementation 'org.jsoup:jsoup:1.14.3'
     testImplementation 'com.jayway.jsonpath:json-path:2.7.0'
@@ -57,6 +58,10 @@ jar {
                 'Automatic-Module-Name': 'com.imsweb.x12'
         )
     }
+}
+
+test {
+    useJUnitPlatform()
 }
 
 checkstyle {
@@ -190,6 +195,6 @@ nexusStaging {
 }
 
 wrapper {
-    gradleVersion = '7.4.1'
+    gradleVersion = '7.4.2'
     distributionType = Wrapper.DistributionType.ALL
 }
