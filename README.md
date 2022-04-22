@@ -42,7 +42,7 @@ Download [the latest JAR][1] or grab via Maven:
 or via Gradle:
 
 ```groovy
-compile 'com.imsweb.com:x12-parser:1.14'
+compile 'com.imsweb:x12-parser:1.14'
 ```
 
 [1]: http://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=com.imsweb&a=x12-parser&v=LATEST
