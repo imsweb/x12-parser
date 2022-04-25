@@ -131,30 +131,30 @@ It is also possible to create a loop object and then write the contents to a fil
 
 ```java
 Separators separators=new Separators();
-        separators.setLineBreak(lineBreak);
-        Loop isaLoop=new Loop(separators,"ISA_LOOP");
-        Segment segment=new Segment("ISA");
-        segment.addElement("01","00");
-        segment.addElement("02","          ");
-        segment.addElement("03","01");
-        segment.addElement("04","SECRET    ");
-        segment.addElement("05","ZZ");
-        segment.addElement("06","SUBMITTERS.ID  ");
-        segment.addElement("07","ZZ");
-        segment.addElement("08","RECEIVERS.ID   ");
-        segment.addElement("09","030101");
-        segment.addElement("10","1253");
-        segment.addElement("11","U");
-        segment.addElement("12","00501");
-        segment.addElement("13","000000905");
-        segment.addElement("14","1");
-        segment.addElement("15","T");
-        segment.addElement("16",":");
-        isaLoop.addSegment(segment);
-        segment=new Segment("IEA");
-        segment.addElement("01","1");
-        segment.addElement("02","000000905");
-        isaLoop.addSegment(segment);
+separators.setLineBreak(lineBreak);
+Loop isaLoop=new Loop(separators,"ISA_LOOP");
+Segment segment=new Segment("ISA");
+segment.addElement("01","00");
+segment.addElement("02","          ");
+segment.addElement("03","01");
+segment.addElement("04","SECRET    ");
+segment.addElement("05","ZZ");
+segment.addElement("06","SUBMITTERS.ID  ");
+segment.addElement("07","ZZ");
+segment.addElement("08","RECEIVERS.ID   ");
+segment.addElement("09","030101");
+segment.addElement("10","1253");
+segment.addElement("11","U");
+segment.addElement("12","00501");
+segment.addElement("13","000000905");
+segment.addElement("14","1");
+segment.addElement("15","T");
+segment.addElement("16",":");
+isaLoop.addSegment(segment);
+segment=new Segment("IEA");
+segment.addElement("01","1");
+segment.addElement("02","000000905");
+isaLoop.addSegment(segment);
 ```
 
 Subsequent segments and subloops could then be appended to the ISA loop. This data can then be written to a string as follows:
