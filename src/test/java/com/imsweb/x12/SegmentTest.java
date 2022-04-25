@@ -34,6 +34,11 @@ class SegmentTest {
         Element elem2 = new Element("ISA01", "ISA01", new Separators('~', '*', ':'));
         Element elem3 = new Element("ISA02", "ISA02");
         assertTrue(s.addElements(elem2, elem3));
+
+        s = new Segment();
+        assertTrue(s.addElement("ISA01", "ISA01"));
+        assertTrue(s.addElement("ISA02", "ISA02"));
+        assertEquals(2, s.getElements().size());
     }
 
     @Test
@@ -226,6 +231,37 @@ class SegmentTest {
 
         assertEquals("ISA03", s.getElement("ISA03").getId());
         assertEquals("ISA03", s.getElement("ISA03").getValue());
+    }
+
+    @Test
+    void testReadmeExample() {
+        Loop isaLoop = new Loop("ISA_LOOP");
+
+        Segment segment = new Segment("ISA");
+        segment.addElement("01", "00");
+        segment.addElement("02", "          ");
+        segment.addElement("03", "01");
+        segment.addElement("04", "SECRET    ");
+        segment.addElement("05", "ZZ");
+        segment.addElement("06", "SUBMITTERS.ID  ");
+        segment.addElement("07", "ZZ");
+        segment.addElement("08", "RECEIVERS.ID   ");
+        segment.addElement("09", "030101");
+        segment.addElement("10", "1253");
+        segment.addElement("11", "U");
+        segment.addElement("12", "00501");
+        segment.addElement("13", "000000905");
+        segment.addElement("14", "1");
+        segment.addElement("15", "T");
+        segment.addElement("16", ":");
+        isaLoop.addSegment(segment);
+
+        segment = new Segment("IEA");
+        segment.addElement("01", "1");
+        segment.addElement("02", "000000905");
+        isaLoop.addSegment(segment);
+
+        assertEquals(2, isaLoop.getLoops().size());
     }
 
 }

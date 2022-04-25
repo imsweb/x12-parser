@@ -8,11 +8,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamOmitField;
+
 import com.imsweb.x12.mapping.CompositeDefinition;
 import com.imsweb.x12.mapping.ElementDefinition;
 import com.imsweb.x12.mapping.SegmentDefinition;
-import com.thoughtworks.xstream.annotations.XStreamAlias;
-import com.thoughtworks.xstream.annotations.XStreamOmitField;
 
 /**
  * This class represents an X12 segment.
@@ -108,6 +109,16 @@ public class Segment implements Iterable<Element> {
      */
     public boolean addElement(Element element) {
         return _elements.add(element);
+    }
+
+    /**
+     * Adds as element with thhe supplied id and value to the segment. The element is added at the end of the elements in the current segment.
+     * @param id element identifier
+     * @param value element value
+     * @return boolean
+     */
+    public boolean addElement(String id, String value) {
+        return _elements.add(new Element(id, value));
     }
 
     /**
@@ -307,9 +318,9 @@ public class Segment implements Iterable<Element> {
 
     /**
      * Returns an HTML fragment representing this segment.
-     * @return HTML string fragment.
      * @param segmentDefinition The segment definition that defines this segment.
      * @param parentIds The parent ids up until this point.
+     * @return HTML string fragment.
      */
     public String toHtml(SegmentDefinition segmentDefinition, List<String> parentIds) {
         ArrayList<String> newParentIds = new ArrayList<>();
@@ -318,8 +329,8 @@ public class Segment implements Iterable<Element> {
 
         StringBuilder output = new StringBuilder();
         output.append("<div id=\"")
-            .append(Separators.getIdString(parentIds))
-            .append("\" class=\"x12-segment\">");
+                .append(Separators.getIdString(parentIds))
+                .append("\" class=\"x12-segment\">");
         output.append("<p>").append(segmentDefinition.getName()).append(" (").append(_id).append(")</p>");
         for (Element e : _elements) {
             if (segmentDefinition.getElements() != null) {
