@@ -130,10 +130,11 @@ List<Segment> segments = loop.findSegment("NM1");
 It is also possible to create a loop object and then write the contents to a file. Here is an example of creating a loop with a segment.
 
 ```java
-Separators separators=new Separators();
+Separators separators = new Separators();
 separators.setLineBreak(lineBreak);
-Loop isaLoop=new Loop(separators,"ISA_LOOP");
-Segment segment=new Segment("ISA");
+Loop isaLoop = new Loop(separators,"ISA_LOOP");
+
+Segment segment = new Segment("ISA");
 segment.addElement("01","00");
 segment.addElement("02","          ");
 segment.addElement("03","01");
@@ -151,7 +152,8 @@ segment.addElement("14","1");
 segment.addElement("15","T");
 segment.addElement("16",":");
 isaLoop.addSegment(segment);
-segment=new Segment("IEA");
+
+segment = new Segment("IEA");
 segment.addElement("01","1");
 segment.addElement("02","000000905");
 isaLoop.addSegment(segment);
