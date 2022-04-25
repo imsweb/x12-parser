@@ -53,7 +53,7 @@ An example of how to process an X12 file is shown below
 ## Processing a file
 
 ```java
-X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222,new File("/path/file.txt"));
+X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File("/path/file.txt"));
 ```
 
 Each supported X12 standard has a FileType option that must be passed as the first argument to the X12Reader. In this example, an 837 5010 X222 file is being processed. If there are errors in the
@@ -107,8 +107,8 @@ String data = loop.getLoop("ISA_LOOP")
 It's possible for loops and segments to repeat multiple times. Here is an example of how to access a particular repeated loop or segment
 
 ```java
-Loop loop = loop.getLoop("1000A",1);
-Segment segment = loop.getSegment("NM1",2);
+Loop loop = loop.getLoop("1000A", 1);
+Segment segment = loop.getSegment("NM1", 2);
 ```
 
 This gets the first iteration of the 1000A subloop an the second instance of the NM1 segment within the 1000A loop. If no iteration index is specified in getLoop() or getSegment() then the first
@@ -163,7 +163,7 @@ isaLoop.addSegment(segment);
 Subsequent segments and subloops could then be appended to the ISA loop. This data can then be written to a string as follows:
 
 ```java
-X12Writer writer = new X12Writer(FileType.ANSI837_5010_X222,Collections.singletonList(isaLoop),separators);
+X12Writer writer = new X12Writer(FileType.ANSI837_5010_X222,Collections.singletonList(isaLoop), separators);
 
 String writerResult = writer.toX12String(lineBreak).trim();
 ```
