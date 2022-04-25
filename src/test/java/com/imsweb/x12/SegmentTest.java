@@ -261,7 +261,7 @@ class SegmentTest {
         segment.addElement("02", "000000905");
         isaLoop.addSegment(segment);
 
-        assertEquals(2, isaLoop.getLoops().size());
+        assertEquals(2, isaLoop.getSegments().size());
     }
 
 }
