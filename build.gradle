@@ -34,7 +34,7 @@ repositories {
 }
 
 dependencies {
-    spotbugs 'com.github.spotbugs:spotbugs:4.7.0'
+    spotbugs 'com.github.spotbugs:spotbugs:4.6.0'
 
     api 'com.thoughtworks.xstream:xstream:1.4.19'
 
