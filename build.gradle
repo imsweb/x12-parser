@@ -101,6 +101,8 @@ ossIndexAudit {
             port = 8080
         }
     }
+
+    excludeCoordinates = ['com.thoughtworks.xstream:xstream:1.4.19']
 }
 check.dependsOn 'ossIndexAudit'
 
