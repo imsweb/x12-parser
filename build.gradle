@@ -2,14 +2,13 @@ plugins {
     id 'java-library'
     id 'checkstyle'
     id 'jacoco'
-    id "com.github.spotbugs" version "5.0.7"
+    id "com.github.spotbugs" version "5.0.13"
     id 'maven-publish'
     id 'signing'
     id "io.codearte.nexus-staging" version "0.30.0"  // logs into Sonotype OSS and does a "Close" and "Release"
     id 'com.adarshr.test-logger' version '3.2.0'
-    id "com.github.ben-manes.versions" version "0.42.0"
-    id 'org.sonatype.gradle.plugins.scan' version '2.4.1'
-    id "org.sonarqube" version "3.4.0.2513"
+    id "com.github.ben-manes.versions" version "0.44.0"
+    id "org.sonarqube" version "3.5.0.2730"
 }
 
 group = 'com.imsweb'
@@ -34,13 +33,13 @@ repositories {
 }
 
 dependencies {
-    spotbugs 'com.github.spotbugs:spotbugs:4.6.0'
+    spotbugs 'com.github.spotbugs:spotbugs:4.7.3'
 
-    api 'com.thoughtworks.xstream:xstream:1.4.19'
+    api 'com.thoughtworks.xstream:xstream:1.4.20'
 
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.1'
-    testImplementation 'org.junit.jupiter:junit-jupiter-params:5.9.1'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.1'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter-params:5.9.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.2'
     testImplementation 'commons-io:commons-io:2.11.0'
     testImplementation 'org.jsoup:jsoup:1.15.3'
     testImplementation 'com.jayway.jsonpath:json-path:2.7.0'
@@ -87,24 +86,6 @@ sonarqube {
         property "sonar.host.url", "https://sonarcloud.io"
     }
 }
-
-// Nexus vulnerability scan (https://github.com/sonatype-nexus-community/scan-gradle-plugin)
-ossIndexAudit {
-    outputFormat = 'DEPENDENCY_GRAPH'
-    printBanner = false
-
-    // only set proxy if running outside of Github Actions
-    if (!System.getenv().GITHUB_ACTIONS) {
-        proxyConfiguration {
-            protocol = 'http'
-            host = 'webproxy-btp.imsweb.com'
-            port = 8080
-        }
-    }
-
-    excludeCoordinates = ['com.thoughtworks.xstream:xstream:1.4.19']
-}
-check.dependsOn 'ossIndexAudit'
 
 def isNonStable = { String version ->
     def stableKeyword = ['RELEASE', 'FINAL', 'GA'].any { qualifier -> version.toUpperCase().contains(qualifier) }
@@ -210,6 +191,6 @@ nexusStaging {
 }
 
 wrapper {
-    gradleVersion = '7.4.2'
+    gradleVersion = '7.6'
     distributionType = Wrapper.DistributionType.ALL
 }
