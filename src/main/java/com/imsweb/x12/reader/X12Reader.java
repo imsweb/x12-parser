@@ -42,6 +42,7 @@ public class X12Reader {
     private static final int _COMPOSITE_SEPARATOR_POS = 104; // array position
     private static final int _SEGMENT_SEPARATOR_POS = 105; // array position
 
+    private static final String _ANSI_VERSION = "004010";
     private static final String _X091_ANSI_VERSION = "004010X091A1";
     private static final String _X221_ANSI_VERSION = "005010X221A1";
     private static final String _X096_ANSI_VERSION = "004010X096A1";
@@ -79,7 +80,8 @@ public class X12Reader {
         ANSI277_5010_X214("mapping/277.5010.X214.xml"),
         ANSI270_4010_X092("mapping/270.4010.X092.A1.xml"),
         ANSI271_4010_X092("mapping/271.4010.X092.A1.xml"),
-        ANSI277_5010_X212("mapping/277.5010.X212.xml");
+        ANSI277_5010_X212("mapping/277.5010.X212.xml"),
+        ANSI813_4010("mapping/813.4010.xml");
 
         private final String _mapping;
 
@@ -121,6 +123,7 @@ public class X12Reader {
         _TYPES.put(FileType.ANSI270_4010_X092, _X270_271_092_ANSI_VERSION);
         _TYPES.put(FileType.ANSI271_4010_X092, _X270_271_092_ANSI_VERSION);
         _TYPES.put(FileType.ANSI277_5010_X212, _X212_ANSI_VERSION);
+        _TYPES.put(FileType.ANSI813_4010, _ANSI_VERSION);
     }
 
     /**

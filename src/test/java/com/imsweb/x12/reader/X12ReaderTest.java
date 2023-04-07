@@ -9,6 +9,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -1601,5 +1602,43 @@ class X12ReaderTest {
                 .getElement("STC01");
         assertEquals("A1", statusCodeElement.getSubValues().get(0), "Should be able to see a health care claim status category code - C043");
         assertEquals("704", statusCodeElement.getSubValues().get(1), "Should be able to see a health care claim status category code - 1271");
+    }
+
+    @Test
+    public void test813()
+            throws IOException {
+        URL url = this.getClass().getResource("/813_4010/x12_813.txt");
+        assertNotNull(url);
+        X12Reader reader = new X12Reader(FileType.ANSI813_4010, new File(url.getFile()));
+
+        List<Loop> loops = reader.getLoops();
+        assertEquals(1, loops.size());
+        Loop isaLoop = reader.getLoops().get(0);
+        assertNotNull(isaLoop);
+        Loop gsLoop = isaLoop.getLoop("GS_LOOP");
+        assertNotNull(gsLoop);
+        Loop stLoop = gsLoop.getLoop("ST_LOOP");
+        assertNotNull(stLoop);
+        Loop taxInformationLoop = stLoop.getLoop("TI_LOOP");
+        assertNotNull(taxInformationLoop);
+        assertEquals("T6", taxInformationLoop.getSegment("BTI").getElementValue("BTI01"));
+        assertEquals("683", taxInformationLoop.getSegment("DTM").getElementValue("DTM01"));
+        assertEquals(6, taxInformationLoop.getSegments().stream().filter(s -> s.getId().equals("TIA")).collect(Collectors.toList()).size());
+        assertEquals("EM", taxInformationLoop.getSegment("REF").getElementValue("REF01"));
+        assertEquals("C", taxInformationLoop.getSegment("BPR").getElementValue("BPR01"));
+        assertEquals("TP", taxInformationLoop.getSegment("N1").getElementValue("N101"));
+        assertEquals("P O Box 1355", taxInformationLoop.getSegment("N3").getElementValue("N301"));
+        assertEquals("San Diego", taxInformationLoop.getSegment("N4").getElementValue("N401"));
+        assertEquals("CN", taxInformationLoop.getSegment("PER").getElementValue("PER01"));
+        List<Loop> taxFormLoops = taxInformationLoop.getLoops().stream().filter(l -> l.getId().equals("TF_LOOP")).collect(Collectors.toList());
+        assertEquals(2, taxFormLoops.size());
+        Loop taxFormLoop1 = taxFormLoops.get(0);
+        assertEquals("T2", taxFormLoop1.getSegment("TFS").getElementValue("TFS01"));
+        Loop formGroupLoop = taxFormLoop1.getLoop("FG_LOOP");
+        assertNotNull(formGroupLoop);
+        assertEquals("LOC", formGroupLoop.getSegment("FGS").getElementValue("FGS01"));
+        assertEquals("LU", formGroupLoop.getSegment("FGS").getElementValue("FGS02"));
+        assertEquals("1", formGroupLoop.getSegment("FGS").getElementValue("FGS03"));
+        assertEquals(4, formGroupLoop.getSegments().stream().filter(s -> s.getId().equals("TIA")).collect(Collectors.toList()).size());
     }
 }
