@@ -3,6 +3,9 @@
         <Bug category="MALICIOUS_CODE" />
     </Match>
     <Match>
+        <Bug category="CT_CONSTRUCTOR_THROW"/>
+    </Match>
+    <Match>
         <Bug pattern="OBL_UNSATISFIED_OBLIGATION_EXCEPTION_EDGE"/>
     </Match>
     <Match>
