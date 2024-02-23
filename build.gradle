@@ -2,7 +2,7 @@ plugins {
     id 'java-library'
     id 'checkstyle'
     id 'jacoco'
-    id "com.github.spotbugs" version "6.0.7"
+    id "com.github.spotbugs" version "5.0.14"
     id 'maven-publish'
     id 'signing'
     id "io.codearte.nexus-staging" version "0.30.0"  // logs into Sonotype OSS and does a "Close" and "Release"
