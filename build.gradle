@@ -85,7 +85,7 @@ ossIndexAudit {
 }
 check.dependsOn 'ossIndexAudit'
 
-sonarqube {
+sonar {
     properties {
         property "sonar.projectKey", "imsweb_x12-parser"
         property "sonar.organization", "imsweb"
@@ -197,6 +197,6 @@ nexusStaging {
 }
 
 wrapper {
-    gradleVersion = '8.2.1'
+    gradleVersion = '8.6'
     distributionType = Wrapper.DistributionType.ALL
 }
