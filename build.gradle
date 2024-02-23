@@ -2,14 +2,14 @@ plugins {
     id 'java-library'
     id 'checkstyle'
     id 'jacoco'
-    id "com.github.spotbugs" version "5.0.14"
+    id "com.github.spotbugs" version "6.0.7"
     id 'maven-publish'
     id 'signing'
     id "io.codearte.nexus-staging" version "0.30.0"  // logs into Sonotype OSS and does a "Close" and "Release"
-    id 'com.adarshr.test-logger' version '3.2.0'
-    id "com.github.ben-manes.versions" version "0.47.0"
-    id 'org.sonatype.gradle.plugins.scan' version '2.6.0'
-    id "org.sonarqube" version "4.2.1.3168"
+    id 'com.adarshr.test-logger' version '4.0.0'
+    id "com.github.ben-manes.versions" version "0.51.0"
+    id 'org.sonatype.gradle.plugins.scan' version '2.7.0'
+    id "org.sonarqube" version "4.4.1.3373"
 }
 
 group = 'com.imsweb'
@@ -36,12 +36,12 @@ repositories {
 dependencies {
     api 'com.thoughtworks.xstream:xstream:1.4.20'
 
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.3'
-    testImplementation 'org.junit.jupiter:junit-jupiter-params:5.9.3'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter-params:5.10.2'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.3'
-    testImplementation 'commons-io:commons-io:2.13.0'
-    testImplementation 'org.jsoup:jsoup:1.16.1'
-    testImplementation 'com.jayway.jsonpath:json-path:2.8.0'
+    testImplementation 'commons-io:commons-io:2.15.1'
+    testImplementation 'org.jsoup:jsoup:1.17.2'
+    testImplementation 'com.jayway.jsonpath:json-path:2.15.1'
 }
 
 jar {
