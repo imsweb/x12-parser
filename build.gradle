@@ -90,6 +90,7 @@ sonar {
         property "sonar.projectKey", "imsweb_x12-parser"
         property "sonar.organization", "imsweb"
         property "sonar.host.url", "https://sonarcloud.io"
+        property "sonar.gradle.skipCompile", "true"
     }
 }
 
