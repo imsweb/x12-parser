@@ -776,8 +776,8 @@ public class X12Reader {
                     if (parentLoop != null)
                         result = matchedLoops.stream().filter(matchedLoop -> parentLoop.equals(getParentLoop(matchedLoop.getLoopId(), null))).findFirst().orElse(null);
                 }
-				
-				// otherwise, if one of the ambiguous loops is the parent of the previous loop then we should use that loop
+                    
+                // otherwise, if one of the ambiguous loops is the parent of the previous loop then we should use that loop
                 if (result == null) {
                     String parentLoop = getParentLoop(previousLoopId, null);
                     if (parentLoop != null)
