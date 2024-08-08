@@ -53,6 +53,7 @@ public class X12Reader {
     private static final String _X214_ANSI_VERSION = "005010X214";
     private static final String _X270_271_092_ANSI_VERSION = "004010X092A1";
     private static final String _X212_ANSI_VERSION = "005010X212";
+    private static final String _X220_ANSI_VERSION = "005010X220A1";
     private static final EnumMap<FileType, String> _TYPES = new EnumMap<>(FileType.class);
 
     private List<String> _errors = new ArrayList<>();
@@ -68,6 +69,7 @@ public class X12Reader {
      * All supported X12 file definitions
      */
     public enum FileType {
+        ANSI834_5010_X220("mapping/834.5010.X220.A1.xml"),
         ANSI835_5010_X221("mapping/835.5010.X221.A1.xml"),
         ANSI835_4010_X091("mapping/835.4010.X091.A1.xml"),
         ANSI837_4010_X096("mapping/837.4010.X096.A1.xml"),
@@ -109,6 +111,7 @@ public class X12Reader {
     }
 
     static {
+        _TYPES.put(FileType.ANSI834_5010_X220, _X220_ANSI_VERSION);
         _TYPES.put(FileType.ANSI835_4010_X091, _X091_ANSI_VERSION);
         _TYPES.put(FileType.ANSI837_4010_X096, _X096_ANSI_VERSION);
         _TYPES.put(FileType.ANSI837_4010_X097, _X097_ANSI_VERSION);
