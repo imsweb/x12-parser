@@ -53,6 +53,7 @@ public class X12Reader {
     private static final String _X214_ANSI_VERSION = "005010X214";
     private static final String _X270_271_092_ANSI_VERSION = "004010X092A1";
     private static final String _X212_ANSI_VERSION = "005010X212";
+    private static final String _X270_271_279_ANSI_VERSION = "005010X279A1";
     private static final String _X220_ANSI_VERSION = "005010X220A1";
     private static final EnumMap<FileType, String> _TYPES = new EnumMap<>(FileType.class);
 
@@ -81,6 +82,8 @@ public class X12Reader {
         ANSI277_5010_X214("mapping/277.5010.X214.xml"),
         ANSI270_4010_X092("mapping/270.4010.X092.A1.xml"),
         ANSI271_4010_X092("mapping/271.4010.X092.A1.xml"),
+        ANSI270_5010_X279("mapping/270.5010.X279.A1.xml"),
+        ANSI271_5010_X279("mapping/271.5010.X279.A1.xml"),
         ANSI277_5010_X212("mapping/277.5010.X212.xml");
 
         private final String _mapping;
@@ -123,6 +126,8 @@ public class X12Reader {
         _TYPES.put(FileType.ANSI837_5010_X231, _X231_ANSI_VERSION);
         _TYPES.put(FileType.ANSI270_4010_X092, _X270_271_092_ANSI_VERSION);
         _TYPES.put(FileType.ANSI271_4010_X092, _X270_271_092_ANSI_VERSION);
+        _TYPES.put(FileType.ANSI270_5010_X279, _X270_271_279_ANSI_VERSION);
+        _TYPES.put(FileType.ANSI271_5010_X279, _X270_271_279_ANSI_VERSION);
         _TYPES.put(FileType.ANSI277_5010_X212, _X212_ANSI_VERSION);
     }
 
@@ -773,6 +778,13 @@ public class X12Reader {
                     String parentLoop = getParentLoop(previousLoopId, null);
                     if (parentLoop != null)
                         result = matchedLoops.stream().filter(matchedLoop -> parentLoop.equals(getParentLoop(matchedLoop.getLoopId(), null))).findFirst().orElse(null);
+                }
+                    
+                // otherwise, if one of the ambiguous loops is the parent of the previous loop then we should use that loop
+                if (result == null) {
+                    String parentLoop = getParentLoop(previousLoopId, null);
+                    if (parentLoop != null)
+                        result = matchedLoops.stream().filter(matchedLoop -> parentLoop.equals(matchedLoop.getLoopId())).findFirst().orElse(null);
                 }
                 break;
             }
