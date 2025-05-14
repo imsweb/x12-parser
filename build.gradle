@@ -15,7 +15,7 @@ plugins {
 }
 
 group = 'com.imsweb'
-version = '1.16-SNAPSHOT'
+version = '1.16'
 description = 'Java client library for parsing x12 files'
 
 tasks.withType(JavaCompile).configureEach {
