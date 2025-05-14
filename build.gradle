@@ -1,15 +1,17 @@
+import com.vanniktech.maven.publish.JavaLibrary
+import com.vanniktech.maven.publish.JavadocJar
+import com.vanniktech.maven.publish.SonatypeHost
+
 plugins {
     id 'java-library'
     id 'checkstyle'
     id 'jacoco'
-    id "com.github.spotbugs" version "6.1.11"
-    id 'maven-publish'
-    id 'signing'
-    id "io.codearte.nexus-staging" version "0.30.0"  // logs into Sonotype OSS and does a "Close" and "Release"
+    id "com.github.spotbugs" version '6.1.11'
     id 'com.adarshr.test-logger' version '4.0.0'
-    id "com.github.ben-manes.versions" version "0.52.0"
+    id "com.github.ben-manes.versions" version '0.52.0'
     id 'org.sonatype.gradle.plugins.scan' version '3.1.1'
-    id "org.sonarqube" version "6.1.0.5360"
+    id "org.sonarqube" version '6.1.0.5360'
+    id 'com.vanniktech.maven.publish' version '0.31.0'
 }
 
 group = 'com.imsweb'
@@ -24,9 +26,6 @@ tasks.withType(JavaCompile).configureEach {
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
-
-    withJavadocJar()
-    withSourcesJar()
 }
 
 repositories {
@@ -49,7 +48,8 @@ dependencies {
 
 jar {
     manifest {
-        attributes('Implementation-Title': project.name,
+        attributes(
+                'Implementation-Title': project.name,
                 'Implementation-Version': archiveVersion,
                 'Implementation-Vendor': group,
                 'Created-By': System.properties['java.vm.version'] + ' (' + System.properties['java.vm.vendor'] + ')',
@@ -110,83 +110,6 @@ dependencyUpdates {
     }
 }
 
-// don't try to release a snapshot to a non-snapshot repository, that won't work anyway
-if (version.endsWith('-SNAPSHOT')) {
-    gradle.startParameter.excludedTaskNames += 'signMavenJavaPublication'
-    gradle.startParameter.excludedTaskNames += 'closeAndReleaseRepository'
-}
-
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            artifactId = 'x12-parser'
-            from components.java
-            versionMapping {
-                usage('java-api') {
-                    fromResolutionOf('runtimeClasspath')
-                }
-                usage('java-runtime') {
-                    fromResolutionResult()
-                }
-            }
-            pom {
-                name = 'X12 Parser'
-                description = 'A Java library for parsing X12 files, including ANSI 837'
-                url = 'https://github.com/imsweb/x12-parser'
-                inceptionYear = '2015'
-
-                licenses {
-                    license {
-                        name = 'A modified BSD License (BSD)'
-                        url = 'https://github.com/imsweb/x12-parser/blob/master/LICENSE'
-                        distribution = 'repo'
-                    }
-                }
-
-                developers {
-                    developer {
-                        id = 'AngelaszekD'
-                        name = 'David Angelaszek'
-                        email = 'AngelaszekD@imsweb.com'
-                    }
-                    developer {
-                        id = 'ctmay4'
-                        name = 'Chuck May'
-                        email = 'mayc@imsweb.com'
-                    }
-                }
-
-                scm {
-                    url = 'https://github.com/imsweb/x12-parser'
-                    connection = 'scm:https://github.com/imsweb/x12-parser.git'
-                    developerConnection = 'scm:git@github.com:imsweb/x12-parser.git'
-                }
-            }
-        }
-    }
-    repositories {
-        maven {
-            def releasesRepoUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2"
-            def snapshotsRepoUrl = "https://oss.sonatype.org/content/repositories/snapshots"
-            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
-
-            credentials {
-                username = project.findProperty('nexusUsername') ?: ''
-                password = project.findProperty('nexusPassword') ?: ''
-            }
-        }
-    }
-}
-
-signing {
-    def signingKey = project.findProperty('signingKey') ?: ''
-    def signingPassword = project.findProperty('signingPassword') ?: ''
-
-    useInMemoryPgpKeys(signingKey, signingPassword)
-
-    sign publishing.publications.mavenJava
-}
-
 javadoc {
     if (JavaVersion.current().isJava9Compatible()) {
         options.addBooleanOption('html5', true)
@@ -194,10 +117,45 @@ javadoc {
     }
 }
 
-// configure nexus staging plugin
-nexusStaging {
-    numberOfRetries = 50
-    delayBetweenRetriesInMillis = 5000
+mavenPublishing {
+    configure(new JavaLibrary(new JavadocJar.Javadoc(), true))
+
+    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, true)
+    signAllPublications()
+
+    pom {
+        name = 'X12 Parser'
+        description = 'A Java library for parsing X12 files, including ANSI 837'
+        url = 'https://github.com/imsweb/x12-parser'
+        inceptionYear = '2015'
+
+        licenses {
+            license {
+                name = 'A modified BSD License (BSD)'
+                url = 'https://github.com/imsweb/x12-parser/blob/master/LICENSE'
+                distribution = 'repo'
+            }
+        }
+
+        developers {
+            developer {
+                id = 'AngelaszekD'
+                name = 'David Angelaszek'
+                email = 'AngelaszekD@imsweb.com'
+            }
+            developer {
+                id = 'ctmay4'
+                name = 'Chuck May'
+                email = 'mayc@imsweb.com'
+            }
+        }
+
+        scm {
+            url = 'https://github.com/imsweb/x12-parser'
+            connection = 'scm:https://github.com/imsweb/x12-parser.git'
+            developerConnection = 'scm:git@github.com:imsweb/x12-parser.git'
+        }
+    }
 }
 
 wrapper {
