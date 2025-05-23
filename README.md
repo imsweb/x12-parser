@@ -2,7 +2,7 @@
 
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=imsweb_x12-parser&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=imsweb_x12-parser)
 [![integration](https://github.com/imsweb/x12-parser/workflows/integration/badge.svg)](https://github.com/imsweb/x12-parser/actions)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.imsweb/x12-parser/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.imsweb/x12-parser)
+[![Maven Central](https://img.shields.io/maven-central/v/com.imsweb/x12-parser.svg?label=Maven%20Central)](https://central.sonatype.com/artifact/com.imsweb/x12-parser)
 
 A parser for ANSI ASC X12 documents. This project was originally based on the Python project [pyx12](https://github.com/azoner/pyx12).
 
