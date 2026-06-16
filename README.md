@@ -69,6 +69,21 @@ There may be errors in the structure that are severe enough that they prevent pr
 List<String> errors = reader.getFatalErrors();
 ```
 
+### Custom mapping files
+
+If you need to parse a standard that is not covered by a built-in `FileType`, you can supply your own mapping
+definition XML (following the same structure as the files in the `mapping` directory). Wrap it in a
+`CustomX12Mapping` with the expected ANSI version (the value of the GS08 element) and pass it to the reader:
+
+```java
+try (InputStream mappingStream = new FileInputStream("/path/271.5010.X279.A1.xml")) {
+    X12Mapping mapping = new CustomX12Mapping("005010X279A1", mappingStream);
+    X12Reader reader = new X12Reader(mapping, new File("/path/file.txt"));
+}
+```
+
+All `X12Reader` constructors accept either a built-in `FileType` or any `X12Mapping`.
+
 ## Accessing Data
 
 You can access the data from the file using:
