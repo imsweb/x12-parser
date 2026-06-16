@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -15,6 +16,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import com.imsweb.x12.Element;
 import com.imsweb.x12.Loop;
+import com.imsweb.x12.mapping.CustomX12Mapping;
 import com.imsweb.x12.mapping.TransactionDefinition;
 import com.imsweb.x12.reader.X12Reader.FileType;
 
@@ -1476,6 +1478,47 @@ class X12ReaderTest {
         assertEquals("A7", statusCodeElement.getSubValues().get(0), "Should be able to see a approval status code - CSCC");
         assertEquals("562", statusCodeElement.getSubValues().get(1), "Should be able to see a approval status code - CSC");
         assertEquals("85", statusCodeElement.getSubValues().get(2), "Should be able to see a approval status code - EIC");
+    }
+
+    @Test
+    void testCustomMapping() throws Exception {
+        // Parse a 270 file using a user-supplied mapping rather than the built-in FileType. The mapping
+        // XML and version are provided by the caller, so any spec not covered by FileType can be parsed.
+        URL data = this.getClass().getResource("/x270_271/x270.txt");
+        assertNotNull(data);
+
+        try (InputStream mappingStream = Thread.currentThread().getContextClassLoader()
+                .getResourceAsStream("mapping/270.4010.X092.A1.xml")) {
+            assertNotNull(mappingStream);
+            CustomX12Mapping mapping = new CustomX12Mapping("004010X092A1", mappingStream);
+
+            X12Reader reader = new X12Reader(mapping, new File(data.getFile()));
+            assertTrue(reader.getFatalErrors().isEmpty());
+            List<Loop> loops = reader.getLoops();
+            assertEquals(1, loops.size());
+            assertEquals(1, loops.get(0).getLoops().size());
+
+            // result must match parsing the same file through the built-in FileType
+            X12Reader builtIn = new X12Reader(FileType.ANSI270_4010_X092, new File(data.getFile()));
+            assertEquals(builtIn.getLoops().get(0).toString(), loops.get(0).toString());
+        }
+    }
+
+    @Test
+    void testCustomMappingVersionMismatch() throws Exception {
+        URL data = this.getClass().getResource("/x270_271/x270.txt");
+        assertNotNull(data);
+
+        try (InputStream mappingStream = Thread.currentThread().getContextClassLoader()
+                .getResourceAsStream("mapping/270.4010.X092.A1.xml")) {
+            assertNotNull(mappingStream);
+            // wrong version: the file is 004010X092A1, so parsing must be rejected
+            CustomX12Mapping mapping = new CustomX12Mapping("005010X279A1", mappingStream);
+
+            X12Reader reader = new X12Reader(mapping, new File(data.getFile()));
+            assertTrue(reader.getLoops().isEmpty());
+            assertFalse(reader.getErrors().isEmpty());
+        }
     }
 
     @Test

@@ -20,11 +20,6 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.io.xml.StaxDriver;
-import com.thoughtworks.xstream.security.NoTypePermission;
-import com.thoughtworks.xstream.security.WildcardTypePermission;
-
 import com.imsweb.x12.Loop;
 import com.imsweb.x12.Segment;
 import com.imsweb.x12.Separators;
@@ -34,6 +29,7 @@ import com.imsweb.x12.mapping.LoopDefinition;
 import com.imsweb.x12.mapping.SegmentDefinition;
 import com.imsweb.x12.mapping.TransactionDefinition;
 import com.imsweb.x12.mapping.TransactionDefinition.Usage;
+import com.imsweb.x12.mapping.X12Mapping;
 
 public class X12Reader {
 
@@ -63,12 +59,12 @@ public class X12Reader {
     private final Map<String, List<Set<String>>> _childLoopTracker = new HashMap<>();
     private Separators _separators;
     TransactionDefinition _definition;
-    private final FileType _type;
+    private final X12Mapping _mapping;
 
     /**
      * All supported X12 file definitions
      */
-    public enum FileType {
+    public enum FileType implements X12Mapping {
         ANSI834_5010_X220("mapping/834.5010.X220.A1.xml"),
         ANSI835_5010_X221("mapping/835.5010.X221.A1.xml"),
         ANSI835_4010_X091("mapping/835.4010.X091.A1.xml"),
@@ -96,17 +92,18 @@ public class X12Reader {
          * @return a TransactionDefinition
          */
         public synchronized TransactionDefinition getDefinition() {
-            return _DEFINITIONS.computeIfAbsent(_mapping, k -> {
-                XStream xstream = new XStream(new StaxDriver());
-                xstream.autodetectAnnotations(true);
-                xstream.alias("transaction", TransactionDefinition.class);
+            return _DEFINITIONS.computeIfAbsent(_mapping, k ->
+                    X12Mapping.load(Thread.currentThread().getContextClassLoader().getResourceAsStream(_mapping)));
+        }
 
-                // setup proper security by limiting what classes can be loaded by XStream
-                xstream.addPermission(NoTypePermission.NONE);
-                xstream.addPermission(new WildcardTypePermission(new String[] {"com.imsweb.x12.**"}));
+        @Override
+        public TransactionDefinition getTransactionDefinition() {
+            return getDefinition();
+        }
 
-                return (TransactionDefinition)xstream.fromXML(Thread.currentThread().getContextClassLoader().getResourceAsStream(_mapping));
-            });
+        @Override
+        public String getVersion() {
+            return _TYPES.get(this);
         }
     }
 
@@ -133,8 +130,7 @@ public class X12Reader {
      * @throws IOException if there was an error reading the input file
      */
     public X12Reader(FileType type, File file) throws IOException {
-        this._type = type;
-        parse(new BufferedReader(new InputStreamReader(new FileInputStream(file), Charset.defaultCharset())));
+        this((X12Mapping)type, file);
     }
 
     /**
@@ -145,8 +141,7 @@ public class X12Reader {
      * @throws IOException if there was an error reading the input file
      */
     public X12Reader(FileType type, File file, Charset charset) throws IOException {
-        this._type = type;
-        parse(new BufferedReader(new InputStreamReader(new FileInputStream(file), charset)));
+        this((X12Mapping)type, file, charset);
     }
 
     /**
@@ -156,8 +151,7 @@ public class X12Reader {
      * @throws IOException if there was an error reading the input file
      */
     public X12Reader(FileType type, InputStream input) throws IOException {
-        this._type = type;
-        parse(new BufferedReader(new InputStreamReader(input, Charset.defaultCharset())));
+        this((X12Mapping)type, input);
     }
 
     /**
@@ -168,8 +162,7 @@ public class X12Reader {
      * @throws IOException if there was an error reading the input file
      */
     public X12Reader(FileType type, InputStream input, Charset charset) throws IOException {
-        this._type = type;
-        parse(new BufferedReader(new InputStreamReader(input, charset)));
+        this((X12Mapping)type, input, charset);
     }
 
     /**
@@ -179,7 +172,63 @@ public class X12Reader {
      * @throws IOException if there was an error reading the input file
      */
     public X12Reader(FileType type, Reader reader) throws IOException {
-        this._type = type;
+        this((X12Mapping)type, reader);
+    }
+
+    /**
+     * Constructs an X12Reader using a File and a custom mapping
+     * @param mapping the X12 mapping describing the file's transaction definition and version
+     * @param file a File object representing the input file
+     * @throws IOException if there was an error reading the input file
+     */
+    public X12Reader(X12Mapping mapping, File file) throws IOException {
+        this._mapping = mapping;
+        parse(new BufferedReader(new InputStreamReader(new FileInputStream(file), Charset.defaultCharset())));
+    }
+
+    /**
+     * Constructs an X12Reader using a File and a custom mapping
+     * @param mapping the X12 mapping describing the file's transaction definition and version
+     * @param file a File object representing the input file
+     * @param charset character encoding
+     * @throws IOException if there was an error reading the input file
+     */
+    public X12Reader(X12Mapping mapping, File file, Charset charset) throws IOException {
+        this._mapping = mapping;
+        parse(new BufferedReader(new InputStreamReader(new FileInputStream(file), charset)));
+    }
+
+    /**
+     * Constructs an X12Reader using an InputStream and a custom mapping, with default character encoding
+     * @param mapping the X12 mapping describing the file's transaction definition and version
+     * @param input an InputStream to an input file
+     * @throws IOException if there was an error reading the input file
+     */
+    public X12Reader(X12Mapping mapping, InputStream input) throws IOException {
+        this._mapping = mapping;
+        parse(new BufferedReader(new InputStreamReader(input, Charset.defaultCharset())));
+    }
+
+    /**
+     * Constructs an X12Reader using an InputStream and a custom mapping
+     * @param mapping the X12 mapping describing the file's transaction definition and version
+     * @param input an InputStream to an input file
+     * @param charset character encoding
+     * @throws IOException if there was an error reading the input file
+     */
+    public X12Reader(X12Mapping mapping, InputStream input, Charset charset) throws IOException {
+        this._mapping = mapping;
+        parse(new BufferedReader(new InputStreamReader(input, charset)));
+    }
+
+    /**
+     * Constructs an X12Reader using a Reader and a custom mapping
+     * @param mapping the X12 mapping describing the file's transaction definition and version
+     * @param reader a Reader pointing to an input file
+     * @throws IOException if there was an error reading the input file
+     */
+    public X12Reader(X12Mapping mapping, Reader reader) throws IOException {
+        this._mapping = mapping;
         // the Reader must support mark; if it does not, wrap the reader in a BufferedReader
         if (!reader.markSupported())
             parse(new BufferedReader(reader));
@@ -239,7 +288,7 @@ public class X12Reader {
             Loop lastLoopStored = null;
 
             // parse _definition file
-            _definition = _type.getDefinition();
+            _definition = _mapping.getTransactionDefinition();
 
             // cache definitions of loop starting segments
             getLoopConfiguration(_definition.getLoop(), null);
@@ -392,7 +441,7 @@ public class X12Reader {
     }
 
     private boolean checkVersionsAreConsistent(Separators separators, Reader reader) throws IOException {
-        if (reader == null || separators == null || _type == null)
+        if (reader == null || separators == null || _mapping == null)
             return false;
 
         char segmentSeparator = separators.getSegment();
@@ -414,10 +463,10 @@ public class X12Reader {
         }
         reader.reset();
 
-        boolean result = _TYPES.get(_type).equals(version);
+        boolean result = _mapping.getVersion().equals(version);
 
         if (!result)
-            _errors.add("ANSI version " + version + " not consistent with version specified " + _type);
+            _errors.add("ANSI version " + version + " not consistent with version specified " + _mapping.getVersion());
 
         return result;
     }
