@@ -399,20 +399,32 @@ public class X12Reader {
         char segmentSeparator = separators.getSegment();
         char elementSeparator = separators.getElement();
         int c;
-        StringBuilder line = new StringBuilder();
 
-        while ((c = reader.read()) != -1 && c != segmentSeparator)
-            line.append((char)c);
-
-        // The version is the last element
-        // If we got to the end of the file before the end of the line, don't get the version
+        // The version is held in the last element of the GS segment. The GS segment normally
+        // immediately follows the ISA segment, but interchange-level segments such as TA1 may
+        // appear between them (a TA1 acknowledgement is sometimes included even when accepted).
+        // Skip any such segments and read up to the GS segment to find the version.
         String version = null;
-        if (c == segmentSeparator) {
-            String lineString = line.toString();
-            int versionStartPos = lineString.lastIndexOf(elementSeparator);
-            if (versionStartPos != -1)
-                version = lineString.substring(versionStartPos + 1);
+        StringBuilder line = new StringBuilder();
+        boolean foundSegment = false;
+        while ((c = reader.read()) != -1) {
+            if (c == segmentSeparator) {
+                String lineString = line.toString().trim();
+                if (lineString.startsWith("GS" + elementSeparator) || lineString.equals("GS")) {
+                    foundSegment = true;
+                    int versionStartPos = lineString.lastIndexOf(elementSeparator);
+                    if (versionStartPos != -1)
+                        version = lineString.substring(versionStartPos + 1);
+                    break;
+                }
+                line.setLength(0);
+            }
+            else
+                line.append((char)c);
         }
+        // If we never reached a GS segment (e.g. end of file), the file is not valid for a version check
+        if (!foundSegment)
+            version = null;
         reader.reset();
 
         boolean result = _TYPES.get(_type).equals(version);

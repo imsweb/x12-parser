@@ -1493,6 +1493,21 @@ class X12ReaderTest {
     }
 
     @Test
+    void test999AcceptedWithTA1() throws Exception {
+        URL url = this.getClass().getResource("/837_5010/x12_999_accepted_ta1.txt");
+        assertNotNull(url);
+        X12Reader reader = new X12Reader(FileType.ANSI837_5010_X231, new File(url.getFile()));
+
+        // A TA1 segment between ISA and GS must not break the version check or parsing
+        assertTrue(reader.getFatalErrors().isEmpty());
+        List<Loop> loops = reader.getLoops();
+        assertEquals(1, loops.size());
+        Loop loop = reader.getLoops().get(0);
+        assertEquals(1, loop.getLoops().size());
+        assertEquals("R", loop.getLoop("GS_LOOP").getLoop("ST_LOOP").getLoop("HEADER").getLoop("2000").getSegment("IK5").getElement("IK501").getValue());
+    }
+
+    @Test
     void test999Rejected() throws Exception {
         URL url = this.getClass().getResource("/837_5010/x12_999_rejected.txt");
         assertNotNull(url);
