@@ -95,18 +95,19 @@ public class X12Reader {
          * Load definition from file
          * @return a TransactionDefinition
          */
-        public synchronized TransactionDefinition getDefinition() {
-            return _DEFINITIONS.computeIfAbsent(_mapping, k -> {
-                XStream xstream = new XStream(new StaxDriver());
-                xstream.autodetectAnnotations(true);
-                xstream.alias("transaction", TransactionDefinition.class);
+        public TransactionDefinition getDefinition() {
+            synchronized (_DEFINITIONS) {
+                return _DEFINITIONS.computeIfAbsent(_mapping, k -> {
+                    XStream xstream = new XStream(new StaxDriver());
+                    xstream.autodetectAnnotations(true);
+                    xstream.alias("transaction", TransactionDefinition.class);
 
-                // setup proper security by limiting what classes can be loaded by XStream
-                xstream.addPermission(NoTypePermission.NONE);
-                xstream.addPermission(new WildcardTypePermission(new String[] {"com.imsweb.x12.**"}));
+                    xstream.addPermission(NoTypePermission.NONE);
+                    xstream.addPermission(new WildcardTypePermission(new String[] {"com.imsweb.x12.**"}));
 
-                return (TransactionDefinition)xstream.fromXML(Thread.currentThread().getContextClassLoader().getResourceAsStream(_mapping));
-            });
+                    return (TransactionDefinition)xstream.fromXML(Thread.currentThread().getContextClassLoader().getResourceAsStream(_mapping));
+                });
+            }
         }
     }
 
