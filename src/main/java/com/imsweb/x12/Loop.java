@@ -641,11 +641,11 @@ public class Loop implements Iterable<Segment> {
     public String toHtml(LoopDefinition loopDefinition, List<String> parentIds) {
         StringBuilder dump = new StringBuilder();
         dump.append("<div id=\"")
-            .append(Separators.getIdString(parentIds))
+            .append(HtmlUtils.escape(Separators.getIdString(parentIds)))
             .append("\" class=\"x12-loop\"><p>");
-        dump.append(loopDefinition.getName())
+        dump.append(HtmlUtils.escape(loopDefinition.getName()))
             .append(" (")
-            .append(loopDefinition.getXid())
+            .append(HtmlUtils.escape(loopDefinition.getXid()))
             .append(")</p>");
 
         ArrayList<String> newParentIds = new ArrayList<>();

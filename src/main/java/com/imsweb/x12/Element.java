@@ -117,20 +117,20 @@ public class Element {
             .append("<div class=\"x12-element\"><p><span class=\"x12-element-name\">");
 
         if (elementDefinition.isPresent()) {
-            dump.append(elementDefinition.get().getName())
+            dump.append(HtmlUtils.escape(elementDefinition.get().getName()))
                 .append(" (")
-                .append(_id)
+                .append(HtmlUtils.escape(_id))
                 .append("): ");
         }
         else {
-            dump.append(_id)
+            dump.append(HtmlUtils.escape(_id))
                 .append(": ");
         }
         return dump
             .append("</span> <input type=\"text\" name=\"")
-            .append(Separators.getIdString(newParentIds))
+            .append(HtmlUtils.escape(Separators.getIdString(newParentIds)))
             .append("\" value=\"")
-            .append(_value)
+            .append(HtmlUtils.escape(_value))
             .append("\" /> </p></div>")
             .toString();
     }

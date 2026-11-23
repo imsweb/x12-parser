@@ -1,8 +1,15 @@
 package com.imsweb.x12;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
+import com.imsweb.x12.mapping.SegmentDefinition;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -262,6 +269,40 @@ class SegmentTest {
         isaLoop.addSegment(segment);
 
         assertEquals(2, isaLoop.getSegments().size());
+    }
+
+    @Test
+    void testToHtmlEscapesUntrustedContent() {
+        Segment s = new Segment("NM1<script>");
+        s.addElement("NM101", "\"><img src=x onerror=alert(1)>");
+        s.addElement("NM102", "ok");
+
+        SegmentDefinition def = DefinitionTestUtils.segment("NM1", "Name <b>", "0100",
+                Collections.singletonList(DefinitionTestUtils.element("NM101", "Entity <i>")));
+
+        String html = s.toHtml(def, new ArrayList<>(List.of("2000A\"x")));
+
+        assertFalse(html.contains("<script>"));
+        assertFalse(html.contains("<img"));
+        assertFalse(html.contains("<b>"));
+        assertFalse(html.contains("<i>"));
+        assertTrue(html.contains("<div id=\"2000A&quot;x\" class=\"x12-segment\">"));
+        assertTrue(html.contains("<p>Name &lt;b&gt; (NM1&lt;script&gt;)</p>"));
+        assertTrue(html.contains("Entity &lt;i&gt; (NM101): "));
+        assertTrue(html.contains("value=\"&quot;&gt;&lt;img src=x onerror=alert(1)&gt;\""));
+        // element without a matching definition is still rendered
+        assertTrue(html.contains("NM102: "));
+    }
+
+    @Test
+    void testToHtmlWithoutElementDefinitions() {
+        Segment s = new Segment("N3");
+        s.addElement("N301", "123 Main & Elm");
+
+        String html = s.toHtml(DefinitionTestUtils.segment("N3", "Address", "0100", null), new ArrayList<>());
+
+        assertTrue(html.contains("N301: "));
+        assertTrue(html.contains("value=\"123 Main &amp; Elm\""));
     }
 
 }

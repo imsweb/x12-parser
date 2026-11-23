@@ -1,10 +1,16 @@
 package com.imsweb.x12;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import com.imsweb.x12.mapping.LoopDefinition;
+import com.imsweb.x12.mapping.SegmentDefinition;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -362,6 +368,33 @@ class LoopTest {
                 + "  </segments>\n"
                 + "  <loops/>\n"
                 + "</loop>", loop.toXML());
+    }
+
+    @Test
+    void testToHtmlEscapesUntrustedContent() {
+        Loop root = new Loop("2000A\"<x>");
+        Segment seg = root.addSegment("NM1*\"><script>alert(1)</script>");
+        assertNotNull(seg);
+        Loop child = root.addLoop("2010A");
+        child.addSegment("N3*a&b");
+
+        SegmentDefinition nm1 = DefinitionTestUtils.segment("NM1", "Name <b>", "0100", null);
+        SegmentDefinition n3 = DefinitionTestUtils.segment("N3", "Address", "0100", null);
+        LoopDefinition childDef = DefinitionTestUtils.loop("2010A", "Child 'loop'", "0200", Collections.singletonList(n3), null);
+        LoopDefinition rootDef = DefinitionTestUtils.loop("2000A<i>", "Root <u>", "0100", Collections.singletonList(nm1), Collections.singletonList(childDef));
+
+        String html = root.toHtml(rootDef, new ArrayList<>(List.of("ST\"")));
+
+        assertFalse(html.contains("<script>"));
+        assertFalse(html.contains("<b>"));
+        assertFalse(html.contains("<u>"));
+        assertFalse(html.contains("<i>"));
+        assertTrue(html.contains("<div id=\"ST&quot;\" class=\"x12-loop\"><p>Root &lt;u&gt; (2000A&lt;i&gt;)</p>"));
+        assertTrue(html.contains("Child &#39;loop&#39; (2010A)"));
+        assertTrue(html.contains("value=\"&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;\""));
+        assertTrue(html.contains("value=\"a&amp;b\""));
+        // nested ids are built from the (escaped) parent id path
+        assertTrue(html.contains("id=\"ST&quot;__2000A&quot;&lt;x&gt;\""));
     }
 
 }

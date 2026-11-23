@@ -329,9 +329,9 @@ public class Segment implements Iterable<Element> {
 
         StringBuilder output = new StringBuilder();
         output.append("<div id=\"")
-                .append(Separators.getIdString(parentIds))
+                .append(HtmlUtils.escape(Separators.getIdString(parentIds)))
                 .append("\" class=\"x12-segment\">");
-        output.append("<p>").append(segmentDefinition.getName()).append(" (").append(_id).append(")</p>");
+        output.append("<p>").append(HtmlUtils.escape(segmentDefinition.getName())).append(" (").append(HtmlUtils.escape(_id)).append(")</p>");
         for (Element e : _elements) {
             if (segmentDefinition.getElements() != null) {
                 Optional<ElementDefinition> elementDef = segmentDefinition
