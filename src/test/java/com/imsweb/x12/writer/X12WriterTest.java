@@ -8,8 +8,10 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.io.IOUtils;
 import org.jsoup.Jsoup;
@@ -28,6 +30,8 @@ import com.imsweb.x12.reader.X12Reader;
 import com.imsweb.x12.reader.X12Reader.FileType;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class X12WriterTest {
 
@@ -81,6 +85,26 @@ class X12WriterTest {
 
         Elements elements = doc.select(".x12-element");
         assertEquals(216, elements.size());
+    }
+
+    /**
+     * Every loop and segment in the generated html must have an id, and the ids must be unique, including repeated loops and segments.
+     */
+    @Test
+    void testToHtmlIdsAreUnique() throws IOException {
+        for (String file : new String[] {"/837_5010/x12_valid.txt", "/837_5010/x12_complex.txt"}) {
+            X12Reader reader = new X12Reader(FileType.ANSI837_5010_X222, new File(this.getClass().getResource(file).getFile()), StandardCharsets.UTF_8);
+
+            Document doc = Jsoup.parse(new X12Writer(reader).toHtml());
+            Elements withIds = doc.select(".x12-loop, .x12-segment");
+
+            Set<String> ids = new HashSet<>();
+            for (org.jsoup.nodes.Element e : withIds) {
+                assertFalse(e.id().isEmpty(), file + ": missing id");
+                assertTrue(ids.add(e.id()), file + ": duplicate id " + e.id());
+            }
+            assertEquals(withIds.size(), ids.size());
+        }
     }
 
     /**

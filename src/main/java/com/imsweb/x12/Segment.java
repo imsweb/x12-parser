@@ -323,31 +323,44 @@ public class Segment implements Iterable<Element> {
      * @return HTML string fragment.
      */
     public String toHtml(SegmentDefinition segmentDefinition, List<String> parentIds) {
+        return toHtml(segmentDefinition, parentIds, Separators.getIdString(parentIds), 0);
+    }
+
+    /**
+     * Returns an HTML fragment representing this segment.
+     * @param segmentDefinition The segment definition that defines this segment.
+     * @param parentIds The parent ids up until this point, used to name the form inputs.
+     * @param parentHtmlId The html id of the parent element, used (with the index) to build a unique html id for this segment; may be empty.
+     * @param index The zero-based occurrence of this segment id within its parent loop.
+     * @return HTML string fragment.
+     */
+    public String toHtml(SegmentDefinition segmentDefinition, List<String> parentIds, String parentHtmlId, int index) {
         ArrayList<String> newParentIds = new ArrayList<>();
         newParentIds.addAll(parentIds);
         newParentIds.add(getId());
 
         StringBuilder output = new StringBuilder();
         output.append("<div id=\"")
-                .append(Separators.getIdString(parentIds))
+                .append(HtmlUtils.escape(HtmlUtils.htmlId(parentHtmlId, getId(), index)))
                 .append("\" class=\"x12-segment\">");
-        output.append("<p>").append(segmentDefinition.getName()).append(" (").append(_id).append(")</p>");
-        for (Element e : _elements) {
-            if (segmentDefinition.getElements() != null) {
-                Optional<ElementDefinition> elementDef = segmentDefinition
-                        .getElements()
-                        .stream()
-                        .filter(ed -> ed.getXid().equals(e.getId()))
-                        .findFirst();
-                output.append(e.toHtml(elementDef, newParentIds));
-            }
-            else {
-                output.append(e.toHtml(Optional.empty(), newParentIds));
-            }
-        }
+        output.append("<p>").append(HtmlUtils.escape(segmentDefinition.getName())).append(" (").append(HtmlUtils.escape(_id)).append(")</p>");
+        for (Element e : _elements)
+            output.append(e.toHtml(findElementDefinition(segmentDefinition, e), findCompositeDefinition(segmentDefinition, e), newParentIds));
 
         output.append("</div>");
         return output.toString();
+    }
+
+    private static Optional<ElementDefinition> findElementDefinition(SegmentDefinition segmentDefinition, Element element) {
+        if (segmentDefinition.getElements() == null)
+            return Optional.empty();
+        return segmentDefinition.getElements().stream().filter(ed -> element.getId().equals(ed.getXid())).findFirst();
+    }
+
+    private static Optional<CompositeDefinition> findCompositeDefinition(SegmentDefinition segmentDefinition, Element element) {
+        if (segmentDefinition.getComposites() == null)
+            return Optional.empty();
+        return segmentDefinition.getComposites().stream().filter(cd -> element.getId().equals(cd.getXid())).findFirst();
     }
 
     public Map<String, Object> toMap(SegmentDefinition segmentDefinition, List<String> parentIds, int segmentIndex) {
@@ -360,23 +373,7 @@ public class Segment implements Iterable<Element> {
         res.put("type", "segment");
         List<Map<String, Object>> children = new ArrayList<>();
         for (Element e : _elements) {
-            Optional<ElementDefinition> elementDef = Optional.empty();
-            Optional<CompositeDefinition> compositeDef = Optional.empty();
-            if (segmentDefinition.getElements() != null) {
-                elementDef = segmentDefinition
-                        .getElements()
-                        .stream()
-                        .filter(ed -> ed.getXid().equals(e.getId()))
-                        .findFirst();
-            }
-            if (segmentDefinition.getComposites() != null) {
-                compositeDef = segmentDefinition
-                        .getComposites()
-                        .stream()
-                        .filter(ed -> ed.getXid().equals(e.getId()))
-                        .findFirst();
-            }
-            children.add(e.toMap(elementDef, compositeDef, newParentIds));
+            children.add(e.toMap(findElementDefinition(segmentDefinition, e), findCompositeDefinition(segmentDefinition, e), newParentIds));
         }
         if (!children.isEmpty()) {
             res.put("children", children);
