@@ -639,18 +639,32 @@ public class Loop implements Iterable<Segment> {
     }
 
     public String toHtml(LoopDefinition loopDefinition, List<String> parentIds) {
+        return toHtml(loopDefinition, parentIds, Separators.getIdString(parentIds), 0);
+    }
+
+    /**
+     * Returns an HTML fragment representing this loop.
+     * @param loopDefinition The loop definition that defines this loop.
+     * @param parentIds The parent ids up until this point, used to name the form inputs.
+     * @param parentHtmlId The html id of the parent element, used (with the index) to build a unique html id for this loop; may be empty.
+     * @param index The zero-based occurrence of this loop id within its parent.
+     * @return HTML string fragment.
+     */
+    public String toHtml(LoopDefinition loopDefinition, List<String> parentIds, String parentHtmlId, int index) {
+        ArrayList<String> newParentIds = new ArrayList<>();
+        newParentIds.addAll(parentIds);
+        newParentIds.add(getId());
+
+        String htmlId = HtmlUtils.htmlId(parentHtmlId, getId(), index);
+
         StringBuilder dump = new StringBuilder();
         dump.append("<div id=\"")
-            .append(HtmlUtils.escape(Separators.getIdString(parentIds)))
+            .append(HtmlUtils.escape(htmlId))
             .append("\" class=\"x12-loop\"><p>");
         dump.append(HtmlUtils.escape(loopDefinition.getName()))
             .append(" (")
             .append(HtmlUtils.escape(loopDefinition.getXid()))
             .append(")</p>");
-
-        ArrayList<String> newParentIds = new ArrayList<>();
-        newParentIds.addAll(parentIds);
-        newParentIds.add(getId());
 
         Set<Positioned> segmentsAndLoops = new TreeSet<>();
         if (loopDefinition.getLoop() != null) {
@@ -664,16 +678,18 @@ public class Loop implements Iterable<Segment> {
                 SegmentDefinition segmentDefinition = (SegmentDefinition)positioned;
                 int idx = 0;
                 Segment segment;
-                while ((segment = getSegment(segmentDefinition.getXid(), idx++)) != null) {
-                    dump.append(segment.toHtml(segmentDefinition, newParentIds));
+                while ((segment = getSegment(segmentDefinition.getXid(), idx)) != null) {
+                    dump.append(segment.toHtml(segmentDefinition, newParentIds, htmlId, idx));
+                    idx++;
                 }
             }
             else if (positioned instanceof LoopDefinition) {
                 LoopDefinition innerLoopDefinition = (LoopDefinition)positioned;
                 int idx = 0;
                 Loop innerLoop;
-                while ((innerLoop = getLoopForPrinting(innerLoopDefinition, idx++)) != null) {
-                    dump.append(innerLoop.toHtml(innerLoopDefinition, newParentIds));
+                while ((innerLoop = getLoopForPrinting(innerLoopDefinition, idx)) != null) {
+                    dump.append(innerLoop.toHtml(innerLoopDefinition, newParentIds, htmlId, idx));
+                    idx++;
                 }
             }
         }

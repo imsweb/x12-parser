@@ -9,6 +9,19 @@ final class HtmlUtils {
     }
 
     /**
+     * Builds the (unescaped) html id of a loop or segment: the parent's html id, if any, followed by this item's id and its zero-based index among
+     * the repeats of that id, so that repeated siblings (and everything below them) get distinct ids.
+     * @param parentHtmlId the html id of the parent, may be null or empty
+     * @param id the id of the loop or segment
+     * @param index the zero-based occurrence of this id within its parent
+     * @return the html id, not yet escaped
+     */
+    static String htmlId(String parentHtmlId, String id, int index) {
+        String own = id + "-" + index;
+        return parentHtmlId == null || parentHtmlId.isEmpty() ? own : parentHtmlId + Separators.HTML_ID_SEPARATOR + own;
+    }
+
+    /**
      * Escapes the characters that are significant in HTML text and (single or double) quoted attribute values.
      * @param value the raw value, may be null
      * @return the escaped value, never null

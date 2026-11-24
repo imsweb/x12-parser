@@ -108,6 +108,17 @@ public class Element {
      * @return Html segment representing this element.
      */
     public String toHtml(Optional<ElementDefinition> elementDefinition, List<String> parentIds) {
+        return toHtml(elementDefinition, Optional.empty(), parentIds);
+    }
+
+    /**
+     * Converts this element to HTML segment.
+     * @param elementDefinition The element definition that defines this element, if it is a simple element.
+     * @param compositeDefinition The composite definition that defines this element, if it is a composite.
+     * @param parentIds The parent IDs thus far.
+     * @return Html segment representing this element.
+     */
+    public String toHtml(Optional<ElementDefinition> elementDefinition, Optional<CompositeDefinition> compositeDefinition, List<String> parentIds) {
 
         ArrayList<String> newParentIds = new ArrayList<>();
         newParentIds.addAll(parentIds);
@@ -116,8 +127,14 @@ public class Element {
         StringBuilder dump = new StringBuilder()
             .append("<div class=\"x12-element\"><p><span class=\"x12-element-name\">");
 
-        if (elementDefinition.isPresent()) {
-            dump.append(HtmlUtils.escape(elementDefinition.get().getName()))
+        String name = null;
+        if (elementDefinition.isPresent())
+            name = elementDefinition.get().getName();
+        else if (compositeDefinition.isPresent())
+            name = compositeDefinition.get().getName();
+
+        if (name != null) {
+            dump.append(HtmlUtils.escape(name))
                 .append(" (")
                 .append(HtmlUtils.escape(_id))
                 .append("): ");

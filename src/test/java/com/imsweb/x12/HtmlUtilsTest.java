@@ -45,6 +45,13 @@ class HtmlUtilsTest {
     }
 
     @Test
+    void testHtmlId() {
+        assertEquals("ISA-0", HtmlUtils.htmlId(null, "ISA", 0));
+        assertEquals("ISA-3", HtmlUtils.htmlId("", "ISA", 3));
+        assertEquals("ISA-0__GS-1", HtmlUtils.htmlId("ISA-0", "GS", 1));
+    }
+
+    @Test
     void testAttributeBreakout() {
         assertEquals("&quot; onmouseover=&quot;alert(1)", HtmlUtils.escape("\" onmouseover=\"alert(1)"));
     }

@@ -2,7 +2,6 @@ package com.imsweb.x12;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
@@ -280,13 +279,14 @@ class SegmentTest {
         SegmentDefinition def = DefinitionTestUtils.segment("NM1", "Name <b>", "0100",
                 Collections.singletonList(DefinitionTestUtils.element("NM101", "Entity <i>")));
 
-        String html = s.toHtml(def, new ArrayList<>(List.of("2000A\"x")));
+        String html = s.toHtml(def, new ArrayList<>(Collections.singletonList("2000A\"x")));
 
         assertFalse(html.contains("<script>"));
         assertFalse(html.contains("<img"));
         assertFalse(html.contains("<b>"));
         assertFalse(html.contains("<i>"));
-        assertTrue(html.contains("<div id=\"2000A&quot;x\" class=\"x12-segment\">"));
+        // the segment's own id and index are part of its html id
+        assertTrue(html.contains("<div id=\"2000A&quot;x__NM1&lt;script&gt;-0\" class=\"x12-segment\">"));
         assertTrue(html.contains("<p>Name &lt;b&gt; (NM1&lt;script&gt;)</p>"));
         assertTrue(html.contains("Entity &lt;i&gt; (NM101): "));
         assertTrue(html.contains("value=\"&quot;&gt;&lt;img src=x onerror=alert(1)&gt;\""));
@@ -303,6 +303,62 @@ class SegmentTest {
 
         assertTrue(html.contains("N301: "));
         assertTrue(html.contains("value=\"123 Main &amp; Elm\""));
+    }
+
+    @Test
+    void testToHtmlSegmentIdsAreDistinctPerSegmentId() {
+        String nm1 = new Segment("NM1").toHtml(DefinitionTestUtils.segment("NM1", "Name", "0100", null), Collections.singletonList("2000A"));
+        String n3 = new Segment("N3").toHtml(DefinitionTestUtils.segment("N3", "Address", "0200", null), Collections.singletonList("2000A"));
+
+        assertTrue(nm1.startsWith("<div id=\"2000A__NM1-0\" class=\"x12-segment\">"));
+        assertTrue(n3.startsWith("<div id=\"2000A__N3-0\" class=\"x12-segment\">"));
+    }
+
+    @Test
+    void testToHtmlSegmentIdIncludesIndexAndParentHtmlId() {
+        SegmentDefinition def = DefinitionTestUtils.segment("NM1", "Name", "0100", null);
+        Segment s = new Segment("NM1");
+        s.addElement("NM101", "41");
+
+        String html = s.toHtml(def, Collections.singletonList("2300"), "2000B-0__2300-1", 2);
+
+        // html id carries the supplied parent html id and index, form input names are unaffected
+        assertTrue(html.startsWith("<div id=\"2000B-0__2300-1__NM1-2\" class=\"x12-segment\">"));
+        assertTrue(html.contains("name=\"2300__NM1__NM101\""));
+    }
+
+    @Test
+    void testToHtmlUsesCompositeDefinitionName() {
+        Segment s = new Segment("SV1");
+        s.addElement("SV101", "HC:99213");
+        s.addElement("SV102", "50");
+
+        SegmentDefinition def = DefinitionTestUtils.segment("SV1", "Professional Service", "0100",
+                Collections.singletonList(DefinitionTestUtils.element("SV102", "Charge Amount")),
+                Collections.singletonList(DefinitionTestUtils.composite("SV101", "Composite Medical Procedure <x>")));
+
+        String html = s.toHtml(def, new ArrayList<>());
+
+        assertTrue(html.contains("Composite Medical Procedure &lt;x&gt; (SV101): "));
+        assertTrue(html.contains("Charge Amount (SV102): "));
+        assertTrue(html.contains("name=\"SV1__SV101\" value=\"HC:99213\""));
+    }
+
+    @Test
+    void testToHtmlToleratesDefinitionsWithoutXid() {
+        Segment s = new Segment("NM1");
+        s.addElement("NM101", "41");
+
+        SegmentDefinition def = DefinitionTestUtils.segment("NM1", "Name", "0100",
+                Collections.singletonList(DefinitionTestUtils.element(null, "No Xid")),
+                Collections.singletonList(DefinitionTestUtils.composite(null, "No Xid Composite")));
+
+        String html = s.toHtml(def, new ArrayList<>());
+
+        assertTrue(html.contains("NM101: "));
+        assertFalse(html.contains("No Xid"));
+        // toMap shares the same lookup
+        assertNotNull(s.toMap(def, new ArrayList<>(), 0));
     }
 
 }

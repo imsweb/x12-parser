@@ -3,6 +3,7 @@ package com.imsweb.x12;
 import java.lang.reflect.Field;
 import java.util.List;
 
+import com.imsweb.x12.mapping.CompositeDefinition;
 import com.imsweb.x12.mapping.ElementDefinition;
 import com.imsweb.x12.mapping.LoopDefinition;
 import com.imsweb.x12.mapping.SegmentDefinition;
@@ -22,12 +23,24 @@ final class DefinitionTestUtils {
         return def;
     }
 
+    static CompositeDefinition composite(String xid, String name) {
+        CompositeDefinition def = new CompositeDefinition();
+        set(def, "_xid", xid);
+        set(def, "_name", name);
+        return def;
+    }
+
     static SegmentDefinition segment(String xid, String name, String pos, List<ElementDefinition> elements) {
+        return segment(xid, name, pos, elements, null);
+    }
+
+    static SegmentDefinition segment(String xid, String name, String pos, List<ElementDefinition> elements, List<CompositeDefinition> composites) {
         SegmentDefinition def = new SegmentDefinition();
         set(def, "_xid", xid);
         set(def, "_name", name);
         set(def, "_pos", pos);
         set(def, "_elements", elements);
+        set(def, "_composites", composites);
         return def;
     }
 

@@ -76,8 +76,10 @@ public class X12Writer {
      */
     public String toHtml() {
         StringBuilder builder = new StringBuilder();
+        int idx = 0;
         for (Loop loop : _dataLoops) {
-            builder.append(loop.toHtml(_definition.getLoop(), new ArrayList<>()));
+            builder.append(loop.toHtml(_definition.getLoop(), new ArrayList<>(), "", idx));
+            idx++;
         }
         return builder.toString();
     }

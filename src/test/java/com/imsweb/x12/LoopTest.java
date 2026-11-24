@@ -383,18 +383,64 @@ class LoopTest {
         LoopDefinition childDef = DefinitionTestUtils.loop("2010A", "Child 'loop'", "0200", Collections.singletonList(n3), null);
         LoopDefinition rootDef = DefinitionTestUtils.loop("2000A<i>", "Root <u>", "0100", Collections.singletonList(nm1), Collections.singletonList(childDef));
 
-        String html = root.toHtml(rootDef, new ArrayList<>(List.of("ST\"")));
+        String html = root.toHtml(rootDef, new ArrayList<>(Collections.singletonList("ST\"")));
 
         assertFalse(html.contains("<script>"));
         assertFalse(html.contains("<b>"));
         assertFalse(html.contains("<u>"));
         assertFalse(html.contains("<i>"));
-        assertTrue(html.contains("<div id=\"ST&quot;\" class=\"x12-loop\"><p>Root &lt;u&gt; (2000A&lt;i&gt;)</p>"));
+        // a loop's html id includes its own id, and the parent path is escaped
+        assertTrue(html.contains("<div id=\"ST&quot;__2000A&quot;&lt;x&gt;-0\" class=\"x12-loop\"><p>Root &lt;u&gt; (2000A&lt;i&gt;)</p>"));
         assertTrue(html.contains("Child &#39;loop&#39; (2010A)"));
         assertTrue(html.contains("value=\"&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;\""));
         assertTrue(html.contains("value=\"a&amp;b\""));
-        // nested ids are built from the (escaped) parent id path
-        assertTrue(html.contains("id=\"ST&quot;__2000A&quot;&lt;x&gt;\""));
+    }
+
+    @Test
+    void testToHtmlIdsReflectHierarchy() {
+        Loop root = new Loop("2000A");
+        root.addSegment("NM1*41");
+        root.addLoop("2010A").addSegment("N3*abc");
+
+        SegmentDefinition nm1 = DefinitionTestUtils.segment("NM1", "Name", "0100", null);
+        SegmentDefinition n3 = DefinitionTestUtils.segment("N3", "Address", "0100", null);
+        LoopDefinition childDef = DefinitionTestUtils.loop("2010A", "Child", "0200", Collections.singletonList(n3), null);
+        LoopDefinition rootDef = DefinitionTestUtils.loop("2000A", "Root", "0100", Collections.singletonList(nm1), Collections.singletonList(childDef));
+
+        String html = root.toHtml(rootDef, new ArrayList<>());
+
+        assertTrue(html.contains("<div id=\"2000A-0\" class=\"x12-loop\">"));
+        assertTrue(html.contains("<div id=\"2000A-0__NM1-0\" class=\"x12-segment\">"));
+        assertTrue(html.contains("<div id=\"2000A-0__2010A-0\" class=\"x12-loop\">"));
+        assertTrue(html.contains("<div id=\"2000A-0__2010A-0__N3-0\" class=\"x12-segment\">"));
+    }
+
+    @Test
+    void testToHtmlRepeatedSiblingsGetDistinctIds() {
+        Loop root = new Loop("2000B");
+        root.addSegment("REF*1");
+        root.addSegment("REF*2");
+        Loop first = root.addLoop("2300");
+        first.addSegment("CLM*A");
+        Loop second = root.addLoop("2300");
+        second.addSegment("CLM*B");
+
+        SegmentDefinition ref = DefinitionTestUtils.segment("REF", "Reference", "0100", null);
+        SegmentDefinition clm = DefinitionTestUtils.segment("CLM", "Claim", "0100", null);
+        LoopDefinition claimDef = DefinitionTestUtils.loop("2300", "Claim Loop", "0200", Collections.singletonList(clm), null);
+        LoopDefinition rootDef = DefinitionTestUtils.loop("2000B", "Root", "0100", Collections.singletonList(ref), Collections.singletonList(claimDef));
+
+        String html = root.toHtml(rootDef, new ArrayList<>());
+
+        assertTrue(html.contains("<div id=\"2000B-0__REF-0\" class=\"x12-segment\">"));
+        assertTrue(html.contains("<div id=\"2000B-0__REF-1\" class=\"x12-segment\">"));
+        assertTrue(html.contains("<div id=\"2000B-0__2300-0\" class=\"x12-loop\">"));
+        assertTrue(html.contains("<div id=\"2000B-0__2300-1\" class=\"x12-loop\">"));
+        // the same segment id inside different repeats of a loop must not collide either
+        assertTrue(html.contains("<div id=\"2000B-0__2300-0__CLM-0\" class=\"x12-segment\">"));
+        assertTrue(html.contains("<div id=\"2000B-0__2300-1__CLM-0\" class=\"x12-segment\">"));
+        // form input names keep the original (index free) path
+        assertTrue(html.contains("name=\"2000B__2300__CLM__CLM01\""));
     }
 
 }
